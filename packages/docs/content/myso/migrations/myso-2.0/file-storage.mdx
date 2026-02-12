@@ -1,0 +1,41 @@
+---
+title: '@socialproof/file-storage'
+---
+
+## Breaking Changes
+
+- **Client required**: `FileStorageClient` can no longer be created with just an RPC URL. You must pass a
+  MySo client.
+- **Network from client**: The `network` parameter has been removed from `fileStorage()`. The network is
+  now inferred from the client.
+- **Removed deprecated method**: `FileStorageClient.experimental_asClientExtension()` has been removed.
+  Use the `fileStorage()` function instead.
+
+## Updated Usage
+
+If you were creating `FileStorageClient` directly:
+
+```diff
+- import { FileStorageClient } from '@socialproof/file-storage';
++ import { MySoGrpcClient } from '@socialproof/myso/grpc'; // or MySoJsonRpcClient, MySoGraphQLClient
++ import { fileStorage } from '@socialproof/file-storage';
+
+- const fileStorageClient = new FileStorageClient({
+-   mysoRpcUrl: 'https://fullnode.testnet.mysocial.network:443',
+-   network: 'testnet',
+- });
++ const client = new MySoGrpcClient({
++   baseUrl: 'https://fullnode.testnet.mysocial.network:443',
++   network: 'testnet',
++ }).$extend(fileStorage());
+
+- await fileStorageClient.getBlob(blobId);
++ await client.fileStorage.getBlob(blobId);
+```
+
+If you were passing `network` to `fileStorage()`, remove it:
+
+```diff
+- client.$extend(fileStorage({ network: 'testnet' }));
++ client.$extend(fileStorage());
+```

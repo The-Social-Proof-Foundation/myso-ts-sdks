@@ -1,7 +1,7 @@
 # Move Bytecode Template
 
 Move Bytecode Template allows updating a pre-compiled bytecode, so that a standard template could be
-customized and used to publish new modules on Mys directly in the browser. Hence, removing the need
+customized and used to publish new modules on MySo directly in the browser. Hence, removing the need
 for a backend to compile new modules.
 
 This crate builds a WASM binary for the `move-language/move-binary-format` allowing bytecode
@@ -19,14 +19,14 @@ This package is a perfect fit for the following applications:
 ## Example of a Template Module
 
 The following code is a close-copy of the `Coin` example from the
-[Coins and Tokens](https://docs.mysocial.network/guides/developer/coin).
+[Coins and Tokens](https://docs.mysocial.network/standards/currency).
 
 ```move
 module 0x0::template {
     use std::option;
-    use mys::coin;
-    use mys::transfer;
-    use mys::tx_context::{Self, TxContext};
+    use myso::coin;
+    use myso::transfer;
+    use myso::tx_context::{Self, TxContext};
 
     /// The OTW for the Coin
     struct TEMPLATE has drop {}
@@ -106,74 +106,70 @@ guide to deploy the contract.
 
 ## Usage in Web applications
 
-The package consists of code and a wasm binary. While the former can be imported directly, the
-latter should be made available in static / public assets as a Web application. Initialization needs
-to be performed via a URL, and once completed, other functions become available.
+In some bundler and web applications you will need to set up and initialize the wasm bindings. The
+exact requirements depend on how your application is being built.
 
-```ts
-import init, initSync, * as template from '@socialproof/move-bytecode-template';
+The `@socialproof/move-bytecode-template` has 2 relevant exports you might need to get things working
+correctly.
 
-await init('path/to/move_binary_format_bg.wasm');
-// alternatively initSync(...);
+- `init` is an exported function that initializes the wasm module in browser environments (a no-op
+  function is exported when running in node so you can use this anywhere)
+- `/web/file_storage_wasm_bg.wasm` is an export of the wasm module itself, which may be needed in some
+  bundlers to know where to import the wasm module from
 
-let version = template.version();
-let json = template.deserialize(fromHex('a11ceb0b06....'));
-let bytes = template.serialize(json);
+### Initializing in webpack and nodejs
 
-console.assert(json == bytes, '(de)serialization failed!');
-```
-
-## Using with Vite
-
-To use this package with Vite, you need to import the source file and the wasm binary.
+In webpack and nodejs you should be able to initialize the wasm module without specifying the
+location of the wasm module:
 
 ```ts
 import init, * as template from '@socialproof/move-bytecode-template';
-import url from '@socialproof/move-bytecode-template/move_bytecode_template_bg.wasm?url';
+
+await init();
+
+const json = template.deserialize(fromHex('a11ceb0b06....'));
+const bytes = template.serialize(json);
 ```
 
-Later, you can initialize the package with the URL.
+## Vite
+
+In vite (and some other bundlers) you may need to disable certain optimizations so the wasm module
+can be loaded correctly. You can add something like this to your vite config:
 
 ```ts
-await init(url);
-```
-
-Lastly, once the package is initialized, you can use the functions as described in the previous
-section.
-
-```ts
-const templateBytecode = fromHex('a11ceb0b06....');
-
-template.deserialize(templateBytecode);
-template.version();
-template.update_identifiers(templateBytecode, {
-	TEMPLATE: 'MY_MODULE',
-	template: 'my_module',
+export default defineConfig({
+	optimizeDeps: {
+		exclude: ["@socialproof/move-bytecode-template"],
+	},
 });
+```
+
+## Initializing wasm with a url
+
+If initialization fails without the url, you may need to specify a url where the wasm module can be
+loaded. Some bundlers support a `?url` suffix for imports that will return a url where the resource
+can be loaded from:
+
+```ts
+import init, * as template from '@socialproof/move-bytecode-template';
+import url from '@socialproof/move-bytecode-template/web/move_bytecode_template_bg.wasm?url';
+
+await init({ module_or_path: url });
 ```
 
 ## Build locally
 
 To build the binary, you need to have Rust installed and then the `wasm-pack`. The installation
-script [can be found here](https://rustwasm.github.io/wasm-pack/).
-
-Building for test (nodejs) environment - required for tests.
+script [can be found here](https://github.com/rustwasm/wasm-pack).
 
 ```
-pnpm build:dev
-```
-
-Building for web environment.
-
-```
-pnpm build:release
+pnpm build:wasm
 ```
 
 ## Running tests
 
-Local tests can only be run on the `dev` build. To run tests, follow these steps:
+After building tests can be run with
 
 ```
-pnpm build:dev
 pnpm test
 ```

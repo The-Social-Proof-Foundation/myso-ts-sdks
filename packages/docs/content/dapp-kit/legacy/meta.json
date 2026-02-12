@@ -1,0 +1,14 @@
+{
+	"title": "dApp Kit (Legacy)",
+	"description": "Build MySo dapps in React with @socialproof/dapp-kit",
+	"pages": [
+		"index",
+		"myso-client-provider",
+		"rpc-hooks",
+		"wallet-provider",
+		"wallet-components",
+		"wallet-hooks",
+		"slush",
+		"themes"
+	]
+}

@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { WalletWithRequiredFeatures } from '@socialproof/wallet-standard';
+import { SLUSH_WALLET_NAME, SLUSH_WALLET_ICON } from '@socialproof/slush-wallet';
 
 import { getWalletUniqueIdentifier } from '../../../utils/walletUtils.js';
-import { MysIcon } from '../../icons/MysIcon.js';
 import * as styles from './WalletList.css.js';
 import { WalletListItem } from './WalletListItem.js';
 
@@ -36,8 +36,8 @@ export function WalletList({
 				))
 			) : (
 				<WalletListItem
-					name="Mys Wallet"
-					icon={<MysIcon />}
+					name={SLUSH_WALLET_NAME}
+					icon={SLUSH_WALLET_ICON}
 					onClick={onPlaceholderClick}
 					isSelected
 				/>

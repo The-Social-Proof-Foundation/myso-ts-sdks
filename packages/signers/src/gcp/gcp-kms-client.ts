@@ -2,11 +2,11 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 import { KeyManagementServiceClient } from '@google-cloud/kms';
-import type { PublicKey, SignatureFlag } from '@socialproof/mys/cryptography';
-import { SIGNATURE_FLAG_TO_SCHEME, Signer } from '@socialproof/mys/cryptography';
-import { Secp256k1PublicKey } from '@socialproof/mys/keypairs/secp256k1';
-import { Secp256r1PublicKey } from '@socialproof/mys/keypairs/secp256r1';
-import { fromBase64 } from '@socialproof/mys/utils';
+import type { PublicKey, SignatureFlag } from '@socialproof/myso/cryptography';
+import { SIGNATURE_FLAG_TO_SCHEME, Signer } from '@socialproof/myso/cryptography';
+import { Secp256k1PublicKey } from '@socialproof/myso/keypairs/secp256k1';
+import { Secp256r1PublicKey } from '@socialproof/myso/keypairs/secp256r1';
+import { fromBase64 } from '@socialproof/myso/utils';
 
 import { getConcatenatedSignature, publicKeyFromDER } from '../utils/utils.js';
 
@@ -23,7 +23,7 @@ export interface GcpKmsSignerOptions {
 }
 
 /**
- * GCP KMS Signer integrates GCP Key Management Service (KMS) with the Mys blockchain
+ * GCP KMS Signer integrates GCP Key Management Service (KMS) with the MySo blockchain
  * to provide signing capabilities using GCP-managed cryptographic keys.
  */
 export class GcpKmsSigner extends Signer {
@@ -74,7 +74,7 @@ export class GcpKmsSigner extends Signer {
 	 * @returns A promise that resolves to the signature as a Uint8Array.
 	 * @throws Will throw an error if the public key is not initialized or if signing fails.
 	 */
-	async sign(bytes: Uint8Array): Promise<Uint8Array> {
+	async sign(bytes: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
 		const [signResponse] = await this.#client.asymmetricSign({
 			name: this.#versionName,
 			data: bytes,
@@ -85,14 +85,6 @@ export class GcpKmsSigner extends Signer {
 		}
 
 		return getConcatenatedSignature(signResponse.signature as Uint8Array, this.getKeyScheme());
-	}
-
-	/**
-	 * Synchronous signing is not supported by GCP KMS.
-	 * @throws Always throws an error indicating synchronous signing is unsupported.
-	 */
-	signData(): never {
-		throw new Error('GCP Signer does not support sync signing');
 	}
 
 	/**

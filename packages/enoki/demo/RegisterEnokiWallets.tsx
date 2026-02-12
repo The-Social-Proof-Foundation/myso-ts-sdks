@@ -2,14 +2,15 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useMysClientContext } from '@socialproof/dapp-kit';
+import { useCurrentClient, useCurrentNetwork } from '@socialproof/dapp-kit-react';
 import { useEffect } from 'react';
 
 import { isEnokiNetwork } from '../src/index.js';
-import { registerEnokiWallets } from '../src/wallet/index.js';
+import { registerEnokiWallets } from '../src/wallet/register.js';
 
 export function RegisterEnokiWallets() {
-	const { client, network } = useMysClientContext();
+	const client = useCurrentClient();
+	const network = useCurrentNetwork();
 
 	useEffect(() => {
 		if (!isEnokiNetwork(network)) return;

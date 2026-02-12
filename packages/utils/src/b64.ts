@@ -2,7 +2,7 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-export function fromBase64(base64String: string): Uint8Array {
+export function fromBase64(base64String: string): Uint8Array<ArrayBuffer> {
 	return Uint8Array.from(atob(base64String), (char) => char.charCodeAt(0));
 }
 

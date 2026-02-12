@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { GcpKmsSigner } from '../src/gcp/gcp-kms-client';
+import { GcpKmsSigner } from '../src/gcp/gcp-kms-client.js';
 
 const { E2E_GCP_KMS_TEST_ENABLE } = process.env;
 
@@ -37,10 +37,10 @@ describe.runIf(E2E_GCP_KMS_TEST_ENABLE === 'true')('GCP KMS signer E2E testing',
 		});
 	});
 
-	it('should retrieve the correct mys address', async () => {
+	it('should retrieve the correct myso address', async () => {
 		const publicKey = signer.getPublicKey();
 
-		expect(publicKey.toMysAddress()).toEqual(
+		expect(publicKey.toMySoAddress()).toEqual(
 			'0x2ac50bf55beac50aa004c6ac1f46a058e21c86980303d87b8e3b3d3fa7b8d9eb',
 		);
 	});

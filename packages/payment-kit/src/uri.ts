@@ -1,0 +1,170 @@
+// Copyright (c) Mysten Labs, Inc.
+// Copyright (c) The Social Proof Foundation, LLC.
+// SPDX-License-Identifier: Apache-2.0
+
+import { isValidNamedType, isValidMySoAddress, isValidMySoObjectId } from '@socialproof/myso/utils';
+import type { PaymentUriParams } from './types.js';
+import { PaymentKitUriError } from './error.js';
+import { MYSO_PAYMENT_KIT_PROTOCOL } from './constants.js';
+
+const isValidNonce = (nonce: string) => {
+	return nonce.length <= 36;
+};
+
+const isValidAmount = (amount: bigint) => {
+	return amount > 0n;
+};
+
+const isValidCoinType = (coinType: string) => {
+	return isValidNamedType(coinType);
+};
+
+/**
+ * Create a payment transaction URI from the given parameters.
+ * Returns the constructed URI string.
+ *
+ * @example
+ * ```ts
+ * const uri = createPaymentTransactionUri({
+ *   receiverAddress: "0x...",
+ *   amount: "10000000", (0.01 MYSO)
+ *   coinType: "0x2::myso::MYSO",
+ *   nonce: <nonce>,
+ *   registryName: "my-registry"
+ * });
+ * ```
+ */
+export const createPaymentTransactionUri = (params: PaymentUriParams): string => {
+	const { receiverAddress, amount, coinType, nonce, registryId, registryName } = params;
+
+	const uri = new URL(MYSO_PAYMENT_KIT_PROTOCOL);
+
+	if (isValidMySoAddress(receiverAddress)) {
+		uri.searchParams.append('receiver', receiverAddress);
+	} else {
+		throw new PaymentKitUriError('Invalid MySo address');
+	}
+
+	if (isValidAmount(amount)) {
+		uri.searchParams.append('amount', amount.toString());
+	} else {
+		throw new PaymentKitUriError('Amount must be a positive numeric string');
+	}
+
+	if (isValidCoinType(coinType)) {
+		uri.searchParams.append('coinType', coinType);
+	} else {
+		throw new PaymentKitUriError('Invalid Coin Type');
+	}
+
+	if (isValidNonce(nonce)) {
+		uri.searchParams.append('nonce', nonce);
+	} else {
+		throw new PaymentKitUriError('Nonce length exceeds maximum of 36 characters');
+	}
+
+	if (registryId) {
+		if (isValidMySoObjectId(registryId)) {
+			uri.searchParams.append('registry', registryId);
+		} else {
+			throw new PaymentKitUriError('Invalid MySo Object Id for Registry Id');
+		}
+	}
+
+	if (registryName) {
+		uri.searchParams.append('registry', registryName);
+	}
+
+	if (params.label) {
+		uri.searchParams.append('label', params.label);
+	}
+
+	if (params.message) {
+		uri.searchParams.append('message', params.message);
+	}
+
+	if (params.iconUrl) {
+		uri.searchParams.append('iconUrl', params.iconUrl);
+	}
+
+	return uri.toString();
+};
+
+/**
+ * Parse a payment transaction URI into its components.
+ * Returns the parsed payment URI parameters.
+ *
+ * @example
+ * ```ts
+ * const params = parsePaymentTransactionUri("myso:0x...?amount=1000000&coinType=0x...&nonce=...");
+ * ```
+ */
+export const parsePaymentTransactionUri = (uri: string): PaymentUriParams => {
+	if (!uri.startsWith(MYSO_PAYMENT_KIT_PROTOCOL + '?')) {
+		throw new PaymentKitUriError('Invalid URI: Must start with myso:pay?');
+	}
+
+	const url = new URL(uri);
+
+	// Extract query parameters
+	const params = url.searchParams;
+	const receiver = params.get('receiver');
+	const amount = params.get('amount');
+	const coinType = params.get('coinType');
+	const nonce = params.get('nonce');
+
+	// Amount and CoinType are required
+	if (!receiver || !amount || !coinType || !nonce) {
+		throw new PaymentKitUriError('Invalid URI: Missing required parameters');
+	}
+
+	// Validate the receiver address
+	if (!isValidMySoAddress(receiver)) {
+		throw new PaymentKitUriError('Invalid URI: Receiver address is not valid');
+	}
+
+	if (!isValidCoinType(coinType)) {
+		throw new PaymentKitUriError('Invalid URI: Coin Type is not valid');
+	}
+
+	if (!isValidNonce(nonce)) {
+		throw new PaymentKitUriError('Invalid URI: Nonce length exceeds maximum of 36 characters');
+	}
+
+	// Validate amount is a valid numeric string (int or float) and positive
+	const bigIntAmount = BigInt(amount);
+	if (!isValidAmount(bigIntAmount)) {
+		throw new PaymentKitUriError('Invalid URI: Amount must be a positive number');
+	}
+
+	// Extract optional registry parameter
+	const registry = params.get('registry') ?? undefined;
+
+	// Determine if registry is an ID or name
+	let registryId: string | undefined;
+	let registryName: string | undefined;
+
+	if (registry) {
+		if (isValidMySoObjectId(registry)) {
+			registryId = registry;
+		} else {
+			registryName = registry;
+		}
+	}
+
+	const baseParams = {
+		receiverAddress: receiver,
+		amount: bigIntAmount,
+		coinType,
+		nonce: nonce,
+		label: params.get('label') ?? undefined,
+		message: params.get('message') ?? undefined,
+		iconUrl: params.get('icon') ?? undefined,
+	};
+
+	if (registryId) {
+		return { ...baseParams, registryId };
+	}
+
+	return { ...baseParams, registryName };
+};

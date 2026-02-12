@@ -1,28 +1,30 @@
-// Copyright (c) MySocial, Inc.
+// Copyright (c) Mysten Labs, Inc.
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
-
 import './global.css';
 
-import { RootProvider } from 'fumadocs-ui/provider';
+import { Banner } from 'fumadocs-ui/components/banner';
+import { RootProvider } from 'fumadocs-ui/provider/next';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import Link from 'next/link';
+import CloudFlareAnalytics from '@/components/CloudFlareAnalytics';
 
 export const metadata: Metadata = {
 	title: {
-		template: '%s | MySocial TypeScript SDK Docs',
-		default: 'MySocial TypeScript SDK Docs',
+		template: '%s | Mysten Labs TypeScript SDK Docs',
+		default: 'Mysten Labs TypeScript SDK Docs',
 	},
 	description:
-		'MySocial TypeScript SDK Docs. Discover the power of MySocial through examples, guides, and concepts.',
+		'Mysten Labs TypeScript SDK Docs. Discover the power of MySo and File Storage through examples, guides, and concepts.',
 	openGraph: {
-		title: 'MySocial TypeScript SDK Docs',
+		title: 'Mysten Labs TypeScript SDK Docs',
 		description:
-			'MySocial TypeScript SDK Docs. Discover the power of MySocial through examples, guides, and concepts.',
-		siteName: 'MySocial TypeScript SDK Docs',
+			'Mysten Labs TypeScript SDK Docs. Discover the power of MySo and File Storage through examples, guides, and concepts.',
+		siteName: 'Mysten Labs TypeScript SDK Docs',
 	},
 	appleWebApp: {
-		title: 'MySocial TypeScript SDK Docs',
+		title: 'Mysten Labs TypeScript SDK Docs',
 	},
 };
 
@@ -39,9 +41,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 					content="T-2HWJAKh8s63o9KFxCFXg5MON_NGLJG76KJzr_Hp0A"
 				/>
 				<meta httpEquiv="Content-Language" content="en" />
+				<meta name="algolia-site-verification" content="BCA21DA2879818D2" />
 			</head>
 			<body className="flex flex-col min-h-screen">
+				<Banner id="sdk-2-migration">
+					@socialproof/myso v2.0 and a new dApp Kit are here!&nbsp;
+					<Link href="/myso/migrations/myso-2.0" className="underline">
+						Check out the migration guide
+					</Link>
+				</Banner>
 				<RootProvider>{children}</RootProvider>
+				<CloudFlareAnalytics />
 			</body>
 		</html>
 	);

@@ -1,0 +1,110 @@
+// Copyright (c) Mysten Labs, Inc.
+// Copyright (c) The Social Proof Foundation, LLC.
+// SPDX-License-Identifier: Apache-2.0
+
+// Main client and configuration
+export { OrderbookClient, orderbook } from './client.js';
+export type { OrderbookCompatibleClient, OrderbookOptions, OrderbookClientOptions } from './client.js';
+export { OrderbookConfig } from './utils/config.js';
+
+// Core contract classes
+export { BalanceManagerContract } from './transactions/balanceManager.js';
+export { OrderbookContract } from './transactions/orderbook.js';
+export { OrderbookAdminContract } from './transactions/orderbookAdmin.js';
+export { FlashLoanContract } from './transactions/flashLoans.js';
+export { GovernanceContract } from './transactions/governance.js';
+
+// Margin trading contracts
+export { MarginAdminContract } from './transactions/marginAdmin.js';
+export { MarginMaintainerContract } from './transactions/marginMaintainer.js';
+export { MarginManagerContract } from './transactions/marginManager.js';
+export { MarginPoolContract } from './transactions/marginPool.js';
+export { PoolProxyContract } from './transactions/poolProxy.js';
+export { MarginTPSLContract } from './transactions/marginTPSL.js';
+
+// Pyth price feed integration
+export { MySoPythClient, MySoPriceServiceConnection } from './pyth/pyth.js';
+
+// BCS types for parsing on-chain data
+export { Account, Balances, Order, OrderDeepPrice, VecSet } from './types/bcs.js';
+
+// TypeScript interfaces and types
+export type {
+	BalanceManager,
+	Coin,
+	Pool,
+	MarginManager,
+	MarginPool,
+	Config,
+} from './types/index.js';
+
+// Trading parameter interfaces
+export type {
+	PlaceLimitOrderParams,
+	PlaceMarketOrderParams,
+	PlaceMarginLimitOrderParams,
+	PlaceMarginMarketOrderParams,
+	SwapParams,
+	ProposalParams,
+	MarginProposalParams,
+	CreatePoolAdminParams,
+	CreatePermissionlessPoolParams,
+	SetEwmaParams,
+	PoolConfigParams,
+	MarginPoolConfigParams,
+	InterestConfigParams,
+} from './types/index.js';
+
+// TPSL (Take Profit / Stop Loss) parameter interfaces
+export type {
+	PendingLimitOrderParams,
+	PendingMarketOrderParams,
+	AddConditionalOrderParams,
+} from './types/index.js';
+
+// Enums for trading
+export { OrderType, SelfMatchingOptions } from './types/index.js';
+
+// Constants and configuration maps
+export type { CoinMap, PoolMap, MarginPoolMap, OrderbookPackageIds } from './utils/constants.js';
+
+// Default configurations for mainnet and testnet
+export {
+	mainnetCoins,
+	testnetCoins,
+	mainnetPools,
+	testnetPools,
+	mainnetMarginPools,
+	testnetMarginPools,
+	mainnetPackageIds,
+	testnetPackageIds,
+	mainnetPythConfigs,
+	testnetPythConfigs,
+} from './utils/constants.js';
+export {
+	DEEP_SCALAR,
+	FLOAT_SCALAR,
+	GAS_BUDGET,
+	MAX_TIMESTAMP,
+	POOL_CREATION_FEE_DEEP,
+	PRICE_INFO_OBJECT_MAX_AGE_MS,
+} from './utils/config.js';
+
+// Error handling utilities
+export {
+	OrderbookError,
+	ResourceNotFoundError,
+	ConfigurationError,
+	ValidationError,
+	ErrorMessages,
+} from './utils/errors.js';
+
+// Validation utilities
+export {
+	validateRequired,
+	validateAddress,
+	validatePositiveNumber,
+	validateNonNegativeNumber,
+	validateRange,
+	validateNonEmptyArray,
+} from './utils/validation.js';

@@ -2,7 +2,14 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Argument, Transaction, TransactionObjectArgument } from '@socialproof/mys/transactions';
+import { bcs } from '@socialproof/myso/bcs';
+import type { Argument, Transaction, TransactionObjectArgument } from '@socialproof/myso/transactions';
+
+export const ZkBagStruct = bcs.struct('ZkBag', {
+	id: bcs.Address,
+	owner: bcs.Address,
+	item_ids: bcs.vector(bcs.Address),
+});
 
 export interface ZkBagContractOptions {
 	packageId: string;

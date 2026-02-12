@@ -1,18 +1,18 @@
-# Mys dApp Kit
+# MySo dApp Kit
 
-The Mys dApp Kit is a set of React components, hooks, and utilities that make it easy to build a
-dApp for the Mys ecosystem. It provides hooks and components for querying data from the Mys
-blockchain, and connecting to Mys wallets.
+The MySo dApp Kit is a set of React components, hooks, and utilities that make it easy to build a
+dApp for the MySo ecosystem. It provides hooks and components for querying data from the MySo
+blockchain, and connecting to MySo wallets.
 
-See https://sdk.mysocial.network/typescript for full documentation
+See https://sdk.mystenlabs.com/myso for full documentation
 
 ### Core Features
 
-- **Query Hooks:** dApp Kit provides a set of hooks for making rpc calls to the Mys blockchain,
+- **Query Hooks:** dApp Kit provides a set of hooks for making rpc calls to the MySo blockchain,
   making it easy to load any information needed for your dApp.
 - **Automatic Wallet State Management:** dApp Kit removes the complexity of state management related
   to wallet connections. You can focus on building your dApp.
-- **Supports all Mys wallets:** No need to manually define wallets you support. All Mys wallets are
+- **Supports all MySo wallets:** No need to manually define wallets you support. All MySo wallets are
   automatically supported.
 - **Easy to integrate:** dApp Kit provides pre-built React Components that you can drop right into
   your dApp, for easier integration
@@ -21,10 +21,10 @@ See https://sdk.mysocial.network/typescript for full documentation
 
 ## Install from NPM
 
-To use the Mys dApp Kit in your project, run the following command in your project root:
+To use the MySo dApp Kit in your project, run the following command in your project root:
 
 ```sh npm2yarn
-npm i --save @socialproof/dapp-kit @socialproof/mys @tanstack/react-query
+npm i --save @socialproof/dapp-kit @socialproof/myso @tanstack/react-query
 ```
 
 ## Setting up providers
@@ -34,25 +34,25 @@ providers. The props available on the providers are covered in more detail in th
 pages.
 
 ```tsx
-import { createNetworkConfig, MysClientProvider, WalletProvider } from '@socialproof/dapp-kit';
-import { getFullnodeUrl, type MysClientOptions } from '@socialproof/mys/client';
+import { createNetworkConfig, MySoClientProvider, WalletProvider } from '@socialproof/dapp-kit';
+import { getJsonRpcFullnodeUrl, type MySoClientOptions } from '@socialproof/myso/jsonRpc';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Config options for the networks you want to connect to
 const { networkConfig } = createNetworkConfig({
-	localnet: { url: getFullnodeUrl('localnet') },
-	mainnet: { url: getFullnodeUrl('mainnet') },
+	localnet: { url: getJsonRpcFullnodeUrl('localnet') },
+	mainnet: { url: getJsonRpcFullnodeUrl('mainnet') },
 });
 const queryClient = new QueryClient();
 
 function App() {
 	return (
 		<QueryClientProvider client={queryClient}>
-			<MysClientProvider networks={networkConfig} defaultNetwork="localnet">
+			<MySoClientProvider networks={networkConfig} defaultNetwork="localnet">
 				<WalletProvider>
 					<YourApp />
 				</WalletProvider>
-			</MysClientProvider>
+			</MySoClientProvider>
 		</QueryClientProvider>
 	);
 }
@@ -67,7 +67,7 @@ dApp up and running.
 
 To use our provided UI components, you will need to import the dApp Kit's CSS stylesheet into your
 dApp as shown below. For more information regarding customization options, check out the respective
-documentation pages for the components and [themes](https://sdk.mysocial.network/dapp-kit/themes).
+documentation pages for the components and [themes](https://sdk.mystenlabs.com/dapp-kit/themes).
 
 ```tsx
 import '@socialproof/dapp-kit/dist/index.css';
@@ -75,16 +75,16 @@ import '@socialproof/dapp-kit/dist/index.css';
 
 ## Using hooks to make RPC calls
 
-The dApp Kit provides a set of hooks for making RPC calls to the Mys blockchain. The hooks are thin
+The dApp Kit provides a set of hooks for making RPC calls to the MySo blockchain. The hooks are thin
 wrappers around `useQuery` from `@tanstack/react-query`. For more comprehensive documentation on how
 these query hooks can be used, check out the
 [react-query docs](https://tanstack.com/query/latest/docs/react/overview).
 
 ```tsx
-import { useMysClientQuery } from '@socialproof/dapp-kit';
+import { useMySoClientQuery } from '@socialproof/dapp-kit';
 
 function MyComponent() {
-	const { data, isPending, error, refetch } = useMysClientQuery('getOwnedObjects', {
+	const { data, isPending, error, refetch } = useMySoClientQuery('getOwnedObjects', {
 		owner: '0x123',
 	});
 

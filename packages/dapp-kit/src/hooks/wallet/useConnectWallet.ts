@@ -51,19 +51,19 @@ export function useConnectWallet({
 				setConnectionStatus('connecting');
 
 				const connectResult = await wallet.features['standard:connect'].connect(connectArgs);
-				const connectedMysAccounts = connectResult.accounts.filter((account) =>
-					account.chains.some((chain) => chain.split(':')[0] === 'mys'),
+				let supportedIntents = connectResult.supportedIntents;
+				if (!supportedIntents && wallet.features['myso:getCapabilities']) {
+					supportedIntents =
+						(await wallet.features['myso:getCapabilities'].getCapabilities()).supportedIntents ?? [];
+				}
+				const connectedMySoAccounts = connectResult.accounts.filter((account) =>
+					account.chains.some((chain) => chain.split(':')[0] === 'myso'),
 				);
-				const selectedAccount = getSelectedAccount(connectedMysAccounts, accountAddress);
+				const selectedAccount = getSelectedAccount(connectedMySoAccounts, accountAddress);
 
-				setWalletConnected(
-					wallet,
-					connectedMysAccounts,
-					selectedAccount,
-					connectResult.supportedIntents,
-				);
+				setWalletConnected(wallet, connectedMySoAccounts, selectedAccount, supportedIntents);
 
-				return { accounts: connectedMysAccounts };
+				return { accounts: connectedMySoAccounts };
 			} catch (error) {
 				setConnectionStatus('disconnected');
 				throw error;

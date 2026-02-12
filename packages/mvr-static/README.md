@@ -1,8 +1,8 @@
 # mvr-static
 
 The mvr-static tool is a typescript CLI tool to generate a static file for Move Registry (mvr)
-resolution. This can be used to cache all MVR names for performance & security reasons, and used in
-the `NamedPackagesPlugin` (exported from `@socialproof/mys`) in your project.
+resolution. This can be used to cache all MVR names for performance & security reasons, and used
+with the MySo client's built-in MVR support.
 
 ## Usage
 
@@ -20,9 +20,9 @@ Available options:
 - `--output <file-name>`: The output's file name (defaults to `mvr.ts`)
 - `--depth <depth>`: The depth of recursive search for MVR names (defaults to `10`)
 - `--url-mainnet <url>`: The URL to the mainnet MVR (defaults to
-  `https://mainnet.mvr.mysocial.network`)
+  `https://mainnet.mvr.mystenlabs.com`)
 - `--url-testnet <url>`: The URL to the testnet MVR (defaults to
-  `https://testnet.mvr.mysocial.network`)
+  `https://testnet.mvr.mystenlabs.com`)
 - `--include <dir_patterns>`: The directory patterns to include in the search (defaults to
   `**/*.{js,ts,jsx,tsx,mjs,cjs}`)
 - `--exclude <dir_patterns>`: The directory patterns to exclude in the search (defaults to
@@ -32,18 +32,21 @@ Available options:
 ### Use the static file in your project
 
 Once you have your static file, you can use it in your project by importing it and passing it to the
-`NamedPackagesPlugin` in your project.
+MySo client initialization. MVR resolution is now built into the core client.
 
 ```ts
-import { NamedPackagesPlugin } from '@socialproof/mys/src/transactions';
-
+import { MySoGrpcClient } from '@socialproof/myso/grpc';
 import { getMvrCache } from './mvr.ts';
 
-// create a cache for your network.
-const cache = getMvrCache('mainnet');
-
-const plugin = new NamedPackagesPlugin({
-	// ...,
-	overrides: cache,
+// Create a gRPC client with MVR overrides for your network
+const client = new MySoGrpcClient({
+	network: 'mainnet',
+	baseUrl: 'https://fullnode.mainnet.mysocial.network:443',
+	mvr: {
+		overrides: getMvrCache('mainnet'),
+	},
 });
 ```
+
+The client will now use your pre-resolved MVR names instead of making API calls, which improves
+performance and security.

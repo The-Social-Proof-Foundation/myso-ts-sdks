@@ -2,7 +2,7 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import { fromBase64, toBase64 } from '@socialproof/mys/utils';
+import { fromBase64, toBase64 } from '@socialproof/myso/utils';
 import type {
 	IdentifierString,
 	StandardConnectFeature,
@@ -12,27 +12,28 @@ import type {
 	StandardEventsFeature,
 	StandardEventsListeners,
 	StandardEventsOnMethod,
-	MysSignAndExecuteTransactionFeature,
-	MysSignAndExecuteTransactionMethod,
-	MysSignPersonalMessageFeature,
-	MysSignPersonalMessageMethod,
-	MysSignTransactionBlockFeature,
-	MysSignTransactionBlockMethod,
-	MysSignTransactionFeature,
-	MysSignTransactionMethod,
+	MySoSignAndExecuteTransactionFeature,
+	MySoSignAndExecuteTransactionMethod,
+	MySoSignPersonalMessageFeature,
+	MySoSignPersonalMessageMethod,
+	MySoSignTransactionBlockFeature,
+	MySoSignTransactionBlockMethod,
+	MySoSignTransactionFeature,
+	MySoSignTransactionMethod,
 	Wallet,
 	WalletIcon,
 } from '@socialproof/wallet-standard';
 import {
 	getWallets,
 	ReadonlyWalletAccount,
-	MYS_DEVNET_CHAIN,
-	MYS_MAINNET_CHAIN,
-	MYS_TESTNET_CHAIN,
+	MYSO_DEVNET_CHAIN,
+	MYSO_MAINNET_CHAIN,
+	MYSO_TESTNET_CHAIN,
 } from '@socialproof/wallet-standard';
-import type { Emitter } from 'mitt';
-import mitt from 'mitt';
 import { DappPostMessageChannel, decodeJwtSession } from '@socialproof/window-wallet-core';
+import { mitt, promiseWithResolvers, type Emitter } from '@socialproof/utils';
+
+import '../components/modal.js';
 
 export type SupportedNetwork = 'mainnet' | 'testnet' | 'devnet';
 
@@ -40,13 +41,13 @@ type WalletEventsMap = {
 	[E in keyof StandardEventsListeners]: Parameters<StandardEventsListeners[E]>[0];
 };
 
-const SUPPORTED_CHAINS = [MYS_MAINNET_CHAIN, MYS_TESTNET_CHAIN, MYS_DEVNET_CHAIN] as const;
+const SUPPORTED_CHAINS = [MYSO_MAINNET_CHAIN, MYSO_TESTNET_CHAIN, MYSO_DEVNET_CHAIN] as const;
 const ACCOUNT_FEATURES = [
-	'mys:signTransaction',
-	'mys:signAndExecuteTransaction',
-	'mys:signPersonalMessage',
-	'mys:signTransactionBlock',
-	'mys:signAndExecuteTransactionBlock',
+	'myso:signTransaction',
+	'myso:signAndExecuteTransaction',
+	'myso:signPersonalMessage',
+	'myso:signTransactionBlock',
+	'myso:signAndExecuteTransactionBlock',
 ] as const;
 
 export class EnokiConnectWallet implements Wallet {
@@ -83,10 +84,10 @@ export class EnokiConnectWallet implements Wallet {
 	get features(): StandardConnectFeature &
 		StandardDisconnectFeature &
 		StandardEventsFeature &
-		MysSignTransactionBlockFeature &
-		MysSignTransactionFeature &
-		MysSignPersonalMessageFeature &
-		MysSignAndExecuteTransactionFeature {
+		MySoSignTransactionBlockFeature &
+		MySoSignTransactionFeature &
+		MySoSignPersonalMessageFeature &
+		MySoSignAndExecuteTransactionFeature {
 		return {
 			'standard:connect': {
 				version: '1.0.0',
@@ -100,19 +101,19 @@ export class EnokiConnectWallet implements Wallet {
 				version: '1.0.0',
 				on: this.#on,
 			},
-			'mys:signTransactionBlock': {
+			'myso:signTransactionBlock': {
 				version: '1.0.0',
 				signTransactionBlock: this.#signTransactionBlock,
 			},
-			'mys:signTransaction': {
+			'myso:signTransaction': {
 				version: '2.0.0',
 				signTransaction: this.#signTransaction,
 			},
-			'mys:signPersonalMessage': {
+			'myso:signPersonalMessage': {
 				version: '1.1.0',
 				signPersonalMessage: this.#signPersonalMessage,
 			},
-			'mys:signAndExecuteTransaction': {
+			'myso:signAndExecuteTransaction': {
 				version: '2.0.0',
 				signAndExecuteTransaction: this.#signAndExecuteTransaction,
 			},
@@ -140,17 +141,17 @@ export class EnokiConnectWallet implements Wallet {
 		this.#walletName = walletName;
 		this.#dappName = dappName;
 		this.#icon = icon;
-		this.#defaultChain = `mys:${network}`;
+		this.#defaultChain = `myso:${network}`;
 		this.#publicAppSlug = publicAppSlug;
 		this.id = `enoki-connect-${publicAppSlug}`;
 	}
 
-	#signTransactionBlock: MysSignTransactionBlockMethod = async ({
+	#signTransactionBlock: MySoSignTransactionBlockMethod = async ({
 		transactionBlock,
 		account,
 		chain,
 	}) => {
-		const popup = this.#getNewPopupChannel();
+		const popup = await this.#getNewPopupChannel();
 		const response = await popup.send({
 			type: 'sign-transaction',
 			chain,
@@ -165,8 +166,8 @@ export class EnokiConnectWallet implements Wallet {
 		};
 	};
 
-	#signTransaction: MysSignTransactionMethod = async ({ transaction, account, chain }) => {
-		const popup = this.#getNewPopupChannel();
+	#signTransaction: MySoSignTransactionMethod = async ({ transaction, account, chain }) => {
+		const popup = await this.#getNewPopupChannel();
 		const response = await popup.send({
 			type: 'sign-transaction',
 			chain,
@@ -181,12 +182,12 @@ export class EnokiConnectWallet implements Wallet {
 		};
 	};
 
-	#signAndExecuteTransaction: MysSignAndExecuteTransactionMethod = async ({
+	#signAndExecuteTransaction: MySoSignAndExecuteTransactionMethod = async ({
 		transaction,
 		account,
 		chain,
 	}) => {
-		const popup = this.#getNewPopupChannel();
+		const popup = await this.#getNewPopupChannel();
 		const response = await popup.send({
 			type: 'sign-and-execute-transaction',
 			transaction: await transaction.toJSON(),
@@ -203,8 +204,8 @@ export class EnokiConnectWallet implements Wallet {
 		};
 	};
 
-	#signPersonalMessage: MysSignPersonalMessageMethod = async ({ message, account, chain }) => {
-		const popup = this.#getNewPopupChannel();
+	#signPersonalMessage: MySoSignPersonalMessageMethod = async ({ message, account, chain }) => {
+		const popup = await this.#getNewPopupChannel();
 		const response = await popup.send({
 			type: 'sign-personal-message',
 			chain: chain ?? this.#defaultChain,
@@ -244,14 +245,14 @@ export class EnokiConnectWallet implements Wallet {
 				if (session) {
 					this.#setAccounts(session);
 				}
-			} catch (_e) {
+			} catch {
 				// ignore
 			}
 
 			return { accounts: this.accounts };
 		}
 
-		const popup = this.#getNewPopupChannel();
+		const popup = await this.#getNewPopupChannel();
 		const response = await popup.send({
 			type: 'connect',
 		});
@@ -280,13 +281,23 @@ export class EnokiConnectWallet implements Wallet {
 		return session;
 	}
 
-	#getNewPopupChannel() {
+	async #getNewPopupChannel() {
+		let popupWindow: Window | undefined | null = window.open('about:blank', '_blank');
+
+		if (!popupWindow) {
+			popupWindow = await addClickToOpenPopupWindow({
+				walletName: this.#walletName,
+				dappName: this.#dappName,
+			});
+		}
+
 		return new DappPostMessageChannel({
 			appName: this.#dappName,
 			hostOrigin: this.#hostOrigin,
 			extraRequestOptions: {
 				publicAppSlug: this.#publicAppSlug,
 			},
+			popupWindow,
 		});
 	}
 
@@ -305,10 +316,51 @@ export class EnokiConnectWallet implements Wallet {
 						publicKey: fromBase64(anAccount.publicKey),
 					}),
 			);
-		} catch (error) {
+		} catch {
 			return [];
 		}
 	}
+}
+
+function addClickToOpenPopupWindow({
+	walletName,
+	dappName,
+}: {
+	walletName: string;
+	dappName: string;
+}) {
+	const { promise, resolve, reject } = promiseWithResolvers<Window>();
+	const modal = document.createElement('enoki-connect-modal');
+
+	modal.walletName = walletName;
+	modal.dappName = dappName;
+	modal.open = true;
+
+	modal.addEventListener('cancel', () => {
+		reject(new Error('Popup was blocked from browser and user rejected click to review request'));
+		modal.open = false;
+	});
+
+	modal.addEventListener('approved', () => {
+		modal.disabled = true;
+		modal.open = false;
+
+		const popup = window.open('about:blank', '_blank');
+
+		if (popup) {
+			resolve(popup);
+		} else {
+			reject(new Error('Failed to open popup'));
+		}
+	});
+
+	modal.addEventListener('closed', () => {
+		modal.remove();
+	});
+
+	document.body.appendChild(modal);
+
+	return promise;
 }
 
 type EnokiConnectMetadata = {
@@ -339,11 +391,35 @@ async function getEnokiConnectMetadata(publicAppSlugs: string[], enokiApiUrl: st
 	return data as EnokiConnectMetadata[];
 }
 
+/**
+ * Registers Enoki Connect wallets for your dApp.
+ *
+ * This function fetches wallet metadata for the provided public app slugs and registers
+ * them with the wallet standard. It returns the registered wallet instances and an
+ * `unregister` function to remove them if needed.
+ *
+ * @param publicAppSlugs - An array of public app slugs to register. You can obtain these slugs from the wallet developer.
+ * @param dappName - The display name of your dApp. This will be shown to users in wallet UIs.
+ * @param network - (Optional) The default MySo network to use for wallet operations (when chain is not specified in the wallet method). Accepts 'mainnet', 'testnet', or 'devnet'. Defaults to 'mainnet' if not specified.
+ * @param enokiApiUrl - (Optional) The Enoki API endpoint to use for fetching wallet metadata. Defaults to the public Enoki API at 'https://api.enoki.mystenlabs.com'. (Override this if you are running a local or custom Enoki API instance.)
+ *
+ * @returns An object containing:
+ *   - `wallets`: The array of registered EnokiConnectWallet instances.
+ *   - `unregister`: A function to unregister all registered wallets.
+ *
+ * @example
+ * ```ts
+ * const { wallets, unregister } = await registerEnokiConnectWallets({
+ *   publicAppSlugs: ['an-app-slug'],
+ *   dappName: 'My Dapp',
+ * });
+ * ```
+ */
 export async function registerEnokiConnectWallets({
 	publicAppSlugs,
 	dappName,
 	network = 'mainnet',
-	enokiApiUrl = 'https://api.enoki.mysocial.network',
+	enokiApiUrl = 'https://api.enoki.mystenlabs.com',
 }: {
 	publicAppSlugs: string[];
 	dappName: string;

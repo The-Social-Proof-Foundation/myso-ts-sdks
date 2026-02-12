@@ -6,19 +6,22 @@ import ReactDOM from "react-dom/client";
 import "@socialproof/dapp-kit/dist/index.css";
 import "@radix-ui/themes/styles.css";
 
-import { MysClientProvider, WalletProvider } from "@socialproof/dapp-kit";
+import { MySoClientProvider, WalletProvider } from "@socialproof/dapp-kit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Theme } from "@radix-ui/themes";
 import App from "./App.tsx";
 import { networkConfig } from "./networkConfig.ts";
 import { registerEnokiConnectWallets } from "@socialproof/enoki-connect";
 
+import "./styles.css";
+
 const queryClient = new QueryClient();
 
 registerEnokiConnectWallets({
-  publicAppSlugs: ["dev-app", "dev-app-not-exists"],
-  enokiApiUrl: "http://localhost:3084",
-  network: "testnet",
+  publicAppSlugs: [
+    "demo-enoki-connect-f9v2kr7q",
+    "demo-enoki-connect-f9v2kr7q-light",
+  ],
   dappName: "Test Dapp",
 }).catch(() => {});
 
@@ -26,11 +29,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Theme appearance="dark">
       <QueryClientProvider client={queryClient}>
-        <MysClientProvider networks={networkConfig} defaultNetwork="testnet">
+        <MySoClientProvider networks={networkConfig} defaultNetwork="testnet">
           <WalletProvider autoConnect>
             <App />
           </WalletProvider>
-        </MysClientProvider>
+        </MySoClientProvider>
       </QueryClientProvider>
     </Theme>
   </React.StrictMode>,

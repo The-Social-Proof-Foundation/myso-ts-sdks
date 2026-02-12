@@ -1,2 +1,5 @@
+**/move/*/build
+**/move/*/package_summaries
+**/src/contracts
 dist
 CHANGELOG.md

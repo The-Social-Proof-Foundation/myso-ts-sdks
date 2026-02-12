@@ -2,20 +2,20 @@
 	"entryPoints": [
 		"../bcs",
 		"../dapp-kit",
-		"../deepbook",
-		"../deepbook-v3",
+		"../orderbook",
+		"../orderbook",
 		"../enoki",
 		"../enoki-connect",
-		"../graphql-transport",
-		"../kiosk",
-		"../seal",
+		
+		"../payment-kit",
+		"../mydata",
 		"../signers",
 		"../slush-wallet",
-		"../mysns",
-		"../typescript",
+		
+		"../myso",
 		"../utils",
 		"../wallet-standard",
-		"../walrus",
+		"../file-storage",
 		"../zksend"
 	],
 	"excludeInternal": true,

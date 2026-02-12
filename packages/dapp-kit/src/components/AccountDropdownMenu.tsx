@@ -2,12 +2,12 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import { formatAddress } from '@socialproof/mys/utils';
+import { formatAddress } from '@socialproof/myso/utils';
 import type { WalletAccount } from '@socialproof/wallet-standard';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import clsx from 'clsx';
 
-import { useResolveMysNSName } from '../hooks/useResolveMysNSNames.js';
+import { useResolveMySoNSName } from '../hooks/useResolveMySoNSNames.js';
 import { useAccounts } from '../hooks/wallet/useAccounts.js';
 import { useDisconnectWallet } from '../hooks/wallet/useDisconnectWallet.js';
 import { useSwitchAccount } from '../hooks/wallet/useSwitchAccount.js';
@@ -25,7 +25,7 @@ type AccountDropdownMenuProps = {
 export function AccountDropdownMenu({ currentAccount }: AccountDropdownMenuProps) {
 	const { mutate: disconnectWallet } = useDisconnectWallet();
 
-	const { data: domain } = useResolveMysNSName(
+	const { data: domain } = useResolveMySoNSName(
 		currentAccount.label ? null : currentAccount.address,
 	);
 	const accounts = useAccounts();
@@ -74,7 +74,7 @@ export function AccountDropdownMenuItem({
 	active?: boolean;
 }) {
 	const { mutate: switchAccount } = useSwitchAccount();
-	const { data: domain } = useResolveMysNSName(account.label ? null : account.address);
+	const { data: domain } = useResolveMySoNSName(account.label ? null : account.address);
 
 	return (
 		<DropdownMenu.Item

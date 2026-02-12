@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { bcs, fromBase64, toBase64 } from './../src/index';
+import { bcs, fromBase64, toBase64 } from './../src/index.js';
 
 describe('BCS: Primitives', () => {
 	it('should support growing size', () => {

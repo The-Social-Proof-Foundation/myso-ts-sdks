@@ -3,15 +3,15 @@
 	"version": "0.0.1",
 	"description": "Wallet adapter for Slush web wallet",
 	"license": "Apache-2.0",
-	"author": "The Social Proof Foundation <brandon@socialproof.foundation>",
-	"type": "commonjs",
-	"main": "./dist/cjs/index.js",
-	"module": "./dist/esm/index.js",
-	"types": "./dist/cjs/index.d.ts",
+	"author": "Mysten Labs <build@socialprooflabs.com>",
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
 	"exports": {
 		".": {
-			"import": "./dist/esm/index.js",
-			"require": "./dist/cjs/index.js"
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs",
+			"default": "./dist/index.mjs"
 		}
 	},
 	"sideEffects": false,
@@ -22,35 +22,35 @@
 	],
 	"scripts": {
 		"clean": "rm -rf tsconfig.tsbuildinfo ./dist",
-		"build": "build-package",
-		"prepublishOnly": "pnpm turbo build",
+		"build": "rm -rf dist && tsc --noEmit && tsdown",
 		"prettier:check": "prettier -c --ignore-unknown .",
 		"prettier:fix": "prettier -w --ignore-unknown .",
-		"eslint:check": "eslint --max-warnings=0 .",
-		"eslint:fix": "pnpm run eslint:check --fix",
-		"lint": "pnpm run eslint:check && pnpm run prettier:check",
-		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix"
+		"oxlint:check": "oxlint  .",
+		"oxlint:fix": "oxlint --fix",
+		"lint": "pnpm run oxlint:check && pnpm run prettier:check",
+		"lint:fix": "pnpm run oxlint:fix && pnpm run prettier:fix"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/The-Social-Proof-Foundation/mys-ts-sdks.git"
+		"url": "git+https://github.com/MystenLabs/ts-sdks.git"
 	},
 	"bugs": {
-		"url": "https://github.com/The-Social-Proof-Foundation/mys-ts-sdks/issues"
+		"url": "https://github.com/mystenlabs/ts-sdks/issues"
 	},
-	"homepage": "https://github.com/The-Social-Proof-Foundation/mys-ts-sdks#readme",
+	"homepage": "https://github.com/MystenLabs/ts-sdks/tree/main/packages/slush-wallet#readme",
 	"devDependencies": {
-		"@socialproof/build-scripts": "workspace:*",
-		"@types/node": "^22.13.17",
-		"typescript": "^5.8.2",
-		"vitest": "^3.1.1"
+		"@socialproof/myso": "workspace:^",
+		"@types/node": "^25.0.8",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.17"
 	},
 	"dependencies": {
-		"@socialproof/mys": "workspace:*",
-		"@socialproof/utils": "workspace:*",
-		"@socialproof/wallet-standard": "workspace:*",
-		"@socialproof/window-wallet-core": "workspace:*",
-		"mitt": "^3.0.1",
-		"valibot": "^0.36.0"
+		"@socialproof/utils": "workspace:^",
+		"@socialproof/wallet-standard": "workspace:^",
+		"@socialproof/window-wallet-core": "workspace:^",
+		"valibot": "^1.2.0"
+	},
+	"peerDependencies": {
+		"@socialproof/myso": "workspace:^"
 	}
 }

@@ -2,101 +2,126 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import { normalizeMysAddress } from '@socialproof/mys/utils';
+import { normalizeMySoAddress } from '@socialproof/myso/utils';
 
-import type { DeserializedModule, TypeSignature } from './types.js';
+import type {
+	Datatype,
+	DatatypeParameter,
+	ModuleSummary,
+	Type,
+	TypeParameter,
+} from './types/summary.js';
 
-const MOVE_STDLIB_ADDRESS = normalizeMysAddress('0x1');
-const MYS_FRAMEWORK_ADDRESS = normalizeMysAddress('0x2');
+export const MOVE_STDLIB_ADDRESS = normalizeMySoAddress('0x1');
+export const MYSO_FRAMEWORK_ADDRESS = normalizeMySoAddress('0x2');
+export const MYSO_SYSTEM_ADDRESS = normalizeMySoAddress('0x3');
 
 type TypeSignatureFormat = 'typescriptArg' | 'bcs' | 'typeTag';
 interface RenderTypeSignatureOptions {
 	format: TypeSignatureFormat;
-	moduleDef: DeserializedModule;
-	onDependency?: (address: string, name: string) => void;
-	onTypeParameter?: (typeParameter: number) => void;
+	summary: ModuleSummary;
+	typeParameters?: TypeParameter[];
+	onDependency?: (address: string, module: string, type: string) => string | undefined;
+	bcsImport?: () => string;
+	onTypeParameter?: (typeParameter: number | string) => void;
+	resolveAddress: (address: string) => string;
+	includePhantomTypeParameters: boolean;
 }
 
-export function renderTypeSignature(
-	type: TypeSignature,
-	options: RenderTypeSignatureOptions,
-): string {
+function getFilteredTypeParameterIndex(
+	originalIndex: number,
+	typeParameters: TypeParameter[] | undefined,
+	includePhantom: boolean,
+): number {
+	if (includePhantom || !typeParameters) return originalIndex;
+
+	let filteredIndex = 0;
+	for (let i = 0; i < originalIndex; i++) {
+		const param = typeParameters[i] as DatatypeParameter | undefined;
+		if (!param?.phantom) {
+			filteredIndex++;
+		}
+	}
+	return filteredIndex;
+}
+
+export function renderTypeSignature(type: Type, options: RenderTypeSignatureOptions): string {
+	let bcs = 'bcs';
+	if (options.bcsImport && usesBcs(type, options)) {
+		bcs = options.bcsImport();
+	}
+
 	switch (type) {
-		case 'Address':
+		case 'address':
 			switch (options.format) {
 				case 'typescriptArg':
 					return 'string';
 				case 'typeTag':
 					return `address`;
 				case 'bcs':
-					return 'bcs.Address';
+					return `${bcs}.Address`;
 				default:
 					throw new Error(`Unknown format: ${options.format}`);
 			}
-		case 'Bool':
+		case 'bool':
 			switch (options.format) {
 				case 'typescriptArg':
 					return 'boolean';
 				case 'typeTag':
 					return `bool`;
 				case 'bcs':
-					return 'bcs.bool()';
+					return `${bcs}.bool()`;
 				default:
 					throw new Error(`Unknown format: ${options.format}`);
 			}
-		case 'U8':
-		case 'U16':
-		case 'U32':
+		case 'u8':
+		case 'u16':
+		case 'u32':
 			switch (options.format) {
 				case 'typescriptArg':
 					return 'number';
 				case 'typeTag':
 					return type.toLowerCase();
 				case 'bcs':
-					return `bcs.${type.toLowerCase()}()`;
+					return `${bcs}.${type.toLowerCase()}()`;
 				default:
 					throw new Error(`Unknown format: ${options.format}`);
 			}
-		case 'U64':
-		case 'U128':
-		case 'U256':
+		case 'u64':
+		case 'u128':
+		case 'u256':
 			switch (options.format) {
 				case 'typescriptArg':
 					return `number | bigint`;
 				case 'typeTag':
 					return type.toLowerCase();
 				case 'bcs':
-					return `bcs.${type.toLowerCase()}()`;
+					return `${bcs}.${type.toLowerCase()}()`;
 				default:
 					throw new Error(`Unknown format: ${options.format}`);
 			}
+		case 'signer':
+			throw new Error('Signer is not supported');
+		case '_':
+			throw new Error('Macro placeholder is not supported');
 	}
 
 	if ('Datatype' in type) {
 		return renderDataType(type.Datatype, options);
 	}
 
-	if ('DatatypeInstantiation' in type) {
-		const [datatype, typeParameters] = type.DatatypeInstantiation;
-		return renderDataType(datatype, options, typeParameters);
-	}
-
 	if ('Reference' in type) {
-		return renderTypeSignature(type.Reference, options);
+		return renderTypeSignature(type.Reference[1], options);
 	}
 
-	if ('MutableReference' in type) {
-		return renderTypeSignature(type.MutableReference, options);
-	}
-
-	if ('Vector' in type) {
+	if ('vector' in type) {
 		switch (options.format) {
 			case 'typescriptArg':
-				return `${renderTypeSignature(type.Vector, options)}[]`;
+				return `${renderTypeSignature(type.vector, options)}[]`;
 			case 'typeTag':
-				return `vector<${renderTypeSignature(type.Vector, options)}>`;
+				return `vector<${renderTypeSignature(type.vector, options)}>`;
 			case 'bcs':
-				return `bcs.vector(${renderTypeSignature(type.Vector, options)})`;
+				return `${bcs}.vector(${renderTypeSignature(type.vector, options)})`;
 			default:
 				throw new Error(`Unknown format: ${options.format}`);
 		}
@@ -104,13 +129,46 @@ export function renderTypeSignature(
 
 	if ('TypeParameter' in type) {
 		options.onTypeParameter?.(type.TypeParameter);
+		const originalIndex = type.TypeParameter;
+		const filteredIndex = getFilteredTypeParameterIndex(
+			originalIndex,
+			options.typeParameters,
+			options.includePhantomTypeParameters,
+		);
 		switch (options.format) {
 			case 'typescriptArg':
-				return `T${type.TypeParameter}`;
+				return options.typeParameters?.[originalIndex]?.name ?? `T${originalIndex}`;
 			case 'typeTag':
-				return `\${options.typeArguments[${type.TypeParameter}]}`;
+				return `\${options.typeArguments[${originalIndex}]}`;
 			case 'bcs':
-				return `typeParameters[${type.TypeParameter}]`;
+				return `typeParameters[${filteredIndex}]`;
+			default:
+				throw new Error(`Unknown format: ${options.format}`);
+		}
+	}
+
+	if ('NamedTypeParameter' in type) {
+		options.onTypeParameter?.(type.NamedTypeParameter);
+		const originalIndex =
+			options.typeParameters?.findIndex((p) => p.name === type.NamedTypeParameter) ?? -1;
+
+		if (originalIndex === -1) {
+			throw new Error(`Named type parameter ${type.NamedTypeParameter} not found`);
+		}
+
+		const filteredIndex = getFilteredTypeParameterIndex(
+			originalIndex,
+			options.typeParameters,
+			options.includePhantomTypeParameters,
+		);
+
+		switch (options.format) {
+			case 'typescriptArg':
+				return type.NamedTypeParameter;
+			case 'typeTag':
+				return `\${options.typeArguments[${originalIndex}]}`;
+			case 'bcs':
+				return `typeParameters[${filteredIndex}]`;
 			default:
 				throw new Error(`Unknown format: ${options.format}`);
 		}
@@ -119,60 +177,69 @@ export function renderTypeSignature(
 	throw new Error(`Unknown type signature: ${JSON.stringify(type, null, 2)}`);
 }
 
-export function isPureSignature(type: TypeSignature, options: RenderTypeSignatureOptions): boolean {
+export function usesBcs(type: Type, options: RenderTypeSignatureOptions): boolean {
 	if (typeof type === 'string') {
 		return true;
 	}
 
 	if ('Reference' in type) {
-		return isPureSignature(type.Reference, options);
-	}
-
-	if ('MutableReference' in type) {
-		return isPureSignature(type.MutableReference, options);
+		return usesBcs(type.Reference[1], options);
 	}
 
 	if ('Datatype' in type) {
 		return isPureDataType(type.Datatype, options);
 	}
 
-	if ('DatatypeInstantiation' in type) {
-		return isPureDataType(type.DatatypeInstantiation[0], options);
+	if ('vector' in type) {
+		return true;
 	}
 
-	if ('Vector' in type) {
-		return isPureSignature(type.Vector, options);
+	return false;
+}
+
+export function isPureSignature(type: Type, options: RenderTypeSignatureOptions): boolean {
+	if (typeof type === 'string') {
+		return true;
+	}
+
+	if ('Reference' in type) {
+		return isPureSignature(type.Reference[1], options);
+	}
+
+	if ('Datatype' in type) {
+		return isPureDataType(type.Datatype, options);
+	}
+
+	if ('vector' in type) {
+		return isPureSignature(type.vector, options);
 	}
 
 	if ('TypeParameter' in type) {
 		return false;
 	}
 
+	if ('NamedTypeParameter' in type) {
+		return false;
+	}
+
 	throw new Error(`Unknown type signature: ${JSON.stringify(type, null, 2)}`);
 }
 
-function isPureDataType(type: number, options: RenderTypeSignatureOptions) {
-	const handle = options.moduleDef.datatype_handles[type];
-	const typeName = options.moduleDef.identifiers[handle.name];
+function isPureDataType(type: Datatype, options: RenderTypeSignatureOptions) {
+	const address = options.resolveAddress(type.module.address);
 
-	const moduleHandle = options.moduleDef.module_handles[handle.module];
-	const moduleAddress = normalizeMysAddress(
-		options.moduleDef.address_identifiers[moduleHandle.address],
-	);
-	const moduleName = options.moduleDef.identifiers[moduleHandle.name];
-
-	if (moduleAddress === MOVE_STDLIB_ADDRESS) {
-		if ((moduleName === 'ascii' || moduleName === 'string') && typeName === 'String') {
+	if (address === MOVE_STDLIB_ADDRESS) {
+		if ((type.module.name === 'ascii' || type.module.name === 'string') && type.name === 'String') {
 			return true;
 		}
 
-		if (moduleName === 'option' && typeName === 'Option') {
+		if (type.module.name === 'option' && type.name === 'Option') {
 			return true;
 		}
 	}
 
-	if (moduleAddress === MYS_FRAMEWORK_ADDRESS) {
-		if (moduleName === 'object' && typeName === 'ID') {
+	if (address === MYSO_FRAMEWORK_ADDRESS) {
+		if (type.module.name === 'object' && (type.name === 'ID' || type.name === 'UID')) {
 			return true;
 		}
 	}
@@ -180,89 +247,101 @@ function isPureDataType(type: number, options: RenderTypeSignatureOptions) {
 	return false;
 }
 
-function renderDataType(
-	type: number,
-	options: RenderTypeSignatureOptions,
-	typeParameters: TypeSignature[] = [],
-): string {
-	const handle = options.moduleDef.datatype_handles[type];
-	const typeName = options.moduleDef.identifiers[handle.name];
-
-	const moduleHandle = options.moduleDef.module_handles[handle.module];
-	const moduleAddress = normalizeMysAddress(
-		options.moduleDef.address_identifiers[moduleHandle.address],
-	);
-	const moduleName = options.moduleDef.identifiers[moduleHandle.name];
+function renderDataType(type: Datatype, options: RenderTypeSignatureOptions): string {
+	const address = options.resolveAddress(type.module.address);
 
 	if (options.format === 'typeTag') {
-		if (typeParameters.length === 0) {
-			// eslint-disable-next-line no-template-curly-in-string
-			return `${moduleAddress === normalizeMysAddress('0x0') ? '${packageAddress}' : moduleAddress}::${moduleName}::${typeName}`;
+		if (address === MYSO_FRAMEWORK_ADDRESS) {
+			if (type.module.name === 'clock' && type.name === 'Clock') return '0x2::clock::Clock';
+			if (type.module.name === 'random' && type.name === 'Random') return '0x2::random::Random';
+			if (type.module.name === 'deny_list' && type.name === 'DenyList')
+				return '0x2::deny_list::DenyList';
+			if (type.module.name === 'object' && (type.name === 'ID' || type.name === 'UID'))
+				return '0x2::object::ID';
+		}
+		if (address === MYSO_SYSTEM_ADDRESS) {
+			if (type.module.name === 'myso_system' && type.name === 'MySoSystemState')
+				return '0x3::myso_system::MySoSystemState';
 		}
 
-		// eslint-disable-next-line no-template-curly-in-string
-		return `${moduleAddress === normalizeMysAddress('0x0') ? '${packageAddress}' : moduleAddress}::${moduleName}::${typeName}<${typeParameters.map((type) => renderTypeSignature(type, options)).join(', ')}>`;
+		if (address === MOVE_STDLIB_ADDRESS) {
+			if (
+				(type.module.name === 'ascii' || type.module.name === 'string') &&
+				type.name === 'String'
+			) {
+				return '0x1::string::String';
+			}
+			if (type.module.name === 'option' && type.name === 'Option') {
+				const innerType = renderTypeSignature(type.type_arguments[0].argument, options);
+				return `0x1::option::Option<${innerType}>`;
+			}
+		}
+
+		return 'null';
 	}
 
-	if (moduleAddress === MOVE_STDLIB_ADDRESS) {
-		if ((moduleName === 'ascii' || moduleName === 'string') && typeName === 'String') {
+	if (address === MOVE_STDLIB_ADDRESS) {
+		if ((type.module.name === 'ascii' || type.module.name === 'string') && type.name === 'String') {
 			switch (options.format) {
 				case 'typescriptArg':
 					return 'string';
 				case 'bcs':
-					return 'bcs.string()';
+					return `${options.bcsImport?.() ?? 'bcs'}.string()`;
 				default:
 					throw new Error(`Unknown format: ${options.format}`);
 			}
 		}
 
-		if (moduleName === 'option' && typeName === 'Option') {
+		if (type.module.name === 'option' && type.name === 'Option') {
 			switch (options.format) {
 				case 'typescriptArg':
 					if (isPureDataType(type, options)) {
-						return `${renderTypeSignature(typeParameters[0], options)} | null`;
+						return `${renderTypeSignature(type.type_arguments[0].argument, options)} | null`;
 					}
 					break;
 				case 'bcs':
-					return `bcs.option(${renderTypeSignature(typeParameters[0], options)})`;
+					return `${options.bcsImport?.() ?? 'bcs'}.option(${renderTypeSignature(type.type_arguments[0].argument, options)})`;
 				default:
 					throw new Error(`Unknown format: ${options.format}`);
 			}
 		}
 	}
 
-	if (moduleAddress === MYS_FRAMEWORK_ADDRESS) {
-		if (moduleName === 'object' && typeName === 'ID') {
+	if (address === MYSO_FRAMEWORK_ADDRESS) {
+		if (type.module.name === 'object' && (type.name === 'ID' || type.name === 'UID')) {
 			switch (options.format) {
 				case 'typescriptArg':
 					return 'string';
 				case 'bcs':
-					return 'bcs.Address';
+					return `${options.bcsImport?.() ?? 'bcs'}.Address`;
 				default:
 					throw new Error(`Unknown format: ${options.format}`);
 			}
 		}
 	}
 
-	const typeNameRef =
-		handle.module === options.moduleDef.self_module_handle_idx
-			? typeName
-			: `${getSafeName(moduleName)}.${typeName}`;
+	const isCurrentModule =
+		address === options.resolveAddress(options.summary.id.address) &&
+		type.module.name === options.summary.id.name;
 
-	if (handle.module !== options.moduleDef.self_module_handle_idx) {
-		options.onDependency?.(moduleAddress, moduleName);
-	}
+	const importName = options.onDependency?.(type.module.address, type.module.name, type.name);
 
-	const filteredTypeParameters = typeParameters.filter(
-		(_type, i) => !handle.type_parameters[i].is_phantom,
-	);
+	const typeNameRef = isCurrentModule
+		? type.name
+		: `${importName ?? getSafeName(type.module.name)}.${getSafeName(type.name)}`;
+
+	const filteredTypeArguments = type.type_arguments.filter((arg) => !arg.phantom);
 
 	switch (options.format) {
 		case 'typescriptArg':
 			return 'string';
 		case 'bcs':
+			if (filteredTypeArguments.length === 0) {
+				return typeNameRef;
+			}
+
 			return `${typeNameRef}(
-                ${filteredTypeParameters.map((type) => renderTypeSignature(type, options)).join(', ')})`;
+                ${filteredTypeArguments.map((type) => renderTypeSignature(type.argument, options)).join(', ')})`;
 		default:
 			throw new Error(`Unknown format: ${options.format}`);
 	}

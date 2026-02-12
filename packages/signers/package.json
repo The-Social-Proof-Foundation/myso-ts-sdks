@@ -3,24 +3,28 @@
 	"version": "0.0.1",
 	"description": "A collection of signers for various providers",
 	"license": "Apache-2.0",
-	"author": "The Social Proof Foundation <brandon@socialproof.foundation>",
-	"type": "commonjs",
+	"author": "Mysten Labs <build@socialprooflabs.com>",
+	"type": "module",
 	"exports": {
 		"./aws": {
-			"import": "./dist/esm/aws/index.js",
-			"require": "./dist/cjs/aws/index.js"
+			"types": "./dist/aws/index.d.mts",
+			"import": "./dist/aws/index.mjs",
+			"default": "./dist/aws/index.mjs"
 		},
 		"./gcp": {
-			"import": "./dist/esm/gcp/index.js",
-			"require": "./dist/cjs/gcp/index.js"
+			"types": "./dist/gcp/index.d.mts",
+			"import": "./dist/gcp/index.mjs",
+			"default": "./dist/gcp/index.mjs"
 		},
 		"./ledger": {
-			"import": "./dist/esm/ledger/index.js",
-			"require": "./dist/cjs/ledger/index.js"
+			"types": "./dist/ledger/index.d.mts",
+			"import": "./dist/ledger/index.mjs",
+			"default": "./dist/ledger/index.mjs"
 		},
 		"./webcrypto": {
-			"import": "./dist/esm/webcrypto/index.js",
-			"require": "./dist/cjs/webcrypto/index.js"
+			"types": "./dist/webcrypto/index.d.mts",
+			"import": "./dist/webcrypto/index.mjs",
+			"default": "./dist/webcrypto/index.mjs"
 		}
 	},
 	"sideEffects": false,
@@ -38,40 +42,41 @@
 	],
 	"scripts": {
 		"clean": "rm -rf tsconfig.tsbuildinfo ./dist",
-		"build": "build-package",
-		"prepublishOnly": "pnpm turbo build",
+		"build": "rm -rf dist && tsc --noEmit && tsdown",
 		"prettier:check": "prettier -c --ignore-unknown .",
 		"prettier:fix": "prettier -w --ignore-unknown .",
-		"eslint:check": "eslint --max-warnings=0 .",
-		"eslint:fix": "pnpm run eslint:check --fix",
-		"lint": "pnpm run eslint:check && pnpm run prettier:check",
-		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix",
+		"oxlint:check": "oxlint  .",
+		"oxlint:fix": "oxlint --fix",
+		"lint": "pnpm run oxlint:check && pnpm run prettier:check",
+		"lint:fix": "pnpm run oxlint:fix && pnpm run prettier:fix",
 		"test": "vitest run"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/The-Social-Proof-Foundation/mys-ts-sdks.git"
+		"url": "git+https://github.com/MystenLabs/ts-sdks.git"
 	},
 	"bugs": {
-		"url": "https://github.com/The-Social-Proof-Foundation/mys-ts-sdks/issues"
+		"url": "https://github.com/mystenlabs/ts-sdks/issues"
 	},
-	"homepage": "https://github.com/The-Social-Proof-Foundation/mys-ts-sdks#readme",
+	"homepage": "https://github.com/MystenLabs/ts-sdks/tree/main/packages/signers#readme",
 	"devDependencies": {
-		"@socialproof/build-scripts": "workspace:*",
-		"@types/node": "^22.13.17",
-		"dotenv": "^16.4.5",
-		"typescript": "^5.8.2",
-		"vitest": "^3.1.1"
+		"@socialproof/myso": "workspace:^",
+		"@types/node": "^25.0.8",
+		"dotenv": "^17.2.3",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.17"
 	},
 	"dependencies": {
-		"@google-cloud/kms": "^4.5.0",
-		"@socialproof/ledgerjs-hw-app-mys": "workspace:*",
-		"@socialproof/mys": "workspace:*",
-		"@noble/curves": "^1.8.1",
-		"@noble/hashes": "^1.7.1",
-		"asn1-ts": "^8.0.2"
+		"@google-cloud/kms": "^5.2.1",
+		"@socialproof/ledgerjs-hw-app-myso": "workspace:^",
+		"@noble/curves": "^2.0.1",
+		"@noble/hashes": "^2.0.1",
+		"asn1-ts": "^11.0.5"
 	},
 	"engines": {
-		"node": ">=20"
+		"node": ">=22"
+	},
+	"peerDependencies": {
+		"@socialproof/myso": "workspace:^"
 	}
 }

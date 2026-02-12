@@ -1,9 +1,9 @@
 // Copyright (c) Mysten Labs, Inc.
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
-import type { PublicKey, SignatureFlag } from '@socialproof/mys/cryptography';
-import { SIGNATURE_FLAG_TO_SCHEME, Signer } from '@socialproof/mys/cryptography';
-import { fromBase64, toBase64 } from '@socialproof/mys/utils';
+import type { PublicKey, SignatureFlag } from '@socialproof/myso/cryptography';
+import { SIGNATURE_FLAG_TO_SCHEME, Signer } from '@socialproof/myso/cryptography';
+import { fromBase64, toBase64 } from '@socialproof/myso/utils';
 
 import { getConcatenatedSignature } from '../utils/utils.js';
 import type { AwsClientOptions } from './aws-client.js';
@@ -22,7 +22,7 @@ export interface AwsKmsSignerOptions {
 }
 
 /**
- * Aws KMS Signer integrates AWS Key Management Service (KMS) with the Mys blockchain
+ * Aws KMS Signer integrates AWS Key Management Service (KMS) with the MySo blockchain
  * to provide signing capabilities using AWS-managed cryptographic keys.
  */
 export class AwsKmsSigner extends Signer {
@@ -72,7 +72,7 @@ export class AwsKmsSigner extends Signer {
 	 * @returns A promise that resolves to the signature as a Uint8Array.
 	 * @throws Will throw an error if the public key is not initialized or if signing fails.
 	 */
-	async sign(bytes: Uint8Array): Promise<Uint8Array> {
+	async sign(bytes: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
 		const signResponse = await this.#client.runCommand('Sign', {
 			KeyId: this.#kmsKeyId,
 			Message: toBase64(bytes),
@@ -82,14 +82,6 @@ export class AwsKmsSigner extends Signer {
 
 		// Concatenate the signature components into a compact form
 		return getConcatenatedSignature(fromBase64(signResponse.Signature), this.getKeyScheme());
-	}
-
-	/**
-	 * Synchronous signing is not supported by AWS KMS.
-	 * @throws Always throws an error indicating synchronous signing is unsupported.
-	 */
-	signData(): never {
-		throw new Error('KMS Signer does not support sync signing');
 	}
 
 	/**

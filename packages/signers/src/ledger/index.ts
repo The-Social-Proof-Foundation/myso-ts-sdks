@@ -2,16 +2,19 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import type MysLedgerClient from '@socialproof/ledgerjs-hw-app-mys';
-import type { MysClient } from '@socialproof/mys/client';
-import type { SignatureWithBytes } from '@socialproof/mys/cryptography';
-import { messageWithIntent, Signer, toSerializedSignature } from '@socialproof/mys/cryptography';
-import { Ed25519PublicKey } from '@socialproof/mys/keypairs/ed25519';
-import { Transaction } from '@socialproof/mys/transactions';
-import { toBase64 } from '@socialproof/mys/utils';
+import type MySoLedgerClient from '@socialproof/ledgerjs-hw-app-myso';
+import type { ClientWithCoreApi } from '@socialproof/myso/client';
+import type { SignatureWithBytes } from '@socialproof/myso/cryptography';
+import { messageWithIntent, Signer, toSerializedSignature } from '@socialproof/myso/cryptography';
+import { Ed25519PublicKey } from '@socialproof/myso/keypairs/ed25519';
+import { Transaction } from '@socialproof/myso/transactions';
+import { toBase64 } from '@socialproof/myso/utils';
 
-import { MysMoveObject } from './bcs.js';
-import { bcs } from '@socialproof/mys/bcs';
+import { bcs } from '@socialproof/myso/bcs';
+import { getInputObjects } from './objects.js';
+import type { Resolution } from '@socialproof/ledgerjs-hw-app-myso';
+
+export { getInputObjects } from './objects.js';
 
 /**
  * Configuration options for initializing the LedgerSigner.
@@ -19,18 +22,18 @@ import { bcs } from '@socialproof/mys/bcs';
 export interface LedgerSignerOptions {
 	publicKey: Ed25519PublicKey;
 	derivationPath: string;
-	ledgerClient: MysLedgerClient;
-	mysClient: MysClient;
+	ledgerClient: MySoLedgerClient;
+	mysoClient: ClientWithCoreApi;
 }
 
 /**
- * Ledger integrates with the Mys blockchain to provide signing capabilities using Ledger devices.
+ * Ledger integrates with the MySo blockchain to provide signing capabilities using Ledger devices.
  */
 export class LedgerSigner extends Signer {
 	#derivationPath: string;
 	#publicKey: Ed25519PublicKey;
-	#ledgerClient: MysLedgerClient;
-	#mysClient: MysClient;
+	#ledgerClient: MySoLedgerClient;
+	#mysoClient: ClientWithCoreApi;
 
 	/**
 	 * Creates an instance of LedgerSigner. It's expected to call the static `fromDerivationPath` method to create an instance.
@@ -39,12 +42,12 @@ export class LedgerSigner extends Signer {
 	 * const signer = await LedgerSigner.fromDerivationPath(derivationPath, options);
 	 * ```
 	 */
-	constructor({ publicKey, derivationPath, ledgerClient, mysClient }: LedgerSignerOptions) {
+	constructor({ publicKey, derivationPath, ledgerClient, mysoClient }: LedgerSignerOptions) {
 		super();
 		this.#publicKey = publicKey;
 		this.#derivationPath = derivationPath;
 		this.#ledgerClient = ledgerClient;
-		this.#mysClient = mysClient;
+		this.#mysoClient = mysoClient;
 	}
 
 	/**
@@ -66,17 +69,24 @@ export class LedgerSigner extends Signer {
 	 * Signs the provided transaction bytes.
 	 * @returns The signed transaction bytes and signature.
 	 */
-	override async signTransaction(bytes: Uint8Array): Promise<SignatureWithBytes> {
-		const transactionOptions = await this.#getClearSigningOptions(bytes).catch(() => ({
-			// Fail gracefully so network errors or serialization issues don't break transaction signing:
-			bcsObjects: [],
-		}));
+	override async signTransaction(
+		bytes: Uint8Array,
+		bcsObjects?: Uint8Array[],
+		resolution?: Resolution,
+	): Promise<SignatureWithBytes> {
+		const transactionOptions = bcsObjects
+			? { bcsObjects }
+			: await getInputObjects(Transaction.from(bytes), this.#mysoClient).catch(() => ({
+					// Fail gracefully so network errors or serialization issues don't break transaction signing:
+					bcsObjects: [],
+				}));
 
 		const intentMessage = messageWithIntent('TransactionData', bytes);
 		const { signature } = await this.#ledgerClient.signTransaction(
 			this.#derivationPath,
 			intentMessage,
 			transactionOptions,
+			resolution,
 		);
 
 		return {
@@ -120,8 +130,8 @@ export class LedgerSigner extends Signer {
 	 */
 	static async fromDerivationPath(
 		derivationPath: string,
-		ledgerClient: MysLedgerClient,
-		mysClient: MysClient,
+		ledgerClient: MySoLedgerClient,
+		mysoClient: ClientWithCoreApi,
 	) {
 		const { publicKey } = await ledgerClient.getPublicKey(derivationPath);
 		if (!publicKey) {
@@ -132,59 +142,8 @@ export class LedgerSigner extends Signer {
 			derivationPath,
 			publicKey: new Ed25519PublicKey(publicKey),
 			ledgerClient,
-			mysClient,
+			mysoClient,
 		});
-	}
-
-	async #getClearSigningOptions(transactionBytes: Uint8Array) {
-		const transaction = Transaction.from(transactionBytes);
-		const data = transaction.getData();
-
-		const gasObjectIds = data.gasData.payment?.map((object) => object.objectId) ?? [];
-		const inputObjectIds = data.inputs
-			.map((input) => {
-				return input.$kind === 'Object' && input.Object.$kind === 'ImmOrOwnedObject'
-					? input.Object.ImmOrOwnedObject.objectId
-					: null;
-			})
-			.filter((objectId): objectId is string => !!objectId);
-
-		const objects = await this.#mysClient.multiGetObjects({
-			ids: [...gasObjectIds, ...inputObjectIds],
-			options: {
-				showBcs: true,
-				showPreviousTransaction: true,
-				showStorageRebate: true,
-				showOwner: true,
-			},
-		});
-
-		// NOTE: We should probably get rid of this manual serialization logic in favor of using the
-		// already serialized object bytes from the GraphQL API once there is more mainstream support
-		// for it + we can enforce the transport type on the Mys client.
-		const bcsObjects = objects
-			.map((object) => {
-				if (object.error || !object.data || object.data.bcs?.dataType !== 'moveObject') {
-					return null;
-				}
-
-				return MysMoveObject.serialize({
-					data: {
-						MoveObject: {
-							type: object.data.bcs.type,
-							hasPublicTransfer: object.data.bcs.hasPublicTransfer,
-							version: object.data.bcs.version,
-							contents: object.data.bcs.bcsBytes,
-						},
-					},
-					owner: object.data.owner!,
-					previousTransaction: object.data.previousTransaction!,
-					storageRebate: object.data.storageRebate!,
-				}).toBytes();
-			})
-			.filter((bcsBytes): bcsBytes is Uint8Array => !!bcsBytes);
-
-		return { bcsObjects };
 	}
 
 	/**

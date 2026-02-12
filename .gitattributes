@@ -1,0 +1,9 @@
+packages/myso/src/grpc/proto/** linguist-generated=true
+packages/myso/src/graphql/generated/** linguist-generated=true
+packages/mysons-v2/src/contracts/** linguist-generated=true
+packages/codegen/tests/generated/** linguist-generated=true
+packages/file-storage/src/contracts/** linguist-generated=true
+packages/file-storage-wasm/web/** linguist-generated=true
+packages/file-storage-wasm/nodejs/** linguist-generated=true
+packages/orderbook/src/contracts/** linguist-generated=true
+packages/payment-kit/src/contracts/** linguist-generated=true

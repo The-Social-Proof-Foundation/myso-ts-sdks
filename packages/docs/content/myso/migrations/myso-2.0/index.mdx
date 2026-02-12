@@ -1,0 +1,156 @@
+---
+title: Migrate to 2.0
+---
+
+This guide covers the breaking changes across the latest release of all the `@socialproof/*` packages.
+
+The primary goal of this release is to support the new GRPC and GraphQL APIs across all the mysten
+SDKs. These releases also include removals of deprecated APIs, some renaming for better consistency,
+and significant internal refactoring to improve maintainability. Starting with this release, Mysten
+packages will now be published as ESM only packages.
+
+## Quick Reference
+
+| Package                                                               | Key Changes                                                                              |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| [@socialproof/myso](/myso/migrations/myso-2.0/myso)                            | Client API stabilization, MySoClient removal, BCS schema alignment, transaction executors |
+| [@socialproof/dapp-kit](/myso/migrations/myso-2.0/dapp-kit)                  | Complete rewrite with framework-agnostic core                                            |
+| [@socialproof/zksend](/myso/migrations/myso-2.0/zksend)                      | Client extension pattern                                                                 |
+| [@socialproof/orderbook](/myso/migrations/myso-2.0/orderbook)            | Client extension pattern                                                                 |
+| [@socialproof/file-storage](/myso/migrations/myso-2.0/file-storage)                      | Client extension pattern, requires client instead of RPC URL                             |
+| [@socialproof/mydata](/myso/migrations/myso-2.0/mydata)                          | Client extension pattern                                                                 |
+| [@socialproof/wallet-standard](/myso/migrations/myso-2.0/wallet-builders)    | Removal of reportTransactionEffects, new core API response format                        |
+| [Migrating from JSON-RPC](/myso/migrations/myso-2.0/json-rpc-migration) | Migrate from deprecated JSON-RPC to gRPC and GraphQL                                     |
+
+## Common Migration Patterns
+
+### ESM Migration
+
+All `@socialproof/*` packages are now ESM only. If your project does not already use ESM, you will need
+to add `"type": "module"` to your `package.json`:
+
+```json
+{
+	"type": "module"
+}
+```
+
+If you are using TypeScript with `moduleResolution` `"Node"`, `"Classic"`, or `"Node10"`, you will
+need to update your `tsconfig.json` to use `"NodeNext"`, `"Node16"`, or `"Bundler"`:
+
+```json
+{
+	"compilerOptions": {
+		"moduleResolution": "NodeNext",
+		"module": "NodeNext"
+	}
+}
+```
+
+This enables proper resolution of the SDK's subpath exports (e.g., `@socialproof/myso/client`,
+`@socialproof/myso/transactions`).
+
+If you maintain a library that depends on any of the `@socialproof/*` packages, you may also need to
+update your library to be ESM only to ensure it works correctly everywhere.
+
+Applications using bundlers and recent Node.js versions (>=22) may still work when using `require`
+to load ESM packages, but we recommend migrating to ESM.
+
+**Why ESM only?** Many packages in the ecosystem (specifically critical cryptography dependencies)
+are now published as ESM only. Supporting CommonJS has prevented us from using the latest versions
+of these dependencies, making our SDKs harder to maintain and risking missing critical security
+updates.
+
+### Client Migration
+
+The most common change across all SDKs is migrating from `MySoClient` to `MySoJsonRpcClient`:
+
+```diff
+- import { MySoClient, getFullnodeUrl } from '@socialproof/myso/client';
++ import { MySoJsonRpcClient, getJsonRpcFullnodeUrl } from '@socialproof/myso/jsonRpc';
+
+- const client = new MySoClient({ url: getFullnodeUrl('mainnet') });
++ const client = new MySoJsonRpcClient({
++   url: getJsonRpcFullnodeUrl('mainnet'),
++   network: 'mainnet',
++ });
+```
+
+We also recommend moving from the deprecated JSON RPC Apis to the new gRPC API as soon as possible:
+
+```diff
+- import { MySoJsonRpcClient } from '@socialproof/myso/jsonRpc';
++ import { MySoGrpcClient } from '@socialproof/myso/grpc';
+
+- const client = new MySoJsonRpcClient({ url, network: 'mainnet' });
++ const client = new MySoGrpcClient({ baseUrl, network: 'mainnet' });
+```
+
+The gRPC runs on full nodes so in most cases you should be able to use the same URLs when migrating
+to gRPC.
+
+### Network Parameter Required
+
+All client constructors now require an explicit `network` parameter:
+
+```ts
+const client = new MySoJsonRpcClient({
+	url: getJsonRpcFullnodeUrl('mainnet'),
+	network: 'mainnet', // Required
+});
+
+const graphqlClient = new MySoGraphQLClient({
+	url: 'https://myso-mainnet.mystenlabs.com/graphql',
+	network: 'mainnet', // Required
+});
+
+const grpcClient = new MySoGrpcClient({
+	baseUrl: 'https://fullnode.mainnet.mysocial.network:443',
+	network: 'mainnet', // Required
+});
+```
+
+### ClientWithCoreApi Interface
+
+Many SDK methods now accept any client implementing `ClientWithCoreApi`, enabling use with JSON-RPC,
+GraphQL, or gRPC transports:
+
+```ts
+import { MySoJsonRpcClient } from '@socialproof/myso/jsonRpc';
+import { MySoGraphQLClient } from '@socialproof/myso/graphql';
+import { MySoGrpcClient } from '@socialproof/myso/grpc';
+
+// All of these work with APIs that accept ClientWithCoreApi
+const jsonRpcClient = new MySoJsonRpcClient({ url, network: 'mainnet' });
+const graphqlClient = new MySoGraphQLClient({ url, network: 'mainnet' });
+const grpcClient = new MySoGrpcClient({ baseUrl, network: 'mainnet' });
+```
+
+## Package-Specific Guides
+
+For detailed migration instructions, see the SDK-specific guides:
+
+- **[@socialproof/myso](/myso/migrations/myso-2.0/myso)** - Core SDK changes including client API, BCS
+  schemas, transactions, zkLogin, and GraphQL
+- **[@socialproof/dapp-kit](/myso/migrations/myso-2.0/dapp-kit)** - Complete migration guide for the new
+  dApp Kit architecture
+- **[@socialproof/zksend](/myso/migrations/myso-2.0/zksend)** - zkSend SDK now exports a client extension
+- **[@socialproof/orderbook](/myso/migrations/myso-2.0/orderbook)** - Orderbook DEX now exports a client
+  extension
+- **[@socialproof/file-storage](/myso/migrations/myso-2.0/file-storage)** - File Storage storage now exports a client
+  extension
+- **[@socialproof/mydata](/myso/migrations/myso-2.0/mydata)** - MyData encryption now exports a client extension
+
+## Transport Migration
+
+- **[Migrating from JSON-RPC](/myso/migrations/myso-2.0/json-rpc-migration)** - Migrate from the
+  deprecated JSON-RPC client to gRPC and GraphQL
+
+## Ecosystem Migration Guides
+
+For wallet builders and SDK maintainers building on the MySo ecosystem:
+
+- **[Wallet Builders](/myso/migrations/myso-2.0/wallet-builders)** - Guide for wallet implementations
+  adapting to `reportTransactionEffects` removal and new core API response format
+- **[SDK Maintainers](/myso/migrations/myso-2.0/sdk-maintainers)** - Guide for SDK authors migrating
+  to `ClientWithCoreApi` and the new transport-agnostic architecture

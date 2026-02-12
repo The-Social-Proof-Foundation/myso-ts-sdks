@@ -1,0 +1,33 @@
+---
+title: '@socialproof/orderbook'
+---
+
+This package now exports a client extension that integrates with MySo clients.
+
+```diff
+- import { MySoClient, getFullnodeUrl } from '@socialproof/myso/client';
+- import { OrderbookClient } from '@socialproof/orderbook';
++ import { MySoGrpcClient } from '@socialproof/myso/grpc'; // or MySoJsonRpcClient, MySoGraphQLClient
++ import { orderbook } from '@socialproof/orderbook';
+
+- const mysoClient = new MySoClient({ url: getFullnodeUrl('mainnet') });
+- const orderbookClient = new OrderbookClient({
+-   client: mysoClient,
+-   address: myAddress,
+-   env: 'mainnet',
+-   balanceManagers: { ... },
+- });
++ const client = new MySoGrpcClient({
++   baseUrl: 'https://fullnode.mainnet.mysocial.network:443',
++   network: 'mainnet',
++ }).$extend(
++   orderbook({
++     address: myAddress,
++     // network is auto-detected from the client
++     balanceManagers: { ... },
++   }),
++ );
+
+- await orderbookClient.checkManagerBalance(manager, asset);
++ await client.orderbook.checkManagerBalance(manager, asset);
+```

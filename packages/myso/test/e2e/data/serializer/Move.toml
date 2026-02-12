@@ -1,0 +1,9 @@
+[package]
+name = "serializer"
+edition = "2024.beta"
+
+[dependencies]
+MySo = { git = "https://github.com/The-Social-Proof-Foundation/myso-core.git", subdir = "crates/myso-framework/packages/myso-framework", rev = "framework/testnet" }
+
+[addresses]
+serializer = "0x0"

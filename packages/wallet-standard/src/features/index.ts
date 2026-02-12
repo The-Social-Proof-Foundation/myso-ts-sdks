@@ -10,50 +10,50 @@ import type {
 	WalletWithFeatures,
 } from '@wallet-standard/core';
 
-import type { MysReportTransactionEffectsFeature } from './mysReportTransactionEffects.js';
-import type { MysSignAndExecuteTransactionFeature } from './mysSignAndExecuteTransaction.js';
-import type { MysSignAndExecuteTransactionBlockFeature } from './mysSignAndExecuteTransactionBlock.js';
-import type { MysSignMessageFeature } from './mysSignMessage.js';
-import type { MysSignPersonalMessageFeature } from './mysSignPersonalMessage.js';
-import type { MysSignTransactionFeature } from './mysSignTransaction.js';
-import type { MysSignTransactionBlockFeature } from './mysSignTransactionBlock.js';
+import type { MySoSignAndExecuteTransactionFeature } from './mysoSignAndExecuteTransaction.js';
+import type { MySoSignAndExecuteTransactionBlockFeature } from './mysoSignAndExecuteTransactionBlock.js';
+import type { MySoSignMessageFeature } from './mysoSignMessage.js';
+import type { MySoSignPersonalMessageFeature } from './mysoSignPersonalMessage.js';
+import type { MySoSignTransactionFeature } from './mysoSignTransaction.js';
+import type { MySoSignTransactionBlockFeature } from './mysoSignTransactionBlock.js';
+import type { MySoGetCapabilitiesFeature } from './mysoGetCapabilities.js';
 
 /**
- * Wallet Standard features that are unique to Mys, and that all Mys wallets are expected to implement.
+ * Wallet Standard features that are unique to MySo, and that all MySo wallets are expected to implement.
  */
-export type MysFeatures = Partial<MysSignTransactionBlockFeature> &
-	Partial<MysSignAndExecuteTransactionBlockFeature> &
-	MysSignPersonalMessageFeature &
-	MysSignAndExecuteTransactionFeature &
-	MysSignTransactionFeature &
+export type MySoFeatures = Partial<MySoSignTransactionBlockFeature> &
+	Partial<MySoSignAndExecuteTransactionBlockFeature> &
+	MySoSignPersonalMessageFeature &
+	MySoSignAndExecuteTransactionFeature &
+	MySoSignTransactionFeature &
 	// This deprecated feature should be removed once wallets update to the new method:
-	Partial<MysSignMessageFeature> &
-	Partial<MysReportTransactionEffectsFeature>;
+	Partial<MySoSignMessageFeature> &
+	Partial<MySoGetCapabilitiesFeature>;
 
-export type MysWalletFeatures = StandardConnectFeature &
+export type MySoWalletFeatures = StandardConnectFeature &
 	StandardEventsFeature &
-	MysFeatures &
+	MySoFeatures &
 	// Disconnect is an optional feature:
 	Partial<StandardDisconnectFeature>;
 
-export type WalletWithMysFeatures = WalletWithFeatures<MysWalletFeatures>;
+export type WalletWithMySoFeatures = WalletWithFeatures<MySoWalletFeatures>;
 
 /**
- * Represents a wallet with the absolute minimum feature set required to function in the Mys ecosystem.
+ * Represents a wallet with the absolute minimum feature set required to function in the MySo ecosystem.
  */
 export type WalletWithRequiredFeatures = WalletWithFeatures<
 	MinimallyRequiredFeatures &
-		Partial<MysFeatures> &
+		Partial<MySoFeatures> &
 		Partial<StandardDisconnectFeature> &
 		IdentifierRecord<unknown>
 >;
 
 export type MinimallyRequiredFeatures = StandardConnectFeature & StandardEventsFeature;
 
-export * from './mysSignMessage.js';
-export * from './mysSignTransactionBlock.js';
-export * from './mysSignTransaction.js';
-export * from './mysSignAndExecuteTransactionBlock.js';
-export * from './mysSignAndExecuteTransaction.js';
-export * from './mysSignPersonalMessage.js';
-export * from './mysReportTransactionEffects.js';
+export * from './mysoSignMessage.js';
+export * from './mysoSignTransactionBlock.js';
+export * from './mysoSignTransaction.js';
+export * from './mysoSignAndExecuteTransactionBlock.js';
+export * from './mysoSignAndExecuteTransaction.js';
+export * from './mysoSignPersonalMessage.js';
+export * from './mysoGetCapabilities.js';

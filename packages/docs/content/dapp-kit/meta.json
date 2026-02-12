@@ -1,16 +1,16 @@
 {
 	"root": true,
-	"title": "Dapp Kit",
-	"description": "Build Mys dapps in React",
+	"title": "dApp Kit",
+	"description": "Build MySo dApps with @socialproof/dapp-kit-core and @socialproof/dapp-kit-react",
 	"pages": [
 		"index",
-		"create-dapp",
-		"mys-client-provider",
-		"rpc-hooks",
-		"wallet-provider",
-		"wallet-components",
-		"wallet-hooks",
-		"slush-wallet",
-		"themes"
+		"getting-started",
+		"dapp-kit-instance",
+		"state",
+		"actions",
+		"react",
+		"web-components",
+		"theming",
+		"legacy"
 	]
 }

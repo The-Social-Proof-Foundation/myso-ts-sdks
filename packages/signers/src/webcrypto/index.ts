@@ -2,10 +2,10 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { SignatureScheme } from '@socialproof/mys/cryptography';
-import { Signer } from '@socialproof/mys/cryptography';
-import { Secp256r1PublicKey } from '@socialproof/mys/keypairs/secp256r1';
-import { secp256r1 } from '@noble/curves/p256';
+import type { SignatureScheme } from '@socialproof/myso/cryptography';
+import { Signer } from '@socialproof/myso/cryptography';
+import { Secp256r1PublicKey } from '@socialproof/myso/keypairs/secp256r1';
+import { p256 as secp256r1 } from '@noble/curves/nist.js';
 
 // Convert from uncompressed (65 bytes) to compressed (33 bytes) format
 function getCompressedPublicKey(publicKey: Uint8Array) {
@@ -24,7 +24,7 @@ function getCompressedPublicKey(publicKey: Uint8Array) {
 
 export interface ExportedWebCryptoKeypair {
 	privateKey: CryptoKey;
-	publicKey: Uint8Array;
+	publicKey: Uint8Array<ArrayBuffer>;
 }
 
 export class WebCryptoSigner extends Signer {
@@ -92,18 +92,21 @@ export class WebCryptoSigner extends Signer {
 		return this.#publicKey;
 	}
 
-	async sign(bytes: Uint8Array): Promise<Uint8Array> {
+	async sign(bytes: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
 		const rawSignature = await globalThis.crypto.subtle.sign(
 			{
 				name: 'ECDSA',
 				hash: 'SHA-256',
 			},
 			this.privateKey,
-			bytes,
+			bytes as BufferSource,
 		);
 
-		const signature = secp256r1.Signature.fromCompact(new Uint8Array(rawSignature));
+		const signature = secp256r1.Signature.fromBytes(new Uint8Array(rawSignature));
+		const normalizedSig = signature.hasHighS()
+			? new secp256r1.Signature(signature.r, secp256r1.Point.Fn.neg(signature.s))
+			: signature;
 
-		return signature.normalizeS().toCompactRawBytes();
+		return normalizedSig.toBytes('compact') as Uint8Array<ArrayBuffer>;
 	}
 }

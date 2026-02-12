@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable */
 
-import { Transaction } from '@socialproof/mys/transactions';
+import { Transaction } from '@socialproof/myso/transactions';
 
 const _demoFunction = () => {
 	const transaction = new Transaction();
@@ -16,7 +16,7 @@ const _demoFunction = () => {
 			// eslint-disable-next-line prettier/prettier
 			'@mvr/app::type::Type<@kiosk/core::kiosk::Kiosk, bool>',
 			// eslint-disable-next-line prettier/prettier
-			'app.mys/app::t::T',
+			'app.myso/app::t::T',
 			'@pkg/qwer::mvr_b::V2',
 		],
 	});

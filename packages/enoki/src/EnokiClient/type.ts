@@ -2,10 +2,10 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { PublicKey } from '@socialproof/mys/cryptography';
-import type { ZkLoginSignatureInputs } from '@socialproof/mys/zklogin';
+import type { PublicKey } from '@socialproof/myso/cryptography';
+import type { ZkLoginSignatureInputs } from '@socialproof/myso/zklogin';
 
-export type AuthProvider = 'google' | 'facebook' | 'twitch';
+export type AuthProvider = 'google' | 'facebook' | 'twitch' | 'onefc' | 'playtron';
 export type EnokiNetwork = 'mainnet' | 'testnet' | 'devnet';
 export type EnokiDomainNetwork = 'mainnet' | 'testnet';
 export type EnokiSubanameStatus = 'PENDING' | 'ACTIVE';

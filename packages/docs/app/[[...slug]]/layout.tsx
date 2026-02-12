@@ -15,33 +15,43 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 			sidebar={{
 				tabs: [
 					{
-						title: 'Mys SDK',
-						description: 'TypeScript interfaces for Mys',
-						url: '/typescript',
+						title: 'MySo SDK',
+						description: 'TypeScript interfaces for MySo',
+						url: '/myso',
 					},
 					{
 						title: 'BCS',
-						description: 'Encoding and decoding Mys objects',
+						description: 'Encoding and decoding MySo objects',
 						url: '/bcs',
 					},
 					{
-						title: 'Dapp Kit',
-						description: 'Build Mys dapps in React',
+						title: 'Codegen',
+						description: 'Generate type-safe TypeScript from Move packages',
+						url: '/codegen',
+					},
+					{
+						title: 'dApp Kit',
+						description: 'Build MySo dApps',
 						url: '/dapp-kit',
 					},
 					{
-						title: 'Kiosk',
-						description: 'Interact with on-chain commerce applications',
-						url: '/kiosk',
+						title: 'Payment Kit',
+						description: 'Typescript SDK to leverage the Payment Kit Standard',
+						url: '/payment-kit',
 					},
 					{
-						title: 'Walrus',
-						description: 'Publish and Read blobs directly from walrus storage nodes',
-						url: '/walrus',
+						title: 'Slush Wallet',
+						description: 'Slush wallet integration',
+						url: '/slush-wallet',
+					},
+					{
+						title: 'file-storage',
+						description: 'Publish and Read blobs directly from file-storage storage nodes',
+						url: '/file-storage',
 					},
 					{
 						title: 'zkSend',
-						description: 'Send Mys with a link',
+						description: 'Send MySo with a link',
 						url: '/zksend',
 					},
 					{

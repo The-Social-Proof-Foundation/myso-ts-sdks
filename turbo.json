@@ -1,9 +1,31 @@
 {
 	"$schema": "https://turbo.build/schema.json",
 	"tasks": {
-		"lint": {},
+		"lint": {
+			"inputs": [
+				"src/**",
+				"test/**",
+				"tests/**",
+				"examples/**",
+				"*.ts",
+				"*.tsx",
+				"*.js",
+				"*.mjs",
+				"*.json"
+			]
+		},
 		"test": {
 			"dependsOn": ["^build", "build"],
+			"inputs": [
+				"src/**",
+				"test/**",
+				"tests/**",
+				"__tests__/**",
+				"*.ts",
+				"*.tsx",
+				"vitest.config.*",
+				"tsconfig.json"
+			],
 			"env": [
 				"AWS_ACCESS_KEY_ID",
 				"AWS_SECRET_ACCESS_KEY",
@@ -19,8 +41,26 @@
 				"GOOGLE_APPLICATION_CREDENTIALS"
 			]
 		},
+		// Avoid running CPU intensive tests in parallel
+		"@socialproof/file-storage#test": {
+			"dependsOn": ["^build", "build", "@socialproof/file-storage-wasm#test"]
+		},
+		"@socialproof/mydata#test": {
+			"dependsOn": ["^build", "build", "@socialproof/file-storage#test"]
+		},
 		"test:e2e": {
 			"dependsOn": ["^build", "build"],
+			"inputs": [
+				"src/**",
+				"test/**",
+				"tests/**",
+				"__tests__/**",
+				"*.ts",
+				"*.tsx",
+				"vitest.config.*",
+				"tsconfig.json"
+			],
+			"cache": false,
 			"env": [
 				"AWS_ACCESS_KEY_ID",
 				"AWS_SECRET_ACCESS_KEY",
@@ -43,14 +83,36 @@
 		},
 		"build": {
 			"dependsOn": ["^build"],
-			"outputs": [
-				"build/**",
-				"dist/**",
-				"storybook-static/**",
-				".next/**",
-				"!.next/cache/**",
-				"pkg/**"
-			]
+			"inputs": [
+				"src/**",
+				"bin/**",
+				"scripts/**",
+				"templates/**",
+				"*.ts",
+				"*.mjs",
+				"tsconfig.json",
+				"tsdown.config.ts",
+				"package.json"
+			],
+			"outputs": ["build/**", "dist/**"]
+		},
+		"@socialproof/sdk-docs#build": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"content/**",
+				"app/**",
+				"components/**",
+				"lib/**",
+				"examples/**",
+				"*.ts",
+				"*.mjs",
+				"tsconfig.json",
+				"next.config.mjs",
+				"source.config.ts",
+				"typedoc.json",
+				"package.json"
+			],
+			"outputs": [".next/**", "!.next/cache/**", "public/**"]
 		}
 	},
 	"globalEnv": ["VERCEL_ENV", "VITE_NETWORK", "VITE_VERCEL_ANALYTICS_ID", "VITE_SENTRY_SAMPLE_RATE"]

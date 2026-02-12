@@ -1,0 +1,347 @@
+// Copyright (c) Mysten Labs, Inc.
+// Copyright (c) The Social Proof Foundation, LLC.
+// SPDX-License-Identifier: Apache-2.0
+
+import type { Signer } from '@socialproof/myso/cryptography';
+import type { ClientWithCoreApi } from '@socialproof/myso/client';
+import type { Transaction, TransactionObjectArgument } from '@socialproof/myso/transactions';
+
+import type { StorageNodeInfo } from './contracts/file-storage/storage_node.js';
+import type { RequestOptions, StorageNodeClientOptions } from './storage-node/client.js';
+import type {
+	StorageConfirmation,
+	StoreBlobMetadataRequestInput,
+	StoreSliverRequestInput,
+	Uploadable,
+} from './storage-node/types.js';
+import type { BlobMetadata, EncodingType } from './utils/bcs.js';
+import type { UploadRelayClientOptions } from './upload-relay/client.js';
+import type { FileStorageFile } from './files/file.js';
+import type { Blob } from './contracts/file-storage/blob.js';
+
+/**
+ * Configuration for the File Storage package on myso
+ *
+ * This is used to configure the File Storage package to use a specific package ID, system object ID, staking pool ID, and WAL package ID.
+ */
+export interface FileStoragePackageConfig {
+	/** The system object ID of the File Storage package */
+	systemObjectId: string;
+	/** The staking pool ID of the File Storage package */
+	stakingPoolId: string;
+	exchangeIds?: string[];
+}
+
+type FileStorageNetworkOrPackageConfig =
+	| {
+			network: 'mainnet' | 'testnet';
+			packageConfig?: FileStoragePackageConfig;
+	  }
+	| {
+			network?: never;
+			packageConfig: FileStoragePackageConfig;
+	  };
+
+export type TipStrategy =
+	| {
+			const: number | bigint;
+	  }
+	| {
+			linear: {
+				base: number | bigint;
+				perEncodedKib: number | bigint;
+			};
+	  };
+
+export type UploadRelayTipConfig = {
+	address: string;
+	max?: number;
+	kind: TipStrategy;
+};
+
+export interface UploadRelayConfig extends UploadRelayClientOptions {
+	sendTip?:
+		| null
+		| UploadRelayTipConfig
+		| {
+				max: number;
+		  };
+}
+
+interface BaseFileStorageClientConfig {
+	storageNodeClientOptions?: StorageNodeClientOptions;
+	wasmUrl?: string;
+	uploadRelay?: UploadRelayConfig;
+}
+
+/**
+ * Configuration for the File Storage client.
+ *
+ * This is used to configure the File Storage client to use a specific storage node client options, network, and MySo client or RPC URL.
+ */
+export type FileStorageClientConfig = BaseFileStorageClientConfig &
+	FileStorageNetworkOrPackageConfig & {
+		mysoClient: ClientWithCoreApi;
+	};
+
+export type FileStorageOptions<Name = 'fileStorage'> = BaseFileStorageClientConfig & {
+	packageConfig?: FileStoragePackageConfig;
+	name?: Name;
+};
+
+export type FileStorageClientExtensionOptions = BaseFileStorageClientConfig & {
+	packageConfig?: FileStoragePackageConfig;
+};
+
+export type FileStorageClientRequestOptions = Pick<RequestOptions, 'signal'>;
+
+export interface StorageNode {
+	networkUrl: string;
+	info: (typeof StorageNodeInfo)['$inferType'];
+	shardIndices: number[];
+	nodeIndex: number;
+	id: string;
+}
+
+export interface CommitteeInfo {
+	byShardIndex: Map<number, StorageNode>;
+	nodes: StorageNode[];
+}
+
+export interface StorageWithSizeOptions {
+	/** The encoded size of the blob. */
+	size: number;
+	/** The number of epoch the storage will be reserved for. */
+	epochs: number;
+	/** optionally specify a WAL coin pay for the registration.  This will consume WAL from the signer by default. */
+	walCoin?: TransactionObjectArgument;
+}
+
+export interface RegisterBlobOptions extends StorageWithSizeOptions {
+	blobId: string;
+	rootHash: Uint8Array;
+	deletable: boolean;
+	/** optionally specify a WAL coin pay for the registration.  This will consume WAL from the signer by default. */
+	walCoin?: TransactionObjectArgument;
+	/** The attributes to write for the blob. */
+	attributes?: Record<string, string | null>;
+}
+
+export type CertifyBlobOptions = {
+	blobId: string;
+	blobObjectId: string;
+	deletable: boolean;
+} & (
+	| {
+			/** An array of confirmations.
+			 * These confirmations must be provided in the same order as the nodes in the committee.
+			 * For nodes that have not provided a confirmation you can pass `null` */
+			confirmations: (StorageConfirmation | null)[];
+			certificate?: never;
+	  }
+	| {
+			certificate: ProtocolMessageCertificate;
+			confirmations?: never;
+	  }
+);
+
+export type DeletableConfirmationOptions =
+	| { deletable: false; objectId?: string }
+	| { deletable: true; objectId: string };
+
+export type GetStorageConfirmationOptions = {
+	blobId: string;
+	nodeIndex: number;
+} & DeletableConfirmationOptions &
+	FileStorageClientRequestOptions;
+
+export type ReadBlobOptions = {
+	blobId: string;
+} & FileStorageClientRequestOptions;
+
+export type GetCertificationEpochOptions = ReadBlobOptions;
+
+export type GetBlobMetadataOptions = ReadBlobOptions;
+
+export type GetSliversOptions = ReadBlobOptions;
+
+export interface GetSecondarySliverOptions extends FileStorageClientRequestOptions {
+	blobId: string;
+	index: number;
+}
+
+export type GetVerifiedBlobStatusOptions = ReadBlobOptions;
+
+export type ComputeBlobMetadataOptions = {
+	bytes: Uint8Array;
+	numShards?: number;
+};
+
+export interface SliversForNode {
+	primary: {
+		sliverIndex: number;
+		sliverPairIndex: number;
+		shardIndex: number;
+		sliver: Uint8Array;
+	}[];
+	secondary: {
+		sliverIndex: number;
+		sliverPairIndex: number;
+		shardIndex: number;
+		sliver: Uint8Array;
+	}[];
+}
+
+export type WriteSliversToNodeOptions = {
+	blobId: string;
+	nodeIndex: number;
+	slivers: SliversForNode;
+} & FileStorageClientRequestOptions;
+
+export type WriteSliverOptions = StoreSliverRequestInput & FileStorageClientRequestOptions;
+
+export type WriteMetadataOptions = {
+	nodeIndex: number;
+	metadata: Uploadable | typeof BlobMetadata.$inferInput;
+} & StoreBlobMetadataRequestInput &
+	FileStorageClientRequestOptions;
+
+export type WriteEncodedBlobOptions = {
+	blobId: string;
+	nodeIndex: number;
+	metadata: Uploadable | typeof BlobMetadata.$inferInput;
+	slivers: SliversForNode;
+} & DeletableConfirmationOptions &
+	FileStorageClientRequestOptions;
+
+export type WriteEncodedBlobToNodesOptions = {
+	blobId: string;
+	metadata: Uploadable | typeof BlobMetadata.$inferInput;
+	sliversByNode: SliversForNode[];
+} & DeletableConfirmationOptions &
+	FileStorageClientRequestOptions;
+
+export type WriteBlobToUploadRelayOptions = {
+	blobId: string;
+	blob: Uint8Array;
+	nonce: Uint8Array;
+	txDigest: string;
+	blobObjectId: string;
+	deletable: boolean;
+	encodingType?: EncodingType;
+} & FileStorageClientRequestOptions;
+
+export type WriteBlobOptions = {
+	blob: Uint8Array;
+	deletable: boolean;
+	/** The number of epochs the blob should be stored for. */
+	epochs: number;
+	signer: Signer;
+	/** Where the blob should be transferred to after it is registered.  Defaults to the signer address. */
+	owner?: string;
+	/** The attributes to write for the blob. */
+	attributes?: Record<string, string | null>;
+} & FileStorageClientRequestOptions;
+
+export interface WriteQuiltOptions extends Omit<WriteBlobOptions, 'blob'> {
+	blobs: {
+		contents: Uint8Array;
+		identifier: string;
+		tags?: Record<string, string>;
+	}[];
+}
+
+export interface WriteFilesOptions extends Omit<WriteBlobOptions, 'blob'> {
+	files: FileStorageFile[];
+}
+
+export interface WriteFilesFlowOptions {
+	files: FileStorageFile[];
+}
+
+export interface WriteFilesFlowRegisterOptions extends Omit<WriteBlobOptions, 'blob' | 'signer'> {
+	owner: string;
+}
+
+export interface WriteFilesFlowUploadOptions {
+	digest: string;
+}
+
+export interface WriteFilesFlow {
+	encode: () => Promise<void>;
+	register: (options: WriteFilesFlowRegisterOptions) => Transaction;
+	upload: (options: WriteFilesFlowUploadOptions) => Promise<void>;
+	certify: () => Transaction;
+	listFiles: () => Promise<
+		{
+			id: string;
+			blobId: string;
+			blobObject: (typeof Blob)['$inferType'];
+		}[]
+	>;
+}
+
+export interface WriteBlobFlowOptions {
+	blob: Uint8Array;
+}
+
+export interface WriteBlobFlowRegisterOptions extends Omit<WriteBlobOptions, 'blob' | 'signer'> {
+	owner: string;
+}
+
+export interface WriteBlobFlowUploadOptions {
+	digest: string;
+}
+
+export interface WriteBlobFlow {
+	encode: () => Promise<void>;
+	register: (options: WriteBlobFlowRegisterOptions) => Transaction;
+	upload: (options: WriteBlobFlowUploadOptions) => Promise<void>;
+	certify: () => Transaction;
+	getBlob: () => Promise<{
+		blobId: string;
+		blobObject: (typeof Blob)['$inferType'];
+	}>;
+}
+
+export interface DeleteBlobOptions {
+	blobObjectId: string;
+}
+
+export type ExtendBlobOptions = {
+	blobObjectId: string;
+	/** optionally specify a WAL coin pay for the registration.  This will consume WAL from the signer by default. */
+	walCoin?: TransactionObjectArgument;
+} & (
+	| {
+			/** The number of epochs the blob should be stored for. */
+			epochs: number;
+			endEpoch?: never;
+	  }
+	| {
+			/** The new end epoch for the storage period of the blob. */
+			endEpoch: number;
+			epochs?: never;
+	  }
+);
+
+export type WriteBlobAttributesOptions = {
+	attributes: Record<string, string | null>;
+} & (
+	| {
+			blobObject: TransactionObjectArgument;
+			blobObjectId?: never;
+	  }
+	| {
+			blobObjectId: string;
+			blobObject?: never;
+	  }
+);
+
+export type EncodingType = Extract<typeof EncodingType.$inferInput, string>;
+
+export interface ProtocolMessageCertificate {
+	signers: number[];
+	serializedMessage: Uint8Array;
+	signature: Uint8Array;
+}

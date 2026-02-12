@@ -2,11 +2,11 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { MysClientOptions } from '@socialproof/mys/client';
+import type { MySoJsonRpcClientOptions } from '@socialproof/myso/jsonRpc';
 
-import { useMysClientContext } from './useMysClient.js';
+import { useMySoClientContext } from './useMySoClient.js';
 
-export type NetworkConfig<T extends object = object> = MysClientOptions & {
+export type NetworkConfig<T extends object = object> = MySoJsonRpcClientOptions & {
 	variables?: T;
 };
 
@@ -16,7 +16,7 @@ export function createNetworkConfig<
 	Variables extends object = NonNullable<Config['variables']>,
 >(networkConfig: T) {
 	function useNetworkConfig(): Config {
-		const { config } = useMysClientContext();
+		const { config } = useMySoClientContext();
 
 		if (!config) {
 			throw new Error('No network config found');

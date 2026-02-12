@@ -1,0 +1,107 @@
+// Copyright (c) Mysten Labs, Inc.
+// Copyright (c) The Social Proof Foundation, LLC.
+// SPDX-License-Identifier: Apache-2.0
+
+import { useCurrentAccount, useDAppKit, useCurrentClient } from '@socialproof/dapp-kit-react';
+import { useState, useRef } from 'react';
+
+import type { WriteFilesFlow } from '../../src/index.js';
+import { FileStorageFile } from '../../src/index.js';
+
+export function FileUpload({ onComplete }: { onComplete: (ids: string[]) => void }) {
+	const dAppKit = useDAppKit();
+	const currentAccount = useCurrentAccount();
+	const mysoClient = useCurrentClient();
+	const flowRef = useRef<WriteFilesFlow | null>(null);
+	const [state, setState] = useState<
+		| 'empty'
+		| 'encoding'
+		| 'encoded'
+		| 'registering'
+		| 'uploading'
+		| 'uploaded'
+		| 'certifying'
+		| 'done'
+	>('empty');
+
+	if (!currentAccount) {
+		return <div>No account connected</div>;
+	}
+
+	const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) {
+			flowRef.current = null;
+			setState('empty');
+			return;
+		}
+
+		setState('encoding');
+
+		const arrayBuffer = await file.arrayBuffer();
+		const flow = mysoClient.fileStorageWithRelay.writeFilesFlow({
+			files: [
+				FileStorageFile.from({
+					contents: new Uint8Array(arrayBuffer),
+					identifier: file.name,
+				}),
+			],
+		});
+
+		flowRef.current = flow;
+		await flow.encode();
+		setState('encoded');
+	};
+
+	return (
+		<div>
+			<input type="file" onChange={handleFileChange} disabled={state !== 'empty'} />
+			<div>
+				<p>State: {state}</p>
+			</div>
+			<button onClick={registerBlob} disabled={state !== 'encoded'}>
+				Register blob
+			</button>
+			<button onClick={certifyBlob} disabled={state !== 'uploaded'}>
+				Certify blob
+			</button>
+		</div>
+	);
+
+	async function registerBlob() {
+		if (!flowRef.current) return;
+
+		setState('registering');
+		const registerBlobTransaction = flowRef.current.register({
+			epochs: 3,
+			owner: currentAccount!.address,
+			deletable: true,
+		});
+
+		const registerResult = await dAppKit.signAndExecuteTransaction({
+			transaction: registerBlobTransaction,
+		});
+		if (registerResult.FailedTransaction) {
+			throw new Error('Register transaction failed');
+		}
+		setState('uploading');
+
+		await flowRef.current.upload({ digest: registerResult.Transaction.digest });
+
+		setState('uploaded');
+	}
+
+	async function certifyBlob() {
+		if (!flowRef.current) return;
+
+		setState('certifying');
+		const certifyTransaction = flowRef.current.certify();
+
+		await dAppKit.signAndExecuteTransaction({ transaction: certifyTransaction });
+
+		const files = await flowRef.current.listFiles();
+		setState('done');
+
+		onComplete(files.map((file) => file.id));
+	}
+}

@@ -1,0 +1,28 @@
+---
+title: Faucet
+---
+
+Devnet, Testnet, and local networks include faucets that mint MYSO. You can use the MySo TypeScript
+SDK to call a network's faucet and provide MYSO to the address you provide.
+
+To request MYSO from a faucet, import the `requestMySoFromFaucetV2` function from the
+`@socialproof/myso/faucet` package to your project.
+
+```typescript
+import { getFaucetHost, requestMySoFromFaucetV2 } from '@socialproof/myso/faucet';
+```
+
+Use `requestMySoFromFaucetV2` in your TypeScript code to request MYSO from the network's faucet.
+
+```typescript
+await requestMySoFromFaucetV2({
+	host: getFaucetHost('testnet'),
+	recipient: <RECIPIENT_ADDRESS>,
+});
+```
+
+<Callout type="info">
+	Faucets on Devnet and Testnet are rate limited. If you run the script too many times, you surpass
+	the limit and must wait to successfully run it again. For testnet, the best way to get MYSO is via
+	the Web UI: `faucet.mysocial.network`.
+</Callout>

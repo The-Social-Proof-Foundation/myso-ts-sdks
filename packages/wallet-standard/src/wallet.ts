@@ -2,15 +2,15 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import { bcs } from '@socialproof/mys/bcs';
-import { Transaction } from '@socialproof/mys/transactions';
-import { fromBase64, toBase64 } from '@socialproof/mys/utils';
+import { bcs } from '@socialproof/myso/bcs';
+import { Transaction } from '@socialproof/myso/transactions';
+import { fromBase64, toBase64 } from '@socialproof/myso/utils';
 import type { WalletWithFeatures } from '@wallet-standard/core';
 
 import type {
-	MysSignAndExecuteTransactionInput,
-	MysSignTransactionInput,
-	MysWalletFeatures,
+	MySoSignAndExecuteTransactionInput,
+	MySoSignTransactionInput,
+	MySoWalletFeatures,
 } from './features/index.js';
 
 declare module '@wallet-standard/core' {
@@ -31,20 +31,20 @@ declare module '@wallet-standard/core' {
 export type { Wallet } from '@wallet-standard/core';
 
 export async function signAndExecuteTransaction(
-	wallet: WalletWithFeatures<Partial<MysWalletFeatures>>,
-	input: MysSignAndExecuteTransactionInput,
+	wallet: WalletWithFeatures<Partial<MySoWalletFeatures>>,
+	input: MySoSignAndExecuteTransactionInput,
 ) {
-	if (wallet.features['mys:signAndExecuteTransaction']) {
-		return wallet.features['mys:signAndExecuteTransaction'].signAndExecuteTransaction(input);
+	if (wallet.features['myso:signAndExecuteTransaction']) {
+		return wallet.features['myso:signAndExecuteTransaction'].signAndExecuteTransaction(input);
 	}
 
-	if (!wallet.features['mys:signAndExecuteTransactionBlock']) {
+	if (!wallet.features['myso:signAndExecuteTransactionBlock']) {
 		throw new Error(
 			`Provided wallet (${wallet.name}) does not support the signAndExecuteTransaction feature.`,
 		);
 	}
 
-	const { signAndExecuteTransactionBlock } = wallet.features['mys:signAndExecuteTransactionBlock'];
+	const { signAndExecuteTransactionBlock } = wallet.features['myso:signAndExecuteTransactionBlock'];
 
 	const transactionBlock = Transaction.from(await input.transaction.toJSON());
 	const { digest, rawEffects, rawTransaction } = await signAndExecuteTransactionBlock({
@@ -75,20 +75,20 @@ export async function signAndExecuteTransaction(
 }
 
 export async function signTransaction(
-	wallet: WalletWithFeatures<Partial<MysWalletFeatures>>,
-	input: MysSignTransactionInput,
+	wallet: WalletWithFeatures<Partial<MySoWalletFeatures>>,
+	input: MySoSignTransactionInput,
 ) {
-	if (wallet.features['mys:signTransaction']) {
-		return wallet.features['mys:signTransaction'].signTransaction(input);
+	if (wallet.features['myso:signTransaction']) {
+		return wallet.features['myso:signTransaction'].signTransaction(input);
 	}
 
-	if (!wallet.features['mys:signTransactionBlock']) {
+	if (!wallet.features['myso:signTransactionBlock']) {
 		throw new Error(
 			`Provided wallet (${wallet.name}) does not support the signTransaction feature.`,
 		);
 	}
 
-	const { signTransactionBlock } = wallet.features['mys:signTransactionBlock'];
+	const { signTransactionBlock } = wallet.features['myso:signTransactionBlock'];
 
 	const transaction = Transaction.from(await input.transaction.toJSON());
 	const { transactionBlockBytes, signature } = await signTransactionBlock({

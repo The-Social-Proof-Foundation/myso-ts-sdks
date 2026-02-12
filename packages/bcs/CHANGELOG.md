@@ -1,5 +1,102 @@
 # Change Log
 
+## 2.0.2
+
+### Patch Changes
+
+- 99d1e00: Add default export condition
+- Updated dependencies [99d1e00]
+  - @socialproof/utils@0.3.1
+
+## 2.0.1
+
+### Patch Changes
+
+- Updated dependencies [339d1e0]
+  - @socialproof/utils@0.3.0
+
+## 2.0.0
+
+### Major Changes
+
+- e00788c: Remove deprecated exports: `toB58`, `fromB58`, `toB64`, `fromB64`, `toHEX`, `fromHEX`.
+  Use `toBase58`, `fromBase58`, `toBase64`, `fromBase64`, `toHex`, `fromHex` instead.
+
+### Minor Changes
+
+- e00788c: Add automatic sorting of map entries by serialized key bytes in `bcs.map()` to match
+  Rust's BTreeMap BCS serialization. Also exports `compareBcsBytes` helper for lexicographic byte
+  comparison.
+
+## 1.9.2
+
+### Patch Changes
+
+- 89fa2dc: Work around bug in turbopack thatbreaks uleb128 encoding in next@16
+
+## 1.9.1
+
+### Patch Changes
+
+- a37829f: Fix encoding/decoding large uleb128 values
+
+## 1.9.0
+
+### Minor Changes
+
+- f3b19a7: Use bcs.byteVector and bcs.bytes instead of bcs.vector(bcs.u8()) and bcs.fixedArrray(n,
+  bcs.u8()) to improve performance
+- f3b19a7: improve perf of bcs.byteVector
+
+## 1.8.1
+
+### Patch Changes
+
+- a17c337: Fix name in bcs error message
+
+## 1.8.0
+
+### Minor Changes
+
+- ea1ac70: Update dependencies and improve support for typescript 5.9
+
+### Patch Changes
+
+- Updated dependencies [ea1ac70]
+  - @socialproof/utils@0.2.0
+
+## 1.7.0
+
+### Minor Changes
+
+- 33230ed: Add generic inference for bcs type names
+- 33230ed: Update generics for vector, option, fixedArray, and map to prefer bcs types over input
+  and output values
+- 33230ed: Export new BcsStruct, BcsEnum and BcsTuple classes
+
+## 1.6.4
+
+### Patch Changes
+
+- 1c4a82d: update links in package.json
+- Updated dependencies [1c4a82d]
+  - @socialproof/utils@0.1.1
+
+## 1.6.3
+
+### Patch Changes
+
+- Updated dependencies [a00522b]
+  - @socialproof/utils@0.1.0
+
+## 1.6.2
+
+### Patch Changes
+
+- bb7c03a: Update dependencies
+- Updated dependencies [bb7c03a]
+  - @socialproof/utils@0.0.1
+
 ## 1.6.1
 
 ### Patch Changes
@@ -60,7 +157,6 @@
 
   All existing methods will continue to work, but the following methods have been deprecated and
   replaced with methods with improved names:
-
   - `toHEX` -> `toHEX`
   - `fromHEX` -> `fromHex`
   - `toB64` -> `toBase64`
@@ -98,10 +194,10 @@
 
 ### Major Changes
 
-- a92b03de42: The Typescript SDK has been renamed to `@socialproof/mys` and includes many new features
+- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new features
   and breaking changes. See the
-  [full migration guide](https://sdk.mysocial.network/typescript/migrations/mys-1.0) for details on
-  how to upgrade.
+  [full migration guide](https://sdk.mystenlabs.com/myso/migrations/myso-1.0) for details on how to
+  upgrade.
 
 ## 0.11.1
 
@@ -131,7 +227,7 @@
 
 ### Patch Changes
 
-- dd362ec1d6: Update docs url to sdk.mysocial.network
+- dd362ec1d6: Update docs url to sdk.mystenlabs.com
 
 ## 0.9.0
 
@@ -150,7 +246,7 @@
 
 ### Minor Changes
 
-- 1bc430161: Add new type-safe schema builder. See https://sdk.mysocial.network/bcs for updated
+- 1bc430161: Add new type-safe schema builder. See https://sdk.mystenlabs.com/bcs for updated
   documentation
 - e4484852b: Add isSerializedBcs helper
 
@@ -187,11 +283,10 @@
   (`stake_amount`, `pending_stake`, and `pending_withdraw`) and renamed `delegation_staking_pool` to
   `staking_pool`. Additionally removed the `validator_stake` and `delegated_stake` fields in the
   `ValidatorSet` type and replaced them with a `total_stake` field.
-- 5c3b00cde: Add object id to staking pool and pool id to staked mys.
+- 5c3b00cde: Add object id to staking pool and pool id to staked myso.
 - 3d9a04648: Adds `deactivation_epoch` to staking pool object, and adds `inactive_pools` to the
   validator set object.
 - a8049d159: Fixes the issue with deep nested generics by introducing array type names
-
   - all of the methods (except for aliasing) now allow passing in arrays instead of strings to allow
     for easier composition of generics and avoid using template strings
 

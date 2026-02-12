@@ -25,7 +25,7 @@ import type {
 	GetZkLoginApiResponse,
 } from './type.js';
 
-const DEFAULT_API_URL = 'https://api.enoki.mysocial.network';
+const DEFAULT_API_URL = 'https://api.enoki.mystenlabs.com';
 const ZKLOGIN_HEADER = 'zklogin-jwt';
 
 export interface EnokiClientConfig {
@@ -34,6 +34,9 @@ export interface EnokiClientConfig {
 
 	/** The API URL for Enoki. In most cases, this should not be set. */
 	apiUrl?: string;
+
+	/** The amount of epochs that you would like to have the nonce be valid for. Range: `0 <= value <= 30` */
+	additionalEpochs?: number;
 }
 
 export class EnokiClientError extends Error {
@@ -48,7 +51,7 @@ export class EnokiClientError extends Error {
 				errors: { code: string; message: string; data: unknown }[];
 			};
 			errors = parsedResponse.errors;
-		} catch (e) {
+		} catch {
 			// Ignore
 		}
 		const cause = errors?.[0] ? new Error(errors[0].message) : undefined;
@@ -69,11 +72,13 @@ export class EnokiClient {
 	#version: string;
 	#apiUrl: string;
 	#apiKey: string;
+	#additionalEpochs: number | undefined;
 
 	constructor(config: EnokiClientConfig) {
 		this.#version = 'v1';
 		this.#apiUrl = config.apiUrl ?? DEFAULT_API_URL;
 		this.#apiKey = config.apiKey;
+		this.#additionalEpochs = config.additionalEpochs;
 	}
 
 	getApp(_input?: GetAppApiInput) {
@@ -105,8 +110,8 @@ export class EnokiClient {
 			method: 'POST',
 			body: JSON.stringify({
 				network: input.network,
-				ephemeralPublicKey: input.ephemeralPublicKey.toMysPublicKey(),
-				additionalEpochs: input.additionalEpochs,
+				ephemeralPublicKey: input.ephemeralPublicKey.toMySoPublicKey(),
+				additionalEpochs: input.additionalEpochs ?? this.#additionalEpochs,
 			}),
 		});
 	}
@@ -119,7 +124,7 @@ export class EnokiClient {
 			},
 			body: JSON.stringify({
 				network: input.network,
-				ephemeralPublicKey: input.ephemeralPublicKey.toMysPublicKey(),
+				ephemeralPublicKey: input.ephemeralPublicKey.toMySoPublicKey(),
 				maxEpoch: input.maxEpoch,
 				randomness: input.randomness,
 			}),

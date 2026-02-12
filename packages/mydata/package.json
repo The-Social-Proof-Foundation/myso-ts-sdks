@@ -1,0 +1,60 @@
+{
+	"name": "@socialproof/mydata",
+	"version": "0.0.1",
+	"description": "MyData SDK",
+	"license": "Apache-2.0",
+	"author": "Mysten Labs <build@socialprooflabs.com>",
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs",
+			"default": "./dist/index.mjs"
+		}
+	},
+	"sideEffects": false,
+	"files": [
+		"CHANGELOG.md",
+		"dist"
+	],
+	"scripts": {
+		"clean": "rm -rf tsconfig.tsbuildinfo ./dist",
+		"build": "node genversion.mjs && rm -rf dist && tsc --noEmit && tsdown",
+		"codegen:version": "node genversion.mjs",
+		"vitest": "vitest",
+		"test": "pnpm test:typecheck && pnpm test:unit",
+		"test:typecheck": "tsc -p ./test",
+		"test:unit": "vitest run unit __tests__",
+		"prettier:check": "prettier -c --ignore-unknown .",
+		"prettier:fix": "prettier -w --ignore-unknown .",
+		"oxlint:check": "oxlint  .",
+		"oxlint:fix": "oxlint --fix",
+		"lint": "pnpm run oxlint:check && pnpm run prettier:check",
+		"lint:fix": "pnpm run oxlint:fix && pnpm run prettier:fix"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/MystenLabs/ts-sdks.git"
+	},
+	"bugs": {
+		"url": "https://github.com/mystenlabs/ts-sdks/issues"
+	},
+	"homepage": "https://github.com/MystenLabs/mydata#readme",
+	"devDependencies": {
+		"@hey-api/openapi-ts": "^0.90.3",
+		"@socialproof/myso": "workspace:^",
+		"@types/node": "^25.0.8",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.17"
+	},
+	"dependencies": {
+		"@socialproof/bcs": "workspace:^",
+		"@noble/curves": "^2.0.1",
+		"@noble/hashes": "^2.0.1"
+	},
+	"peerDependencies": {
+		"@socialproof/myso": "workspace:^"
+	}
+}

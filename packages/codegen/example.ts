@@ -2,7 +2,7 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Transaction } from '@socialproof/mys/transactions';
+import { Transaction } from '@socialproof/myso/transactions';
 
 import { init as FeedModule } from './tests/generated/feed.js';
 import { init as ManagedObjectModule } from './tests/generated/managed.js';
@@ -101,7 +101,6 @@ export function withCodegen(
 	owner: string,
 	title: string,
 	description: string,
-	price: number,
 ) {
 	const feedModule = FeedModule(PAYWALLRUS_PACKAGE_ID);
 	const policyModule = PolicyModule(PAYWALLRUS_PACKAGE_ID);

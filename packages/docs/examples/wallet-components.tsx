@@ -7,11 +7,11 @@
 import {
 	ConnectButton,
 	ConnectModal,
-	MysClientProvider,
+	MySoClientProvider,
 	useCurrentAccount,
 	WalletProvider,
 } from '@socialproof/dapp-kit';
-import { getFullnodeUrl } from '@socialproof/mys/client';
+import { getJsonRpcFullnodeUrl } from '@socialproof/myso/jsonRpc';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 
@@ -49,15 +49,25 @@ export const UncontrolledConnectModalExample = withProviders(() => {
 });
 
 function withProviders(Component: React.FunctionComponent<object>) {
-	const queryClient = new QueryClient();
 	const networks = {
-		mainnet: { url: getFullnodeUrl('mainnet') },
+		mainnet: { url: getJsonRpcFullnodeUrl('mainnet'), network: 'mainnet' as const },
 	};
 
-	return () => {
+	return function WrappedComponent() {
+		const [queryClient] = useState(
+			() =>
+				new QueryClient({
+					defaultOptions: {
+						queries: {
+							staleTime: 60 * 1000,
+						},
+					},
+				}),
+		);
+
 		return (
 			<QueryClientProvider client={queryClient}>
-				<MysClientProvider networks={networks}>
+				<MySoClientProvider networks={networks}>
 					<WalletProvider
 						slushWallet={{
 							name: 'dApp Kit Docs',
@@ -65,7 +75,7 @@ function withProviders(Component: React.FunctionComponent<object>) {
 					>
 						<Component />
 					</WalletProvider>
-				</MysClientProvider>
+				</MySoClientProvider>
 			</QueryClientProvider>
 		);
 	};

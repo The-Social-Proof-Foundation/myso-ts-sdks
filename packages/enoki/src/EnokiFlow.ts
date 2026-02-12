@@ -4,11 +4,11 @@
 
 import type { ExportedWebCryptoKeypair } from '@socialproof/signers/webcrypto';
 import { WebCryptoSigner } from '@socialproof/signers/webcrypto';
-import { decodeMysPrivateKey } from '@socialproof/mys/cryptography';
-import { Ed25519Keypair } from '@socialproof/mys/keypairs/ed25519';
-import { fromBase64, toBase64 } from '@socialproof/mys/utils';
-import { decodeJwt } from '@socialproof/mys/zklogin';
-import type { ZkLoginSignatureInputs } from '@socialproof/mys/zklogin';
+import { decodeMySoPrivateKey } from '@socialproof/myso/cryptography';
+import { Ed25519Keypair } from '@socialproof/myso/keypairs/ed25519';
+import { fromBase64, toBase64 } from '@socialproof/myso/utils';
+import { decodeJwt } from '@socialproof/myso/zklogin';
+import type { ZkLoginSignatureInputs } from '@socialproof/myso/zklogin';
 import type { UseStore } from 'idb-keyval';
 import { clear, createStore, get, set } from 'idb-keyval';
 import type { WritableAtom } from 'nanostores';
@@ -94,12 +94,13 @@ export class EnokiFlow {
 		this.#enokiClient = new EnokiClient({
 			apiKey: config.apiKey,
 			apiUrl: config.apiUrl,
+			additionalEpochs: config.additionalEpochs,
 		});
 		this.#encryptionKey = config.apiKey;
 
 		if (config.experimental_nativeCryptoSigner) {
 			this.#useNativeCryptoSigner = true;
-			this.#idbStore = createStore('enoki', config.apiKey);
+			this.#idbStore = createStore(config.apiKey, 'enoki');
 		} else {
 			this.#useNativeCryptoSigner = false;
 		}
@@ -204,7 +205,7 @@ export class EnokiFlow {
 			ephemeralKeyPair: this.#useNativeCryptoSigner
 				? '@@native'
 				: toBase64(
-						decodeMysPrivateKey((ephemeralKeyPair as Ed25519Keypair).getSecretKey()).secretKey,
+						decodeMySoPrivateKey((ephemeralKeyPair as Ed25519Keypair).getSecretKey()).secretKey,
 					),
 		});
 

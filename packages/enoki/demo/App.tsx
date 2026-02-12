@@ -2,39 +2,34 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-	ConnectButton,
-	useConnectWallet,
-	useCurrentAccount,
-	useSignAndExecuteTransaction,
-	useMysClientContext,
-	useWallets,
-} from '@socialproof/dapp-kit';
-import { Transaction } from '@socialproof/mys/transactions';
+import { ConnectButton, useCurrentAccount, useDAppKit, useWallets } from '@socialproof/dapp-kit-react';
+import { Transaction } from '@socialproof/myso/transactions';
 import { useState } from 'react';
 
-import { isEnokiWallet } from '../src/wallet/index.js';
+import { isEnokiWallet, isGoogleWallet } from '../src/wallet/utils.js';
+import { dAppKit } from './dapp-kit.js';
 
 export function App() {
-	const { mutate: connect } = useConnectWallet();
+	const { connectWallet, signAndExecuteTransaction, switchNetwork } = useDAppKit();
 	const currentAccount = useCurrentAccount();
 	const [result, setResult] = useState<any>();
 
 	const wallets = useWallets().filter(isEnokiWallet);
-	const googleWallet = wallets.find((wallet) => wallet.provider === 'google');
-
-	const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
-	const { selectNetwork, networks } = useMysClientContext();
+	const googleWallet = wallets.find(isGoogleWallet);
 
 	return (
 		<div>
-			<ConnectButton walletFilter={(wallet) => !isEnokiWallet(wallet)} />
+			<ConnectButton modalOptions={{ filterFn: (wallet) => !isEnokiWallet(wallet) }} />
 
 			{googleWallet ? (
 				<button
 					disabled={!!currentAccount}
-					onClick={() => {
-						connect({ wallet: googleWallet });
+					onClick={async () => {
+						try {
+							await connectWallet({ wallet: googleWallet });
+						} catch (e) {
+							console.log(e);
+						}
 					}}
 				>
 					{currentAccount?.address ?? 'Sign in with Google'}
@@ -52,8 +47,12 @@ export function App() {
 								arguments: [transaction.object('0x6')],
 							});
 
-							const result = await signAndExecute({ transaction });
-							setResult(result.digest);
+							const txResult = await signAndExecuteTransaction({ transaction });
+							const digest =
+								txResult.$kind === 'Transaction'
+									? txResult.Transaction.digest
+									: txResult.FailedTransaction.digest;
+							setResult(digest);
 						} catch (e) {
 							console.log(e);
 							setResult({ error: (e as Error).stack });
@@ -67,9 +66,9 @@ export function App() {
 			{result && <div>{JSON.stringify(result)}</div>}
 
 			<ul>
-				{Object.keys(networks).map((network) => (
+				{dAppKit.networks.map((network) => (
 					<li key={network}>
-						<button onClick={() => selectNetwork(network)}>{network}</button>
+						<button onClick={() => switchNetwork(network)}>{network}</button>
 					</li>
 				))}
 			</ul>

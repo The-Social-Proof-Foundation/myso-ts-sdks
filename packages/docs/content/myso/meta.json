@@ -1,0 +1,21 @@
+{
+	"root": true,
+	"title": "MySo SDK",
+	"description": "TypeScript interfaces for MySo",
+	"pages": [
+		"index",
+		"install",
+		"hello-myso",
+		"faucet",
+		"clients",
+		"transaction-building",
+		"cryptography",
+		"utils",
+		"bcs",
+		"zklogin",
+		"executors",
+		"plugins",
+		"sdk-building",
+		"migrations"
+	]
+}

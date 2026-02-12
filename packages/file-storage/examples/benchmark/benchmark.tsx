@@ -1,0 +1,104 @@
+// Copyright (c) Mysten Labs, Inc.
+// Copyright (c) The Social Proof Foundation, LLC.
+// SPDX-License-Identifier: Apache-2.0
+
+import { useCurrentAccount, useCurrentClient } from '@socialproof/dapp-kit-react';
+import { useState, useEffect } from 'react';
+import { Ed25519Keypair } from '@socialproof/myso/keypairs/ed25519';
+import { ErrorDisplay } from './components/ErrorDisplay.js';
+import { BenchmarkSettingsForm } from './components/BenchmarkSettings.js';
+import type { BenchmarkSettings } from './components/BenchmarkSettings.js';
+import { BenchmarkResults } from './components/BenchmarkResults.js';
+import { useBenchmark } from './hooks/useBenchmark.js';
+
+export function BenchmarkPage() {
+	const currentAccount = useCurrentAccount();
+	const [settings, setSettings] = useState<BenchmarkSettings>({
+		size: '1MB',
+		useUploadRelay: true,
+		epochs: 1,
+		iterations: 1,
+		secretKey: '',
+	});
+	const [error, setError] = useState<string>('');
+	const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+	const mysoClient = useCurrentClient();
+
+	const { isRunning, results, currentStatus, runBenchmark, removeResult, clearResults } =
+		useBenchmark();
+
+	// Load settings from localStorage and generate keypair on first load
+	useEffect(() => {
+		const savedSettings = localStorage.getItem('file-storage-benchmark-settings');
+		if (savedSettings) {
+			try {
+				const parsedSettings = JSON.parse(savedSettings);
+				setSettings(parsedSettings);
+			} catch (error) {
+				console.warn('Failed to load saved benchmark settings:', error);
+			}
+		} else {
+			// Generate a new keypair on first load
+			const keypair = Ed25519Keypair.generate();
+			const newSettings = {
+				size: '1MB',
+				useUploadRelay: true,
+				epochs: 1,
+				iterations: 1,
+				secretKey: keypair.getSecretKey(),
+			};
+			setSettings(newSettings);
+			localStorage.setItem('file-storage-benchmark-settings', JSON.stringify(newSettings));
+		}
+	}, []);
+
+	// Save settings to localStorage whenever they change
+	useEffect(() => {
+		if (settings.secretKey) {
+			localStorage.setItem('file-storage-benchmark-settings', JSON.stringify(settings));
+		}
+	}, [settings]);
+
+	const handleRunBenchmark = async () => {
+		await runBenchmark(settings, setError);
+		// Trigger balance refresh after benchmark completes
+		setRefreshTrigger((prev) => prev + 1);
+	};
+
+	async function handleTransaction(digest: string) {
+		await mysoClient.waitForTransaction({
+			digest,
+		});
+		setRefreshTrigger((prev) => prev + 1);
+	}
+
+	if (!currentAccount) {
+		return <div>Please connect your wallet to run benchmarks</div>;
+	}
+
+	return (
+		<div>
+			<h2>File Storage Benchmark</h2>
+
+			<ErrorDisplay error={error} onClear={() => setError('')} />
+
+			<BenchmarkSettingsForm
+				settings={settings}
+				onSettingsChange={setSettings}
+				onRunBenchmark={handleRunBenchmark}
+				onTransaction={handleTransaction}
+				isRunning={isRunning}
+				currentStatus={currentStatus}
+				refreshTrigger={refreshTrigger}
+				onError={setError}
+			/>
+
+			<BenchmarkResults
+				results={results}
+				onRemoveResult={removeResult}
+				onClearResults={clearResults}
+			/>
+		</div>
+	);
+}

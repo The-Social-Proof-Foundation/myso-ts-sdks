@@ -5,7 +5,7 @@
 import { resolve } from 'path';
 import { describe, expect, it } from 'vitest';
 
-import { crossNetworkResolution, findNames } from '../src/parsing';
+import { crossNetworkResolution, findNames } from '../src/parsing.js';
 
 describe.concurrent('Parsing of project files', () => {
 	it('should find all the function calls and types in a file', async () => {
@@ -14,11 +14,11 @@ describe.concurrent('Parsing of project files', () => {
 			'@mvr/app::type::Type',
 			'@mvr/app::type::Type2',
 			'@kiosk/core::kiosk::Kiosk',
-			'app.mys/app::t::T',
+			'app.myso/app::t::T',
 			'@mvr/app/2',
 			'@mvr/app',
 			'@kiosk/core',
-			'app.mys/app',
+			'app.myso/app',
 			'@pkg/qwer',
 			// nested directory files
 			'@nested/app::demo::test',
@@ -78,7 +78,7 @@ describe.concurrent('Parsing of project files', () => {
 			mainnet: {
 				packages: {
 					'@mvr/core/1': '0x62c1f5b1cb9e3bfc3dd1f73c95066487b662048a6358eabdbf67f6cdeca6db4b',
-					'@mvr/metadata': '0x0f6b71233780a3f362137b44ac219290f4fd34eb81e0cb62ddf4bb38d1f9a3a1',
+					'@mvr/metadata': '0xc88768f8b26581a8ee1bf71e6a6ec0f93d4cc6460ebb66a31b94d64de8105c98',
 					'@mvr/core/2': '0x0bde14ccbabe5328c867e82495a4c39a3688c69943a5dc333f79029f966f0354',
 					'@mvr/subnames-proxy':
 						'0x096c9bed5a312b888603f462f22084e470cc8555a275ef61cc12dd83ecf23a04',

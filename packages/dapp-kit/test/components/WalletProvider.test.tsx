@@ -13,7 +13,7 @@ import {
 	useWallets,
 } from '../../src/index.js';
 import { createMockAccount } from '../mocks/mockAccount.js';
-import { mysFeatures, superCoolFeature } from '../mocks/mockFeatures.js';
+import { mysoFeatures, superCoolFeature } from '../mocks/mockFeatures.js';
 import { createWalletProviderContextWrapper, registerMockWallet } from '../test-utils.js';
 
 describe('WalletProvider', () => {
@@ -36,15 +36,15 @@ describe('WalletProvider', () => {
 	test('the list of wallets is ordered correctly by preference', () => {
 		const { unregister: unregister1 } = registerMockWallet({
 			walletName: 'Mock Wallet 1',
-			features: mysFeatures,
+			features: mysoFeatures,
 		});
 		const { unregister: unregister2 } = registerMockWallet({
 			walletName: 'Mock Wallet 2',
-			features: mysFeatures,
+			features: mysoFeatures,
 		});
 		const { unregister: unregister3 } = registerMockWallet({
 			walletName: 'Mock Wallet 3',
-			features: mysFeatures,
+			features: mysoFeatures,
 		});
 
 		const wrapper = createWalletProviderContextWrapper({
@@ -75,15 +75,15 @@ describe('WalletProvider', () => {
 	test('unregistered wallets are removed from the list of wallets', async () => {
 		const { unregister: unregister1 } = registerMockWallet({
 			walletName: 'Mock Wallet 1',
-			features: mysFeatures,
+			features: mysoFeatures,
 		});
 		const { unregister: unregister2 } = registerMockWallet({
 			walletName: 'Mock Wallet 2',
-			features: mysFeatures,
+			features: mysoFeatures,
 		});
 		const { unregister: unregister3 } = registerMockWallet({
 			walletName: 'Mock Wallet 3',
-			features: mysFeatures,
+			features: mysoFeatures,
 		});
 
 		const wrapper = createWalletProviderContextWrapper();
@@ -161,7 +161,7 @@ describe('WalletProvider', () => {
 			const { unregister, mockWallet } = registerMockWallet({
 				walletName: 'Mock Wallet 1',
 				accounts: [createMockAccount(), createMockAccount()],
-				features: mysFeatures,
+				features: mysoFeatures,
 			});
 
 			const wrapper = createWalletProviderContextWrapper({
@@ -206,13 +206,13 @@ describe('WalletProvider', () => {
 			const wallet1 = registerMockWallet({
 				id: '1',
 				walletName: 'Mock Wallet',
-				features: mysFeatures,
+				features: mysoFeatures,
 			});
 
 			const wallet2 = registerMockWallet({
 				id: '2',
 				walletName: 'Mock Wallet',
-				features: mysFeatures,
+				features: mysoFeatures,
 			});
 
 			const wrapper = createWalletProviderContextWrapper({

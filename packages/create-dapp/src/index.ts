@@ -1,8 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable no-restricted-globals */
 
 import { existsSync, statSync } from 'fs';
 import { mkdir, readdir, readFile, writeFile } from 'fs/promises';
@@ -17,47 +15,62 @@ const { values: args } = parseArgs({
 			default: '',
 			short: 't',
 		},
+		name: {
+			type: 'string',
+			default: '',
+			short: 'n',
+		},
 	},
 });
 
 async function main() {
-	const results = await prompt<{
-		template: string;
-		dAppName: string;
-	}>(
-		[
-			{
-				type: 'select',
-				name: 'template',
-				message: 'Which starter template would you like to use?',
-				choices: [
-					{
-						name: 'react-client-dapp',
-						hint: 'React Client dApp that reads data from wallet and the blockchain',
-					},
-					{
-						name: 'react-e2e-counter',
-						hint: 'React dApp with a move smart contract that implements a distributed counter',
-					},
-				],
-			},
-			{
-				type: 'input',
+	const questions = [
+		{
+			type: 'select',
+			name: 'template',
+			message: 'Which starter template would you like to use?',
+			choices: [
+				{
+					name: 'react-client-dapp',
+					hint: 'React Client dApp that reads data from wallet and the blockchain',
+				},
+				{
+					name: 'react-e2e-counter',
+					hint: 'React dApp with a move smart contract that implements a distributed counter',
+				},
+			],
+		},
+		{
+			type: 'input',
+			name: 'dAppName',
+			message: 'What is the name of your dApp? (this will be used as the directory name)',
+			initial: 'my-first-myso-dapp',
+		},
+	].filter((question) => {
+		if (question.name === 'template' && args.template) return false;
+		if (question.name === 'dAppName' && args.name) return false;
+		return true;
+	});
 
-				name: 'dAppName',
-				message: 'What is the name of your dApp? (this will be used as the directory name)',
-				initial: 'my-first-mys-dapp',
-			},
-		].filter((question) => !args[question.name as 'template']),
-	);
+	const results =
+		questions.length > 0
+			? await prompt<{ template?: string; dAppName?: string }>(questions)
+			: { template: undefined, dAppName: undefined };
 
-	const outDir = resolve(process.cwd(), results.dAppName);
+	const template = results.template ?? args.template;
+	const dAppName = results.dAppName ?? args.name;
+
+	if (!template || !dAppName) {
+		throw new Error('Template and name are required');
+	}
+
+	const outDir = resolve(process.cwd(), dAppName);
 
 	if (existsSync(outDir)) {
 		throw new Error(`Directory ${outDir} already exists`);
 	}
 
-	const files = await collectFiles(results.template ?? args.template, results.dAppName);
+	const files = await collectFiles(template, dAppName);
 	await writeFiles(files, outDir);
 }
 
@@ -97,8 +110,17 @@ async function collectFiles(template: string, dAppName: string) {
 				if (entry === 'package.json') {
 					const json = JSON.parse(content.toString());
 					json.name = dAppName;
-					json.dependencies['@socialproof/mys'] = dependencies['@socialproof/mys'];
-					json.dependencies['@socialproof/dapp-kit'] = dependencies['@socialproof/dapp-kit'];
+
+					if (json.dependencies?.['@socialproof/myso']) {
+						json.dependencies['@socialproof/myso'] = dependencies['@socialproof/myso'];
+					}
+					if (json.dependencies?.['@socialproof/dapp-kit-react']) {
+						json.dependencies['@socialproof/dapp-kit-react'] = dependencies['@socialproof/dapp-kit-react'];
+					}
+
+					if (json.devDependencies?.['@socialproof/codegen']) {
+						json.devDependencies['@socialproof/codegen'] = dependencies['@socialproof/codegen'];
+					}
 
 					content = Buffer.from(JSON.stringify(json, null, 2));
 				}

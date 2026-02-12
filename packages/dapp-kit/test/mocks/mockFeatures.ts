@@ -2,10 +2,10 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { IdentifierRecord, MysFeatures, MysSignMessageFeature } from '@socialproof/wallet-standard';
+import type { IdentifierRecord, MySoFeatures, MySoSignMessageFeature } from '@socialproof/wallet-standard';
 
-export const signMessageFeature: MysSignMessageFeature = {
-	'mys:signMessage': {
+export const signMessageFeature: MySoSignMessageFeature = {
+	'myso:signMessage': {
 		version: '1.0.0',
 		signMessage: vi.fn(),
 	},
@@ -18,30 +18,26 @@ export const superCoolFeature: IdentifierRecord<unknown> = {
 	},
 };
 
-export const mysFeatures: MysFeatures = {
+export const mysoFeatures: MySoFeatures = {
 	...signMessageFeature,
-	'mys:signPersonalMessage': {
+	'myso:signPersonalMessage': {
 		version: '1.1.0',
 		signPersonalMessage: vi.fn(),
 	},
-	'mys:signTransactionBlock': {
+	'myso:signTransactionBlock': {
 		version: '1.0.0',
 		signTransactionBlock: vi.fn(),
 	},
-	'mys:signTransaction': {
+	'myso:signTransaction': {
 		version: '2.0.0',
 		signTransaction: vi.fn(),
 	},
-	'mys:signAndExecuteTransactionBlock': {
+	'myso:signAndExecuteTransactionBlock': {
 		version: '1.0.0',
 		signAndExecuteTransactionBlock: vi.fn(),
 	},
-	'mys:signAndExecuteTransaction': {
+	'myso:signAndExecuteTransaction': {
 		version: '2.0.0',
 		signAndExecuteTransaction: vi.fn(),
-	},
-	'mys:reportTransactionEffects': {
-		version: '1.0.0',
-		reportTransactionEffects: vi.fn(),
 	},
 };

@@ -10,7 +10,7 @@ export interface GasData {
 	price: string | number | null;
 	/** The owner of the gas coins used to fund the transactions, this is either the sender or the gas sponsor */
 	owner: string | null;
-	/** The list of MYS coins to fund the transaction */
+	/** The list of MYSO coins to fund the transaction */
 	payment: { objectId: string; version: string; digest: string }[] | null;
 }
 
@@ -34,6 +34,8 @@ export interface SerializedTransactionDataV2 {
 	commands: Command[];
 	/** Extra metadata for implementation specific use-cases */
 	extensions?: { [key: string]: unknown };
+	/** The digest of the transaction, may be set when the transaction is fully resolved */
+	digest: string | null | undefined;
 }
 
 /**
@@ -100,6 +102,7 @@ export interface UnresolvedObjectArg {
 	version?: string | null | undefined;
 	digest?: string | null | undefined;
 	initialSharedVersion?: string | null | undefined;
+	mutable?: boolean | null | undefined;
 }
 
 export type Argument =

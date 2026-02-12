@@ -1,0 +1,1158 @@
+# @socialproof/orderbook
+
+## 1.0.9
+
+### Patch Changes
+
+- 5b220df: Update USDE to MYUSD in constants
+
+## 1.0.8
+
+### Patch Changes
+
+- 63ca077: Margin ID Update
+- 3d53583: Improve typing of generated bcs tuples
+- 1232202: New method checkManagerBalanceWithAddress. Pyth config for USDE.
+
+## 1.0.7
+
+### Patch Changes
+
+- 99d1e00: Add default export condition
+- Updated dependencies [99d1e00]
+  - @socialproof/bcs@2.0.2
+  - @socialproof/myso@2.3.2
+
+## 1.0.6
+
+### Patch Changes
+
+- ad9a3a4: Price added function
+
+## 1.0.5
+
+### Patch Changes
+
+- 65550fe: Update executeConditionalOrders for composability
+
+## 1.0.4
+
+### Patch Changes
+
+- b1bf6fd: Batch pyth price feed updates, stale feeds older than 30 seconds
+- Updated dependencies [265ec25]
+  - @socialproof/myso@2.3.1
+
+## 1.0.3
+
+### Patch Changes
+
+- bb40431: USDE Pools added
+
+## 1.0.2
+
+### Patch Changes
+
+- 3651a5f: Fix Pyth price table lookup to use getDynamicObjectField and correctly parse Wormhole
+  state using WormholeState schema
+- 1baa679: Margin manager states function
+
+## 1.0.1
+
+### Patch Changes
+
+- d83c831: USDE coin
+
+## 1.0.0
+
+### Major Changes
+
+- e00788c: ### Breaking Changes
+
+  **Renamed `env` option to `network`**
+
+  The `env` option has been renamed to `network` throughout the SDK to align with the standard
+  `MySoClientTypes.Network` type used across other packages.
+
+  ```diff
+  const dbClient = new OrderbookClient({
+     address: '0x...',
+  -  env: 'mainnet',
+  +  network: 'mainnet',
+     client: mysoClient,
+  });
+  ```
+
+  **Removed `Environment` type export**
+
+  The `Environment` type has been removed. Use `MySoClientTypes.Network` from `@socialproof/myso/client`
+  instead:
+
+  ```diff
+  -import { Environment } from '@socialproof/orderbook';
+  +import type { MySoClientTypes } from '@socialproof/myso/client';
+
+  -const env: Environment = 'mainnet';
+  +const network: MySoClientTypes.Network = 'mainnet';
+  ```
+
+  **Client extension auto-detects network**
+
+  The `orderbook()` client extension function no longer accepts a `network` option. The network is
+  automatically derived from the client:
+
+  ```diff
+  const client = new MySoGrpcClient({ network: 'mainnet', baseUrl: '...' }).$extend(
+     orderbook({
+       address: '0x...',
+  -    env: 'mainnet',  // No longer needed - auto-detected from client
+     }),
+  );
+  ```
+
+  **Network validation**
+
+  The SDK now throws an error if the network is not `'mainnet'` or `'testnet'`, as Orderbook only
+  supports these networks.
+
+### Minor Changes
+
+- e00788c: Update to use MySoJsonRpcClient instead of MySoClient
+
+  Updated all type signatures, internal usages, examples, and documentation to use
+  `MySoJsonRpcClient` from `@socialproof/myso/jsonRpc` instead of the deprecated `MySoClient` from
+  `@socialproof/myso/client`.
+
+### Patch Changes
+
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+  - @socialproof/myso@2.0.0
+  - @socialproof/bcs@2.0.0
+
+## 0.28.3
+
+### Patch Changes
+
+- d381366: Margin manager permissionless withdrawal
+- d25237e: Use balance manager ID for withdrawPermissionless
+
+## 0.28.2
+
+### Patch Changes
+
+- 24b41ea: Update rate limit in SDK
+
+## 0.28.1
+
+### Patch Changes
+
+- 1434c65: Withdraw all fix
+
+## 0.28.0
+
+### Minor Changes
+
+- c457d15: Allow deposit into margin pool during initialization. Allow deposit into margin pool
+  using TransactionArgument. Rounding improvements. Export constants in SDK.
+
+## 0.27.1
+
+### Patch Changes
+
+- dd4b1c3: USDT/USDC pool
+
+## 0.27.0
+
+### Minor Changes
+
+- 080f16c: Price Info Objects for mainnet
+
+## 0.26.9
+
+### Patch Changes
+
+- 4e8fdb5: Margin Pool IDs
+
+## 0.26.8
+
+### Patch Changes
+
+- ce8ccf2: New package IDs
+
+## 0.26.7
+
+### Patch Changes
+
+- ce90642: Protocol config function updates
+
+## 0.26.6
+
+### Patch Changes
+
+- 7e33816: MarginPoolCap as transaction param
+
+## 0.26.5
+
+### Patch Changes
+
+- 678dda6: Mainnet margin IDs
+
+## 0.26.4
+
+### Patch Changes
+
+- 86d1c96: Mainnet feed and currency IDs
+
+## 0.26.3
+
+### Patch Changes
+
+- 9bb895e: Revoke TradeCap
+
+## 0.26.2
+
+### Patch Changes
+
+- 882d988: Add LZWBTC_USDC pool to SDK
+
+## 0.26.1
+
+### Patch Changes
+
+- 6b8f03d: LZWBTC coin
+
+## 0.26.0
+
+### Minor Changes
+
+- ef523b8: Take Profit Stop Loss support
+
+### Patch Changes
+
+- 396fb3f: Bump margin package for testing
+
+## 0.25.0
+
+### Minor Changes
+
+- 74b9509: Liquidation Logic
+
+## 0.24.0
+
+### Minor Changes
+
+- 749318e: Improved referral system
+
+## 0.23.2
+
+### Patch Changes
+
+- 4ace43a: Update DEEP testnet feed
+
+## 0.23.1
+
+### Patch Changes
+
+- 0ba3834: BTC setup for testnet
+
+## 0.23.0
+
+### Minor Changes
+
+- 3fff516: Orderbook Core Package Upgrade (V4)
+
+## 0.22.2
+
+### Patch Changes
+
+- Updated dependencies [29e8b92]
+  - @socialproof/myso@1.45.2
+
+## 0.22.1
+
+### Patch Changes
+
+- Updated dependencies [e3811f1]
+  - @socialproof/myso@1.45.1
+
+## 0.22.0
+
+### Minor Changes
+
+- 911ff24: New deposit function params and testnet package
+
+## 0.21.0
+
+### Minor Changes
+
+- ab5ff6c: New testnet core package upgrade, margin package redeployment
+
+## 0.20.4
+
+### Patch Changes
+
+- bf5773f: Improve read only functions and add manager state function
+- d8355d7: Admin withdraw referral fees
+
+## 0.20.3
+
+### Patch Changes
+
+- a2f84a3: Update margin withdraw referral function
+- e0490df: Fix orderbook admin function
+- Updated dependencies [88bdbac]
+  - @socialproof/myso@1.45.0
+
+## 0.20.2
+
+### Patch Changes
+
+- c95ff1a: Update Orderbook and margin package IDs
+
+## 0.20.1
+
+### Patch Changes
+
+- Updated dependencies [44d9b4f]
+  - @socialproof/myso@1.44.0
+
+## 0.20.0
+
+### Minor Changes
+
+- 762404b: Update margin testnet package
+
+## 0.19.7
+
+### Patch Changes
+
+- Updated dependencies [89fa2dc]
+  - @socialproof/bcs@1.9.2
+  - @socialproof/myso@1.43.2
+
+## 0.19.6
+
+### Patch Changes
+
+- 48759a8: Update margin package on testnet
+- a05eba1: New testnet margin package, small function changes
+- Updated dependencies [a37829f]
+  - @socialproof/bcs@1.9.1
+  - @socialproof/myso@1.43.1
+
+## 0.19.5
+
+### Patch Changes
+
+- Updated dependencies [f3b19a7]
+- Updated dependencies [f3b19a7]
+- Updated dependencies [bf9f85c]
+  - @socialproof/myso@1.43.0
+  - @socialproof/bcs@1.9.0
+
+## 0.19.4
+
+### Patch Changes
+
+- Updated dependencies [98c8a27]
+  - @socialproof/myso@1.42.0
+
+## 0.19.3
+
+### Patch Changes
+
+- Updated dependencies [a17c337]
+- Updated dependencies [d554cd2]
+- Updated dependencies [04fcfbc]
+  - @socialproof/bcs@1.8.1
+  - @socialproof/myso@1.41.0
+
+## 0.19.2
+
+### Patch Changes
+
+- Updated dependencies [f5fc0c0]
+  - @socialproof/myso@1.40.0
+
+## 0.19.1
+
+### Patch Changes
+
+- Updated dependencies [a9f9035]
+  - @socialproof/myso@1.39.1
+
+## 0.19.0
+
+### Minor Changes
+
+- fd91249: Margin package functionality
+
+### Patch Changes
+
+- Updated dependencies [ca92487]
+- Updated dependencies [5ab3c0a]
+  - @socialproof/myso@1.39.0
+
+## 0.18.0
+
+### Minor Changes
+
+- 7d8bc08: Support core package upgrade changes on testnet
+
+## 0.17.0
+
+### Minor Changes
+
+- ea1ac70: Update dependencies and improve support for typescript 5.9
+
+### Patch Changes
+
+- Updated dependencies [3c1741f]
+- Updated dependencies [ea1ac70]
+  - @socialproof/myso@1.38.0
+  - @socialproof/bcs@1.8.0
+
+## 0.16.1
+
+### Patch Changes
+
+- 78bd0e9: Update codegen arg normalization for object args
+- Updated dependencies [c689b98]
+- Updated dependencies [5b9ff1a]
+  - @socialproof/myso@1.37.6
+
+## 0.16.0
+
+### Minor Changes
+
+- 216a53a: Export bcs types
+
+### Patch Changes
+
+- Updated dependencies [3980d04]
+  - @socialproof/myso@1.37.5
+
+## 0.15.16
+
+### Patch Changes
+
+- Updated dependencies [6b03e57]
+  - @socialproof/myso@1.37.4
+
+## 0.15.15
+
+### Patch Changes
+
+- 05b56d5: ALKIMI/MYSO pool
+
+## 0.15.14
+
+### Patch Changes
+
+- Updated dependencies [8ff1471]
+  - @socialproof/myso@1.37.3
+
+## 0.15.13
+
+### Patch Changes
+
+- Updated dependencies [660377c]
+  - @socialproof/myso@1.37.2
+
+## 0.15.12
+
+### Patch Changes
+
+- a02e75d: Patch permissionless pool creation rounding error
+
+## 0.15.11
+
+### Patch Changes
+
+- @socialproof/myso@1.37.1
+
+## 0.15.10
+
+### Patch Changes
+
+- 6988956: IKA/USDC pool added
+
+## 0.15.9
+
+### Patch Changes
+
+- ee08639: IKA token on mainnet added
+
+## 0.15.8
+
+### Patch Changes
+
+- Updated dependencies [72168f0]
+  - @socialproof/myso@1.37.0
+
+## 0.15.7
+
+### Patch Changes
+
+- Updated dependencies [44354ab]
+  - @socialproof/myso@1.36.2
+
+## 0.15.6
+
+### Patch Changes
+
+- Updated dependencies [c76ddc5]
+  - @socialproof/myso@1.36.1
+
+## 0.15.5
+
+### Patch Changes
+
+- Updated dependencies [783bb9e]
+- Updated dependencies [783bb9e]
+- Updated dependencies [5cbbb21]
+  - @socialproof/myso@1.36.0
+
+## 0.15.4
+
+### Patch Changes
+
+- Updated dependencies [888afe6]
+  - @socialproof/myso@1.35.0
+
+## 0.15.3
+
+### Patch Changes
+
+- Updated dependencies [3fb7a83]
+  - @socialproof/myso@1.34.0
+
+## 0.15.2
+
+### Patch Changes
+
+- Updated dependencies [a00522b]
+  - @socialproof/myso@1.33.0
+
+## 0.15.1
+
+### Patch Changes
+
+- e24e20c: Testnet package update
+
+## 0.15.0
+
+### Minor Changes
+
+- 2572f14: Bump package to version 3
+
+### Patch Changes
+
+- Updated dependencies [6b7deb8]
+  - @socialproof/myso@1.32.0
+
+## 0.14.17
+
+### Patch Changes
+
+- Updated dependencies [1ff4e57]
+- Updated dependencies [550e2e3]
+- Updated dependencies [550e2e3]
+  - @socialproof/myso@1.31.0
+
+## 0.14.16
+
+### Patch Changes
+
+- Updated dependencies [5bd6ca3]
+  - @socialproof/myso@1.30.5
+
+## 0.14.15
+
+### Patch Changes
+
+- Updated dependencies [5dce590]
+- Updated dependencies [4a5aef6]
+  - @socialproof/myso@1.30.4
+
+## 0.14.14
+
+### Patch Changes
+
+- bb7c03a: Update dependencies
+- Updated dependencies [4457f10]
+- Updated dependencies [bb7c03a]
+  - @socialproof/myso@1.30.3
+
+## 0.14.13
+
+### Patch Changes
+
+- Updated dependencies [b265f7e]
+  - @socialproof/myso@1.30.2
+
+## 0.14.12
+
+### Patch Changes
+
+- f30ae3c: Testnet upgrade
+
+## 0.14.11
+
+### Patch Changes
+
+- 093fcc7: XBTC-USDC pool
+
+## 0.14.10
+
+### Patch Changes
+
+- 00c526d: Temporary fix for floating point rounding error
+
+## 0.14.9
+
+### Patch Changes
+
+- 7b6dbe1: Add XBTC to assets
+- Updated dependencies [ec519fc]
+  - @socialproof/myso@1.30.1
+
+## 0.14.8
+
+### Patch Changes
+
+- Updated dependencies [2456052]
+- Updated dependencies [5264038]
+- Updated dependencies [2456052]
+- Updated dependencies [2456052]
+- Updated dependencies [2456052]
+- Updated dependencies [2456052]
+  - @socialproof/myso@1.30.0
+
+## 0.14.7
+
+### Patch Changes
+
+- e7c5b81: Function to adjust min and lot size as admin
+
+## 0.14.6
+
+### Patch Changes
+
+- 7a223e5: Add support for admin adjusting tick size
+
+## 0.14.5
+
+### Patch Changes
+
+- @socialproof/myso@1.29.1
+
+## 0.14.4
+
+### Patch Changes
+
+- Updated dependencies [7d66a32]
+- Updated dependencies [eb91fba]
+- Updated dependencies [19a8045]
+  - @socialproof/myso@1.29.0
+
+## 0.14.3
+
+### Patch Changes
+
+- Updated dependencies [9a94aea]
+  - @socialproof/myso@1.28.2
+
+## 0.14.2
+
+### Patch Changes
+
+- Updated dependencies [3cd4e53]
+  - @socialproof/myso@1.28.1
+
+## 0.14.1
+
+### Patch Changes
+
+- Updated dependencies [2705dc8]
+  - @socialproof/myso@1.28.0
+
+## 0.14.0
+
+### Minor Changes
+
+- 5e7eeb9: Package Upgrade ID
+
+## 0.13.7
+
+### Patch Changes
+
+- Updated dependencies [5cea435]
+  - @socialproof/myso@1.27.1
+
+## 0.13.6
+
+### Patch Changes
+
+- Updated dependencies [4d13ef8]
+- Updated dependencies [4d13ef8]
+  - @socialproof/myso@1.27.0
+
+## 0.13.5
+
+### Patch Changes
+
+- 7ba32a4: update dependencies
+- Updated dependencies [7ba32a4]
+  - @socialproof/myso@1.26.1
+
+## 0.13.4
+
+### Patch Changes
+
+- Updated dependencies [906dd14]
+  - @socialproof/myso@1.26.0
+
+## 0.13.3
+
+### Patch Changes
+
+- 98d25ad: WAL pools support
+- Updated dependencies [e8b5d04]
+  - @socialproof/myso@1.25.0
+
+## 0.13.2
+
+### Patch Changes
+
+- b93b0f2: Add WAL token
+
+## 0.13.1
+
+### Patch Changes
+
+- Updated dependencies [cf3d12d]
+  - @socialproof/myso@1.24.0
+
+## 0.13.0
+
+### Minor Changes
+
+- 27a1e7d: Support for permissionless pool creation and balance manager functions
+
+### Patch Changes
+
+- ba6f895: SEND pool
+- Updated dependencies [8baac61]
+- Updated dependencies [8baac61]
+  - @socialproof/myso@1.23.0
+
+## 0.12.30
+
+### Patch Changes
+
+- da31bc5: Add SEND token to SDK
+- Updated dependencies [03975f4]
+  - @socialproof/myso@1.22.0
+
+## 0.12.29
+
+### Patch Changes
+
+- c982198: Experimental GIGA token
+
+## 0.12.28
+
+### Patch Changes
+
+- @socialproof/myso@1.21.2
+
+## 0.12.27
+
+### Patch Changes
+
+- @socialproof/myso@1.21.1
+
+## 0.12.26
+
+### Patch Changes
+
+- Updated dependencies [3d8a0d9]
+- Updated dependencies [20a5aaa]
+  - @socialproof/myso@1.21.0
+
+## 0.12.25
+
+### Patch Changes
+
+- Updated dependencies [827a200]
+  - @socialproof/myso@1.20.0
+
+## 0.12.24
+
+### Patch Changes
+
+- Updated dependencies [c39f32f]
+- Updated dependencies [539168a]
+  - @socialproof/myso@1.19.0
+
+## 0.12.23
+
+### Patch Changes
+
+- 7abd243: Update repo links
+- Updated dependencies [7abd243]
+  - @socialproof/myso@1.18.1
+
+## 0.12.22
+
+### Patch Changes
+
+- Updated dependencies [4f012b9]
+- Updated dependencies [85bd9e4]
+- Updated dependencies [5e3709d]
+- Updated dependencies [b2928a9]
+- Updated dependencies [dc0e21e]
+- Updated dependencies [85bd9e4]
+- Updated dependencies [a872b97]
+  - @socialproof/myso@1.18.0
+
+## 0.12.21
+
+### Patch Changes
+
+- 7237686: DRF pool
+
+## 0.12.20
+
+### Patch Changes
+
+- 50d0edb: DRF token
+
+## 0.12.19
+
+### Patch Changes
+
+- Updated dependencies [20af12d]
+  - @socialproof/myso@1.17.0
+
+## 0.12.18
+
+### Patch Changes
+
+- Updated dependencies [100207f]
+  - @socialproof/myso@1.16.2
+
+## 0.12.17
+
+### Patch Changes
+
+- @socialproof/myso@1.16.1
+
+## 0.12.16
+
+### Patch Changes
+
+- f78d42a: AUSD pool support
+
+## 0.12.15
+
+### Patch Changes
+
+- Updated dependencies [ec2dc7f]
+- Updated dependencies [ec2dc7f]
+  - @socialproof/myso@1.16.0
+
+## 0.12.14
+
+### Patch Changes
+
+- @socialproof/myso@1.15.1
+
+## 0.12.13
+
+### Patch Changes
+
+- 9c0987c: AUSD Coin
+
+## 0.12.12
+
+### Patch Changes
+
+- Updated dependencies [6460e45]
+  - @socialproof/myso@1.15.0
+
+## 0.12.11
+
+### Patch Changes
+
+- 4cf47ad: Typus pool
+
+## 0.12.10
+
+### Patch Changes
+
+- 46bdaf9: Typus coin type
+
+## 0.12.9
+
+### Patch Changes
+
+- 2a532bc: Governance function update
+
+## 0.12.8
+
+### Patch Changes
+
+- Updated dependencies [938fb6e]
+  - @socialproof/myso@1.14.4
+
+## 0.12.7
+
+### Patch Changes
+
+- 4a42691: NS token pools added
+
+## 0.12.6
+
+### Patch Changes
+
+- a43ae92: NS Token
+- Updated dependencies [d5a23d7]
+  - @socialproof/myso@1.14.3
+
+## 0.12.5
+
+### Patch Changes
+
+- a24d43d: getOrders and decodeOrderId support
+
+## 0.12.4
+
+### Patch Changes
+
+- 6a571f1: Deep conversion
+- Updated dependencies [e7bc63e]
+  - @socialproof/myso@1.14.2
+
+## 0.12.3
+
+### Patch Changes
+
+- Updated dependencies [69ef100]
+  - @socialproof/myso@1.14.1
+
+## 0.12.2
+
+### Patch Changes
+
+- Updated dependencies [c24814b]
+  - @socialproof/myso@1.14.0
+
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies [477d2a4]
+  - @socialproof/myso@1.13.0
+
+## 0.12.0
+
+### Minor Changes
+
+- 60f96ee: New stablecoin pool params
+
+## 0.11.0
+
+### Minor Changes
+
+- 7b8e8ad: Mainnet pool packages
+
+## 0.10.0
+
+### Minor Changes
+
+- 23c3a3a: DEEP Mainnet Redeploy
+
+## 0.9.0
+
+### Minor Changes
+
+- 89f2e59: Mainnet packages
+
+## 0.8.5
+
+### Patch Changes
+
+- c0fb6d6: Patch ID and bug fix
+
+## 0.8.4
+
+### Patch Changes
+
+- 5df4e5e: Test Mainnet Packages
+
+## 0.8.3
+
+### Patch Changes
+
+- Updated dependencies [5436a90]
+- Updated dependencies [5436a90]
+  - @socialproof/myso@1.12.0
+
+## 0.8.2
+
+### Patch Changes
+
+- f026ec6: Orderbook Package Upgrade
+
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [489f421]
+- Updated dependencies [489f421]
+  - @socialproof/myso@1.11.0
+
+## 0.8.0
+
+### Minor Changes
+
+- 0d17307: Update orderbook sdk
+
+## 0.7.1
+
+### Patch Changes
+
+- 37d259a: Locked balance feature
+
+## 0.7.0
+
+### Minor Changes
+
+- 7923ed5: Newest orderbook package constants
+
+### Patch Changes
+
+- Updated dependencies [830b8d8]
+  - @socialproof/myso@1.10.0
+
+## 0.6.0
+
+### Minor Changes
+
+- ebe2ae8: Admin function updates, package constant updates
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [2c96b06]
+- Updated dependencies [1fd22cc]
+  - @socialproof/myso@1.9.0
+
+## 0.5.0
+
+### Minor Changes
+
+- c53baf2: Redeploy packages
+
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [569511a]
+  - @socialproof/myso@1.8.0
+
+## 0.4.2
+
+### Patch Changes
+
+- 339b8eb: Try catch for getOrder function
+
+## 0.4.1
+
+### Patch Changes
+
+- 3221141: Book param function and package upgrade
+
+## 0.4.0
+
+### Minor Changes
+
+- adc704a: trade params and account getters
+
+## 0.3.3
+
+### Patch Changes
+
+- ed221a6: Update package address
+
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [143cd9d]
+- Updated dependencies [4357ac6]
+- Updated dependencies [4019dd7]
+- Updated dependencies [4019dd7]
+- Updated dependencies [00a974d]
+  - @socialproof/myso@1.7.0
+
+## 0.3.1
+
+### Patch Changes
+
+- d70e8ff: Upgrade Package
+
+## 0.3.0
+
+### Minor Changes
+
+- 36f1c6f: Rounding for numbers, exports update
+- c51f186: New contract constants
+
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [a3e32fe]
+  - @socialproof/myso@1.6.0
+
+## 0.2.0
+
+### Minor Changes
+
+- 41361b6: Constants update, manager sdk update
+
+## 0.1.0
+
+### Minor Changes
+
+- 05fb3ac: Update orderbook addresses
+
+### Patch Changes
+
+- Updated dependencies [0851b31]
+- Updated dependencies [f37b3c2]
+  - @socialproof/myso@1.5.0
+
+## 0.0.1
+
+### Patch Changes
+
+- Updated dependencies [4419234]
+  - @socialproof/myso@1.4.0

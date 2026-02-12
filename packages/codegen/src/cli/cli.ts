@@ -9,8 +9,8 @@ export function buildCli(version: string) {
 	const routes = buildRouteMap({
 		routes: {
 			generate: generateCommand,
-			install: buildInstallCommand('mys-ts-codegen', { bash: '__mys-ts-codegen_bash_complete' }),
-			uninstall: buildUninstallCommand('mys-ts-codegen', { bash: true }),
+			install: buildInstallCommand('myso-ts-codegen', { bash: '__myso-ts-codegen_bash_complete' }),
+			uninstall: buildUninstallCommand('myso-ts-codegen', { bash: true }),
 		},
 		docs: {
 			brief: 'Generate TypeScript bindings for your Move code',
@@ -22,7 +22,7 @@ export function buildCli(version: string) {
 	});
 
 	return buildApplication(routes, {
-		name: 'mys-ts-codegen',
+		name: 'myso-ts-codegen',
 		versionInfo: {
 			currentVersion: version,
 		},

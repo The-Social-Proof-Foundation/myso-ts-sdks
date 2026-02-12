@@ -1,0 +1,390 @@
+// Copyright (c) Mysten Labs, Inc.
+// Copyright (c) The Social Proof Foundation, LLC.
+// SPDX-License-Identifier: Apache-2.0
+
+import { describe, it, expect } from 'vitest';
+import { Transaction } from '@socialproof/myso/transactions';
+import { analyze } from '../../src/transaction-analyzer/analyzer.js';
+import { coins, gasCoins } from '../../src/transaction-analyzer/rules/coins.js';
+import { MockMySoClient } from '../mocks/MockMySoClient.js';
+import {
+	DEFAULT_SENDER,
+	createAddressOwner,
+	TEST_COIN_1_ID,
+	TEST_COIN_2_ID,
+	TEST_NFT_ID,
+} from '../mocks/mockData.js';
+
+describe('TransactionAnalyzer - Coins Rule', () => {
+	it('should analyze all coin-related functionality in a single transaction', async () => {
+		const client = new MockMySoClient();
+
+		// Add additional coins to exercise various features
+		client.addCoin({
+			objectId: '0xabc123',
+			coinType: '0xa0b::usdc::USDC',
+			balance: 500000000n,
+			owner: createAddressOwner(DEFAULT_SENDER),
+		});
+
+		client.addCoin({
+			objectId: '0xdef456',
+			coinType: '0x2::myso::MYSO',
+			balance: 100000000n,
+			owner: { $kind: 'ObjectOwner', ObjectOwner: '0x00parent' },
+		});
+
+		const tx = new Transaction();
+		tx.setSender(DEFAULT_SENDER);
+
+		// 1. Use MYSO coins in various commands
+		const mysoCoin1 = tx.object(TEST_COIN_1_ID);
+		const mysoCoin2 = tx.object(TEST_COIN_2_ID);
+
+		// 2. Use USDC coin
+		const usdcCoin = tx.object('0xabc123');
+
+		// 3. Use coin with different owner (ObjectOwner)
+		const parentOwnedCoin = tx.object('0xdef456');
+
+		// 5. Split/merge operations
+		tx.splitCoins(mysoCoin1, [100, 200]);
+		tx.mergeCoins(mysoCoin1, [mysoCoin2]);
+
+		// 6. Use gas coin (should appear in gasCoins, not coins)
+		tx.splitCoins(tx.gas, [50]);
+
+		// 7. Create vector of coins (nested structure)
+		const coinVec = tx.makeMoveVec({
+			elements: [mysoCoin1, usdcCoin],
+		});
+
+		// 8. Use coins in multiple ways (deduplication test)
+		tx.moveCall({
+			target: '0x999::test::transfer',
+			arguments: [mysoCoin1, parentOwnedCoin],
+		});
+
+		tx.moveCall({
+			target: '0x999::test::batch_transfer',
+			arguments: [coinVec, mysoCoin1], // mysoCoin1 used again
+		});
+
+		// 9. Include a non-coin object to verify filtering
+		const nft = tx.object(TEST_NFT_ID);
+		tx.moveCall({
+			target: '0x999::test::transfer_nft',
+			arguments: [nft],
+		});
+
+		const results = await analyze(
+			{ coins, gasCoins },
+			{
+				client,
+				transaction: await tx.toJSON(),
+			},
+		);
+
+		// Should detect all coin objects but not the NFT
+		expect(Object.keys(results.coins.result)).toHaveLength(4);
+		expect(results.coins.result).toMatchInlineSnapshot(`
+			{
+			  "0x0000000000000000000000000000000000000000000000000000000000a5c000": {
+			    "balance": 5000000000n,
+			    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO",
+			    "content": Uint8Array [
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      165,
+			      192,
+			      0,
+			      0,
+			      242,
+			      5,
+			      42,
+			      1,
+			      0,
+			      0,
+			      0,
+			    ],
+			    "digest": "11111111111111111111111111111111",
+			    "json": undefined,
+			    "objectBcs": undefined,
+			    "objectId": "0x0000000000000000000000000000000000000000000000000000000000a5c000",
+			    "owner": {
+			      "$kind": "AddressOwner",
+			      "AddressOwner": "0x0000000000000000000000000000000000000000000000000000000000000123",
+			    },
+			    "ownerAddress": "0x0000000000000000000000000000000000000000000000000000000000000123",
+			    "previousTransaction": undefined,
+			    "type": "0x0000000000000000000000000000000000000000000000000000000000000002::coin::Coin<0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO>",
+			    "version": "100",
+			  },
+			  "0x0000000000000000000000000000000000000000000000000000000000a5c001": {
+			    "balance": 2500000000n,
+			    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO",
+			    "content": Uint8Array [
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      165,
+			      192,
+			      1,
+			      0,
+			      249,
+			      2,
+			      149,
+			      0,
+			      0,
+			      0,
+			      0,
+			    ],
+			    "digest": "11111111111111111111111111111111",
+			    "json": undefined,
+			    "objectBcs": undefined,
+			    "objectId": "0x0000000000000000000000000000000000000000000000000000000000a5c001",
+			    "owner": {
+			      "$kind": "AddressOwner",
+			      "AddressOwner": "0x0000000000000000000000000000000000000000000000000000000000000123",
+			    },
+			    "ownerAddress": "0x0000000000000000000000000000000000000000000000000000000000000123",
+			    "previousTransaction": undefined,
+			    "type": "0x0000000000000000000000000000000000000000000000000000000000000002::coin::Coin<0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO>",
+			    "version": "101",
+			  },
+			  "0x0000000000000000000000000000000000000000000000000000000000abc123": {
+			    "balance": 500000000n,
+			    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000a0b::usdc::USDC",
+			    "content": Uint8Array [
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      171,
+			      193,
+			      35,
+			      0,
+			      101,
+			      205,
+			      29,
+			      0,
+			      0,
+			      0,
+			      0,
+			    ],
+			    "digest": "11111111111111111111111111111111",
+			    "json": undefined,
+			    "objectBcs": undefined,
+			    "objectId": "0x0000000000000000000000000000000000000000000000000000000000abc123",
+			    "owner": {
+			      "$kind": "AddressOwner",
+			      "AddressOwner": "0x0000000000000000000000000000000000000000000000000000000000000123",
+			    },
+			    "ownerAddress": "0x0000000000000000000000000000000000000000000000000000000000000123",
+			    "previousTransaction": undefined,
+			    "type": "0x0000000000000000000000000000000000000000000000000000000000000002::coin::Coin<0x0000000000000000000000000000000000000000000000000000000000000a0b::usdc::USDC>",
+			    "version": "100",
+			  },
+			  "0x0000000000000000000000000000000000000000000000000000000000def456": {
+			    "balance": 100000000n,
+			    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO",
+			    "content": Uint8Array [
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      222,
+			      244,
+			      86,
+			      0,
+			      225,
+			      245,
+			      5,
+			      0,
+			      0,
+			      0,
+			      0,
+			    ],
+			    "digest": "11111111111111111111111111111111",
+			    "json": undefined,
+			    "objectBcs": undefined,
+			    "objectId": "0x0000000000000000000000000000000000000000000000000000000000def456",
+			    "owner": {
+			      "$kind": "ObjectOwner",
+			      "ObjectOwner": "0x00parent",
+			    },
+			    "ownerAddress": "0x00parent",
+			    "previousTransaction": undefined,
+			    "type": "0x0000000000000000000000000000000000000000000000000000000000000002::coin::Coin<0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO>",
+			    "version": "100",
+			  },
+			}
+		`);
+
+		expect(results.gasCoins.result).toMatchInlineSnapshot(`
+			[
+			  {
+			    "balance": 5000000000n,
+			    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO",
+			    "content": Uint8Array [
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      0,
+			      165,
+			      192,
+			      0,
+			      0,
+			      242,
+			      5,
+			      42,
+			      1,
+			      0,
+			      0,
+			      0,
+			    ],
+			    "digest": "11111111111111111111111111111111",
+			    "json": undefined,
+			    "objectBcs": undefined,
+			    "objectId": "0x0000000000000000000000000000000000000000000000000000000000a5c000",
+			    "owner": {
+			      "$kind": "AddressOwner",
+			      "AddressOwner": "0x0000000000000000000000000000000000000000000000000000000000000123",
+			    },
+			    "ownerAddress": "0x0000000000000000000000000000000000000000000000000000000000000123",
+			    "previousTransaction": undefined,
+			    "type": "0x0000000000000000000000000000000000000000000000000000000000000002::coin::Coin<0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO>",
+			    "version": "100",
+			  },
+			]
+		`);
+	});
+});

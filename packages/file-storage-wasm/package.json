@@ -1,0 +1,41 @@
+{
+  "name": "@socialproof/file-storage-wasm",
+  "collaborators": [
+    "jonaslindstrom"
+  ],
+  "version": "0.0.1",
+  "private": false,
+  "main": "index.js",
+  "types": "./index.d.mts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MystenLabs/ts-sdks.git"
+  },
+  "scripts": {
+    "build:wasm": "pnpm build:nodejs && pnpm build:web",
+    "build:nodejs": "wasm-pack build --target nodejs --release --out-dir nodejs --no-pack && rm nodejs/.gitignore",
+    "build:web": "wasm-pack build --target web --release --out-dir web --no-pack && rm web/.gitignore",
+    "test": "vitest run"
+  },
+  "exports": {
+    ".": {
+      "browser": {
+        "types": "./web/file_storage_wasm.d.ts",
+        "import": "./web/file_storage_wasm.js"
+      },
+      "types": "./index.d.mts",
+      "import": "./index.mjs",
+      "require": "./index.js"
+    },
+    "./web/file_storage_wasm_bg.wasm": {
+      "browser": "./web/file_storage_wasm_bg.wasm",
+      "import": "./web/file_storage_wasm_bg.wasm",
+      "require": "./web/file_storage_wasm_bg.wasm"
+    }
+  },
+  "devDependencies": {
+    "@socialproof/bcs": "workspace:^",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.17"
+  }
+}

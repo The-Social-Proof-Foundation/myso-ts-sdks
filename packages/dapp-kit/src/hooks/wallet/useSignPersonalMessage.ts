@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type {
-	MysSignPersonalMessageInput,
-	MysSignPersonalMessageOutput,
+	MySoSignPersonalMessageInput,
+	MySoSignPersonalMessageOutput,
 } from '@socialproof/wallet-standard';
 import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
@@ -16,13 +16,13 @@ import {
 } from '../..//errors/walletErrors.js';
 import { walletMutationKeys } from '../../constants/walletMutationKeys.js';
 import type { PartialBy } from '../../types/utilityTypes.js';
-import { useMysClientContext } from '../useMysClient.js';
+import { useMySoClientContext } from '../useMySoClient.js';
 import { useCurrentAccount } from './useCurrentAccount.js';
 import { useCurrentWallet } from './useCurrentWallet.js';
 
-type UseSignPersonalMessageArgs = PartialBy<MysSignPersonalMessageInput, 'account' | 'chain'>;
+type UseSignPersonalMessageArgs = PartialBy<MySoSignPersonalMessageInput, 'account' | 'chain'>;
 
-type UseSignPersonalMessageResult = MysSignPersonalMessageOutput;
+type UseSignPersonalMessageResult = MySoSignPersonalMessageOutput;
 
 type UseSignPersonalMessageError =
 	| WalletFeatureNotSupportedError
@@ -53,7 +53,7 @@ export function useSignPersonalMessage({
 > {
 	const { currentWallet } = useCurrentWallet();
 	const currentAccount = useCurrentAccount();
-	const { network } = useMysClientContext();
+	const { network } = useMySoClientContext();
 
 	return useMutation({
 		mutationKey: walletMutationKeys.signPersonalMessage(mutationKey),
@@ -69,17 +69,17 @@ export function useSignPersonalMessage({
 				);
 			}
 
-			const signPersonalMessageFeature = currentWallet.features['mys:signPersonalMessage'];
+			const signPersonalMessageFeature = currentWallet.features['myso:signPersonalMessage'];
 			if (signPersonalMessageFeature) {
 				return await signPersonalMessageFeature.signPersonalMessage({
 					...signPersonalMessageArgs,
 					account: signerAccount,
-					chain: signPersonalMessageArgs.chain ?? `mys:${network}`,
+					chain: signPersonalMessageArgs.chain ?? `myso:${network}`,
 				});
 			}
 
-			// TODO: Remove this once we officially discontinue mys:signMessage in the wallet standard
-			const signMessageFeature = currentWallet.features['mys:signMessage'];
+			// TODO: Remove this once we officially discontinue myso:signMessage in the wallet standard
+			const signMessageFeature = currentWallet.features['myso:signMessage'];
 			if (signMessageFeature) {
 				console.warn(
 					"This wallet doesn't support the `signPersonalMessage` feature... falling back to `signMessage`.",

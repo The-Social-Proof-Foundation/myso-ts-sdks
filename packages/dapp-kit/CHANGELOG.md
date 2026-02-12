@@ -1,11 +1,400 @@
 # @socialproof/dapp-kit
 
+## 1.0.3
+
+### Patch Changes
+
+- 99d1e00: Add default export condition
+- Updated dependencies [99d1e00]
+  - @socialproof/wallet-standard@0.20.1
+  - @socialproof/slush-wallet@1.0.2
+  - @socialproof/utils@0.3.1
+  - @socialproof/myso@2.3.2
+
+## 1.0.2
+
+### Patch Changes
+
+- 7cf3682: Implement an isomorphic effect to fix SSG build errors
+
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [339d1e0]
+  - @socialproof/utils@0.3.0
+  - @socialproof/slush-wallet@1.0.1
+  - @socialproof/myso@2.0.1
+  - @socialproof/wallet-standard@0.20.0
+
+## 1.0.0
+
+### Minor Changes
+
+- e00788c: Remove reportTransactionEffects feature
+- e00788c: Update to use MySoJsonRpcClient instead of MySoClient
+
+  Updated all type signatures, internal usages, examples, and documentation to use
+  `MySoJsonRpcClient` from `@socialproof/myso/jsonRpc` instead of the deprecated `MySoClient` from
+  `@socialproof/myso/client`.
+
+### Patch Changes
+
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+  - @socialproof/myso@2.0.0
+  - @socialproof/wallet-standard@0.20.0
+  - @socialproof/slush-wallet@1.0.0
+
+## 0.20.0
+
+### Minor Changes
+
+- b827dfd: Replace references to MySo Wallet and set Slush as the default wallet in WalletList.tsx
+
+### Patch Changes
+
+- Updated dependencies [b827dfd]
+  - @socialproof/slush-wallet@0.3.0
+
+## 0.19.11
+
+### Patch Changes
+
+- Updated dependencies [29e8b92]
+  - @socialproof/myso@1.45.2
+  - @socialproof/slush-wallet@0.2.12
+  - @socialproof/wallet-standard@0.19.9
+
+## 0.19.10
+
+### Patch Changes
+
+- Updated dependencies [e3811f1]
+  - @socialproof/slush-wallet@0.2.11
+  - @socialproof/myso@1.45.1
+  - @socialproof/wallet-standard@0.19.8
+
+## 0.19.9
+
+### Patch Changes
+
+- Updated dependencies [88bdbac]
+  - @socialproof/myso@1.45.0
+  - @socialproof/slush-wallet@0.2.10
+  - @socialproof/wallet-standard@0.19.7
+
+## 0.19.8
+
+### Patch Changes
+
+- Updated dependencies [44d9b4f]
+  - @socialproof/myso@1.44.0
+  - @socialproof/slush-wallet@0.2.9
+  - @socialproof/wallet-standard@0.19.6
+
+## 0.19.7
+
+### Patch Changes
+
+- @socialproof/myso@1.43.2
+- @socialproof/slush-wallet@0.2.8
+- @socialproof/wallet-standard@0.19.5
+
+## 0.19.6
+
+### Patch Changes
+
+- @socialproof/myso@1.43.1
+- @socialproof/slush-wallet@0.2.7
+- @socialproof/wallet-standard@0.19.4
+
+## 0.19.5
+
+### Patch Changes
+
+- Updated dependencies [f3b19a7]
+- Updated dependencies [bf9f85c]
+  - @socialproof/myso@1.43.0
+  - @socialproof/slush-wallet@0.2.6
+  - @socialproof/wallet-standard@0.19.3
+
+## 0.19.4
+
+### Patch Changes
+
+- Updated dependencies [98c8a27]
+  - @socialproof/myso@1.42.0
+  - @socialproof/slush-wallet@0.2.5
+  - @socialproof/wallet-standard@0.19.2
+
+## 0.19.3
+
+### Patch Changes
+
+- Updated dependencies [d554cd2]
+- Updated dependencies [04fcfbc]
+  - @socialproof/myso@1.41.0
+  - @socialproof/slush-wallet@0.2.4
+  - @socialproof/wallet-standard@0.19.1
+
+## 0.19.2
+
+### Patch Changes
+
+- f5fc0c0: Update wallet-standard integration to use getCapabilties instead of getSupportedIntents
+- Updated dependencies [f5fc0c0]
+- Updated dependencies [f5fc0c0]
+  - @socialproof/wallet-standard@0.19.0
+  - @socialproof/myso@1.40.0
+  - @socialproof/slush-wallet@0.2.3
+
+## 0.19.1
+
+### Patch Changes
+
+- Updated dependencies [a9f9035]
+  - @socialproof/myso@1.39.1
+  - @socialproof/slush-wallet@0.2.2
+  - @socialproof/wallet-standard@0.18.1
+
+## 0.19.0
+
+### Minor Changes
+
+- 566b9ae: Add support for myso:getSupportedIntents
+
+### Patch Changes
+
+- Updated dependencies [566b9ae]
+- Updated dependencies [ca92487]
+- Updated dependencies [5ab3c0a]
+  - @socialproof/wallet-standard@0.18.0
+  - @socialproof/myso@1.39.0
+  - @socialproof/slush-wallet@0.2.1
+
+## 0.18.0
+
+### Minor Changes
+
+- ea1ac70: Update dependencies and improve support for typescript 5.9
+
+### Patch Changes
+
+- Updated dependencies [3c1741f]
+- Updated dependencies [ea1ac70]
+  - @socialproof/myso@1.38.0
+  - @socialproof/wallet-standard@0.17.0
+  - @socialproof/slush-wallet@0.2.0
+  - @socialproof/utils@0.2.0
+
+## 0.17.7
+
+### Patch Changes
+
+- Updated dependencies [c689b98]
+- Updated dependencies [c689b98]
+- Updated dependencies [5b9ff1a]
+  - @socialproof/myso@1.37.6
+  - @socialproof/wallet-standard@0.16.14
+  - @socialproof/slush-wallet@0.1.24
+
+## 0.17.6
+
+### Patch Changes
+
+- Updated dependencies [3980d04]
+  - @socialproof/myso@1.37.5
+  - @socialproof/slush-wallet@0.1.23
+  - @socialproof/wallet-standard@0.16.13
+
+## 0.17.5
+
+### Patch Changes
+
+- Updated dependencies [6b03e57]
+  - @socialproof/myso@1.37.4
+  - @socialproof/slush-wallet@0.1.22
+  - @socialproof/wallet-standard@0.16.12
+
+## 0.17.4
+
+### Patch Changes
+
+- Updated dependencies [8ff1471]
+  - @socialproof/myso@1.37.3
+  - @socialproof/slush-wallet@0.1.21
+  - @socialproof/wallet-standard@0.16.11
+
+## 0.17.3
+
+### Patch Changes
+
+- Updated dependencies [660377c]
+  - @socialproof/myso@1.37.2
+  - @socialproof/slush-wallet@0.1.20
+  - @socialproof/wallet-standard@0.16.10
+
+## 0.17.2
+
+### Patch Changes
+
+- @socialproof/myso@1.37.1
+- @socialproof/slush-wallet@0.1.19
+- @socialproof/wallet-standard@0.16.9
+
+## 0.17.1
+
+### Patch Changes
+
+- Updated dependencies [72168f0]
+  - @socialproof/myso@1.37.0
+  - @socialproof/slush-wallet@0.1.18
+  - @socialproof/wallet-standard@0.16.8
+
+## 0.17.0
+
+### Minor Changes
+
+- 2473630: Set transaction sender if not set when signing or executing a transaction
+
+### Patch Changes
+
+- Updated dependencies [44354ab]
+  - @socialproof/myso@1.36.2
+  - @socialproof/slush-wallet@0.1.17
+  - @socialproof/wallet-standard@0.16.7
+
+## 0.16.16
+
+### Patch Changes
+
+- Updated dependencies [c76ddc5]
+  - @socialproof/myso@1.36.1
+  - @socialproof/slush-wallet@0.1.16
+  - @socialproof/wallet-standard@0.16.6
+
+## 0.16.15
+
+### Patch Changes
+
+- Updated dependencies [1c4a82d]
+- Updated dependencies [783bb9e]
+- Updated dependencies [783bb9e]
+- Updated dependencies [5cbbb21]
+  - @socialproof/slush-wallet@0.1.15
+  - @socialproof/utils@0.1.1
+  - @socialproof/myso@1.36.0
+  - @socialproof/wallet-standard@0.16.5
+
+## 0.16.14
+
+### Patch Changes
+
+- Updated dependencies [888afe6]
+  - @socialproof/myso@1.35.0
+  - @socialproof/slush-wallet@0.1.14
+  - @socialproof/wallet-standard@0.16.4
+
+## 0.16.13
+
+### Patch Changes
+
+- Updated dependencies [3fb7a83]
+  - @socialproof/myso@1.34.0
+  - @socialproof/slush-wallet@0.1.13
+  - @socialproof/wallet-standard@0.16.3
+
+## 0.16.12
+
+### Patch Changes
+
+- Updated dependencies [a00522b]
+- Updated dependencies [a00522b]
+  - @socialproof/myso@1.33.0
+  - @socialproof/utils@0.1.0
+  - @socialproof/slush-wallet@0.1.12
+  - @socialproof/wallet-standard@0.16.2
+
+## 0.16.11
+
+### Patch Changes
+
+- Updated dependencies [6b7deb8]
+  - @socialproof/myso@1.32.0
+  - @socialproof/slush-wallet@0.1.11
+  - @socialproof/wallet-standard@0.16.1
+
+## 0.16.10
+
+### Patch Changes
+
+- Updated dependencies [1ff4e57]
+- Updated dependencies [550e2e3]
+- Updated dependencies [d0a406a]
+- Updated dependencies [550e2e3]
+  - @socialproof/myso@1.31.0
+  - @socialproof/slush-wallet@0.1.10
+  - @socialproof/wallet-standard@0.16.0
+
+## 0.16.9
+
+### Patch Changes
+
+- Updated dependencies [5bd6ca3]
+  - @socialproof/myso@1.30.5
+  - @socialproof/slush-wallet@0.1.9
+  - @socialproof/wallet-standard@0.15.6
+
+## 0.16.8
+
+### Patch Changes
+
+- Updated dependencies [5dce590]
+- Updated dependencies [4a5aef6]
+  - @socialproof/myso@1.30.4
+  - @socialproof/slush-wallet@0.1.8
+  - @socialproof/wallet-standard@0.15.5
+
+## 0.16.7
+
+### Patch Changes
+
+- bb7c03a: Update dependencies
+- Updated dependencies [4457f10]
+- Updated dependencies [bb7c03a]
+  - @socialproof/myso@1.30.3
+  - @socialproof/wallet-standard@0.15.4
+  - @socialproof/slush-wallet@0.1.7
+  - @socialproof/utils@0.0.1
+
+## 0.16.6
+
+### Patch Changes
+
+- Updated dependencies [b265f7e]
+  - @socialproof/myso@1.30.2
+  - @socialproof/slush-wallet@0.1.6
+  - @socialproof/wallet-standard@0.15.3
+
 ## 0.16.5
 
 ### Patch Changes
 
 - Updated dependencies [ec519fc]
-  - @socialproof/mys@1.30.1
+  - @socialproof/myso@1.30.1
   - @socialproof/slush-wallet@0.1.5
   - @socialproof/wallet-standard@0.15.2
 
@@ -21,7 +410,7 @@
 - Updated dependencies [2456052]
 - Updated dependencies [2456052]
 - Updated dependencies [2456052]
-  - @socialproof/mys@1.30.0
+  - @socialproof/myso@1.30.0
   - @socialproof/slush-wallet@0.1.4
   - @socialproof/wallet-standard@0.15.1
 
@@ -39,7 +428,7 @@
 
 - Updated dependencies [3f87e73]
   - @socialproof/slush-wallet@0.1.2
-  - @socialproof/mys@1.29.1
+  - @socialproof/myso@1.29.1
   - @socialproof/wallet-standard@0.14.9
 
 ## 0.16.1
@@ -49,7 +438,7 @@
 - Updated dependencies [7d66a32]
 - Updated dependencies [eb91fba]
 - Updated dependencies [19a8045]
-  - @socialproof/mys@1.29.0
+  - @socialproof/myso@1.29.0
   - @socialproof/slush-wallet@0.1.1
   - @socialproof/wallet-standard@0.14.8
 
@@ -65,7 +454,7 @@
 - Updated dependencies [9a94aea]
 - Updated dependencies [c5adcb8]
   - @socialproof/slush-wallet@0.1.0
-  - @socialproof/mys@1.28.2
+  - @socialproof/myso@1.28.2
   - @socialproof/wallet-standard@0.14.7
 
 ## 0.15.7
@@ -73,7 +462,7 @@
 ### Patch Changes
 
 - Updated dependencies [3cd4e53]
-  - @socialproof/mys@1.28.1
+  - @socialproof/myso@1.28.1
   - @socialproof/wallet-standard@0.14.6
   - @socialproof/zksend@0.12.27
 
@@ -83,7 +472,7 @@
 
 - Updated dependencies [2705dc8]
 - Updated dependencies [3eb8990]
-  - @socialproof/mys@1.28.0
+  - @socialproof/myso@1.28.0
   - @socialproof/zksend@0.12.26
   - @socialproof/wallet-standard@0.14.5
 
@@ -100,7 +489,7 @@
 
 - Updated dependencies [5cea435]
 - Updated dependencies [9cacba9]
-  - @socialproof/mys@1.27.1
+  - @socialproof/myso@1.27.1
   - @socialproof/zksend@0.12.24
   - @socialproof/wallet-standard@0.14.4
 
@@ -110,7 +499,7 @@
 
 - Updated dependencies [4d13ef8]
 - Updated dependencies [4d13ef8]
-  - @socialproof/mys@1.27.0
+  - @socialproof/myso@1.27.0
   - @socialproof/wallet-standard@0.14.3
   - @socialproof/zksend@0.12.23
 
@@ -121,7 +510,7 @@
 - 7ba32a4: update dependencies
 - Updated dependencies [7ba32a4]
   - @socialproof/wallet-standard@0.14.2
-  - @socialproof/mys@1.26.1
+  - @socialproof/myso@1.26.1
   - @socialproof/zksend@0.12.22
 
 ## 0.15.1
@@ -131,7 +520,7 @@
 - Updated dependencies [2e4740b]
 - Updated dependencies [906dd14]
   - @socialproof/zksend@0.12.21
-  - @socialproof/mys@1.26.0
+  - @socialproof/myso@1.26.0
   - @socialproof/wallet-standard@0.14.1
 
 ## 0.15.0
@@ -147,7 +536,7 @@
 - Updated dependencies [e8b5d04]
 - Updated dependencies [68a9ecd]
   - @socialproof/wallet-standard@0.14.0
-  - @socialproof/mys@1.25.0
+  - @socialproof/myso@1.25.0
   - @socialproof/zksend@0.12.20
 
 ## 0.14.53
@@ -155,7 +544,7 @@
 ### Patch Changes
 
 - Updated dependencies [cf3d12d]
-  - @socialproof/mys@1.24.0
+  - @socialproof/myso@1.24.0
   - @socialproof/wallet-standard@0.13.29
   - @socialproof/zksend@0.12.19
 
@@ -165,7 +554,7 @@
 
 - Updated dependencies [8baac61]
 - Updated dependencies [8baac61]
-  - @socialproof/mys@1.23.0
+  - @socialproof/myso@1.23.0
   - @socialproof/wallet-standard@0.13.28
   - @socialproof/zksend@0.12.18
 
@@ -174,7 +563,7 @@
 ### Patch Changes
 
 - Updated dependencies [03975f4]
-  - @socialproof/mys@1.22.0
+  - @socialproof/myso@1.22.0
   - @socialproof/wallet-standard@0.13.27
   - @socialproof/zksend@0.12.17
 
@@ -182,7 +571,7 @@
 
 ### Patch Changes
 
-- @socialproof/mys@1.21.2
+- @socialproof/myso@1.21.2
 - @socialproof/wallet-standard@0.13.26
 - @socialproof/zksend@0.12.16
 
@@ -190,7 +579,7 @@
 
 ### Patch Changes
 
-- @socialproof/mys@1.21.1
+- @socialproof/myso@1.21.1
 - @socialproof/wallet-standard@0.13.25
 - @socialproof/zksend@0.12.15
 
@@ -200,7 +589,7 @@
 
 - Updated dependencies [3d8a0d9]
 - Updated dependencies [20a5aaa]
-  - @socialproof/mys@1.21.0
+  - @socialproof/myso@1.21.0
   - @socialproof/wallet-standard@0.13.24
   - @socialproof/zksend@0.12.14
 
@@ -209,7 +598,7 @@
 ### Patch Changes
 
 - Updated dependencies [827a200]
-  - @socialproof/mys@1.20.0
+  - @socialproof/myso@1.20.0
   - @socialproof/wallet-standard@0.13.23
   - @socialproof/zksend@0.12.13
 
@@ -219,7 +608,7 @@
 
 - Updated dependencies [c39f32f]
 - Updated dependencies [539168a]
-  - @socialproof/mys@1.19.0
+  - @socialproof/myso@1.19.0
   - @socialproof/wallet-standard@0.13.22
   - @socialproof/zksend@0.12.12
 
@@ -229,7 +618,7 @@
 
 - 7abd243: Update repo links
 - Updated dependencies [7abd243]
-  - @socialproof/mys@1.18.1
+  - @socialproof/myso@1.18.1
   - @socialproof/wallet-standard@0.13.21
   - @socialproof/zksend@0.12.11
 
@@ -245,7 +634,7 @@
 - Updated dependencies [dc0e21e]
 - Updated dependencies [85bd9e4]
 - Updated dependencies [a872b97]
-  - @socialproof/mys@1.18.0
+  - @socialproof/myso@1.18.0
   - @socialproof/zksend@0.12.10
   - @socialproof/wallet-standard@0.13.20
 
@@ -254,7 +643,7 @@
 ### Patch Changes
 
 - Updated dependencies [20af12d]
-  - @socialproof/mys@1.17.0
+  - @socialproof/myso@1.17.0
   - @socialproof/wallet-standard@0.13.19
   - @socialproof/zksend@0.12.9
 
@@ -263,7 +652,7 @@
 ### Patch Changes
 
 - Updated dependencies [100207f]
-  - @socialproof/mys@1.16.2
+  - @socialproof/myso@1.16.2
   - @socialproof/wallet-standard@0.13.18
   - @socialproof/zksend@0.12.8
 
@@ -271,7 +660,7 @@
 
 ### Patch Changes
 
-- @socialproof/mys@1.16.1
+- @socialproof/myso@1.16.1
 - @socialproof/wallet-standard@0.13.17
 - @socialproof/zksend@0.12.7
 
@@ -281,7 +670,7 @@
 
 - Updated dependencies [ec2dc7f]
 - Updated dependencies [ec2dc7f]
-  - @socialproof/mys@1.16.0
+  - @socialproof/myso@1.16.0
   - @socialproof/wallet-standard@0.13.16
   - @socialproof/zksend@0.12.6
 
@@ -289,7 +678,7 @@
 
 ### Patch Changes
 
-- @socialproof/mys@1.15.1
+- @socialproof/myso@1.15.1
 - @socialproof/wallet-standard@0.13.15
 - @socialproof/zksend@0.12.5
 
@@ -298,7 +687,7 @@
 ### Patch Changes
 
 - Updated dependencies [6460e45]
-  - @socialproof/mys@1.15.0
+  - @socialproof/myso@1.15.0
   - @socialproof/wallet-standard@0.13.14
   - @socialproof/zksend@0.12.4
 
@@ -330,7 +719,7 @@
 - Updated dependencies [4bac808]
 - Updated dependencies [938fb6e]
   - @socialproof/zksend@0.12.2
-  - @socialproof/mys@1.14.4
+  - @socialproof/myso@1.14.4
   - @socialproof/wallet-standard@0.13.13
 
 ## 0.14.33
@@ -354,7 +743,7 @@
 ### Patch Changes
 
 - Updated dependencies [d5a23d7]
-  - @socialproof/mys@1.14.3
+  - @socialproof/myso@1.14.3
   - @socialproof/wallet-standard@0.13.12
   - @socialproof/zksend@0.11.12
 
@@ -363,7 +752,7 @@
 ### Patch Changes
 
 - Updated dependencies [e7bc63e]
-  - @socialproof/mys@1.14.2
+  - @socialproof/myso@1.14.2
   - @socialproof/wallet-standard@0.13.11
   - @socialproof/zksend@0.11.11
 
@@ -372,7 +761,7 @@
 ### Patch Changes
 
 - Updated dependencies [69ef100]
-  - @socialproof/mys@1.14.1
+  - @socialproof/myso@1.14.1
   - @socialproof/wallet-standard@0.13.10
   - @socialproof/zksend@0.11.10
 
@@ -381,7 +770,7 @@
 ### Patch Changes
 
 - Updated dependencies [c24814b]
-  - @socialproof/mys@1.14.0
+  - @socialproof/myso@1.14.0
   - @socialproof/wallet-standard@0.13.9
   - @socialproof/zksend@0.11.9
 
@@ -390,7 +779,7 @@
 ### Patch Changes
 
 - Updated dependencies [477d2a4]
-  - @socialproof/mys@1.13.0
+  - @socialproof/myso@1.13.0
   - @socialproof/wallet-standard@0.13.8
   - @socialproof/zksend@0.11.8
 
@@ -407,7 +796,7 @@
 
 - Updated dependencies [5436a90]
 - Updated dependencies [5436a90]
-  - @socialproof/mys@1.12.0
+  - @socialproof/myso@1.12.0
   - @socialproof/wallet-standard@0.13.7
   - @socialproof/zksend@0.11.6
 
@@ -417,7 +806,7 @@
 
 - Updated dependencies [489f421]
 - Updated dependencies [489f421]
-  - @socialproof/mys@1.11.0
+  - @socialproof/myso@1.11.0
   - @socialproof/wallet-standard@0.13.6
   - @socialproof/zksend@0.11.5
 
@@ -425,15 +814,15 @@
 
 ### Patch Changes
 
-- 640b757: Add `getMysClientQuery` to get the `queryOptions` config for usage with the `QueryClient`
-  outside of React hooks. Added `useMysClientSuspenseQuery` to support suspense-based data fetching.
+- 640b757: Add `getMySoClientQuery` to get the `queryOptions` config for usage with the `QueryClient`
+  outside of React hooks. Added `useMySoClientSuspenseQuery` to support suspense-based data fetching.
 
 ## 0.14.22
 
 ### Patch Changes
 
 - Updated dependencies [830b8d8]
-  - @socialproof/mys@1.10.0
+  - @socialproof/myso@1.10.0
   - @socialproof/wallet-standard@0.13.5
   - @socialproof/zksend@0.11.4
 
@@ -450,7 +839,7 @@
 
 - Updated dependencies [2c96b06]
 - Updated dependencies [1fd22cc]
-  - @socialproof/mys@1.9.0
+  - @socialproof/myso@1.9.0
   - @socialproof/wallet-standard@0.13.4
   - @socialproof/zksend@0.11.2
 
@@ -469,7 +858,7 @@
 - Updated dependencies [4bdef4a]
 - Updated dependencies [569511a]
   - @socialproof/zksend@0.11.0
-  - @socialproof/mys@1.8.0
+  - @socialproof/myso@1.8.0
   - @socialproof/wallet-standard@0.13.3
 
 ## 0.14.17
@@ -481,7 +870,7 @@
 - Updated dependencies [4019dd7]
 - Updated dependencies [4019dd7]
 - Updated dependencies [00a974d]
-  - @socialproof/mys@1.7.0
+  - @socialproof/myso@1.7.0
   - @socialproof/wallet-standard@0.13.2
   - @socialproof/zksend@0.10.6
 
@@ -490,7 +879,7 @@
 ### Patch Changes
 
 - Updated dependencies [a3e32fe]
-  - @socialproof/mys@1.6.0
+  - @socialproof/myso@1.6.0
   - @socialproof/wallet-standard@0.13.1
   - @socialproof/zksend@0.10.5
 
@@ -501,7 +890,7 @@
 - Updated dependencies [0851b31]
 - Updated dependencies [f37b3c2]
   - @socialproof/wallet-standard@0.13.0
-  - @socialproof/mys@1.5.0
+  - @socialproof/myso@1.5.0
   - @socialproof/zksend@0.10.4
 
 ## 0.14.14
@@ -509,7 +898,7 @@
 ### Patch Changes
 
 - Updated dependencies [4419234]
-  - @socialproof/mys@1.4.0
+  - @socialproof/myso@1.4.0
   - @socialproof/wallet-standard@0.12.14
   - @socialproof/zksend@0.10.3
 
@@ -518,7 +907,7 @@
 ### Patch Changes
 
 - Updated dependencies [a45f461]
-  - @socialproof/mys@1.3.1
+  - @socialproof/myso@1.3.1
   - @socialproof/wallet-standard@0.12.13
   - @socialproof/zksend@0.10.2
 
@@ -533,7 +922,7 @@
 - Updated dependencies [cdedf69]
 - Updated dependencies [0f27a97]
 - Updated dependencies [beed646]
-  - @socialproof/mys@1.3.0
+  - @socialproof/myso@1.3.0
   - @socialproof/wallet-standard@0.12.12
   - @socialproof/zksend@0.10.1
 
@@ -545,7 +934,7 @@
 - Updated dependencies [45877014d1]
 - Updated dependencies [45877014d1]
 - Updated dependencies [87d6f75403]
-  - @socialproof/mys@1.2.1
+  - @socialproof/myso@1.2.1
   - @socialproof/zksend@0.10.0
   - @socialproof/wallet-standard@0.12.11
 
@@ -554,7 +943,7 @@
 ### Patch Changes
 
 - Updated dependencies [fef99d377f]
-  - @socialproof/mys@1.2.0
+  - @socialproof/myso@1.2.0
   - @socialproof/wallet-standard@0.12.10
   - @socialproof/zksend@0.9.10
 
@@ -571,7 +960,7 @@
 ### Patch Changes
 
 - Updated dependencies [0dfff33b95]
-  - @socialproof/mys@1.1.2
+  - @socialproof/myso@1.1.2
   - @socialproof/wallet-standard@0.12.8
   - @socialproof/zksend@0.9.8
 
@@ -580,7 +969,7 @@
 ### Patch Changes
 
 - Updated dependencies [101f1ff4b8]
-  - @socialproof/mys@1.1.1
+  - @socialproof/myso@1.1.1
   - @socialproof/wallet-standard@0.12.7
   - @socialproof/zksend@0.9.7
 
@@ -589,7 +978,7 @@
 ### Patch Changes
 
 - Updated dependencies [bae8f9683c]
-  - @socialproof/mys@1.1.0
+  - @socialproof/myso@1.1.0
   - @socialproof/wallet-standard@0.12.6
   - @socialproof/zksend@0.9.6
 
@@ -598,7 +987,7 @@
 ### Patch Changes
 
 - Updated dependencies [369b924343]
-  - @socialproof/mys@1.0.5
+  - @socialproof/myso@1.0.5
   - @socialproof/wallet-standard@0.12.5
   - @socialproof/zksend@0.9.5
 
@@ -608,7 +997,7 @@
 
 - Updated dependencies [f1e828f557]
 - Updated dependencies [8e0e8eb643]
-  - @socialproof/mys@1.0.4
+  - @socialproof/myso@1.0.4
   - @socialproof/zksend@0.9.4
   - @socialproof/wallet-standard@0.12.4
 
@@ -617,7 +1006,7 @@
 ### Patch Changes
 
 - Updated dependencies [1f20580841]
-  - @socialproof/mys@1.0.3
+  - @socialproof/myso@1.0.3
   - @socialproof/wallet-standard@0.12.3
   - @socialproof/zksend@0.9.3
 
@@ -626,7 +1015,7 @@
 ### Patch Changes
 
 - Updated dependencies [f0a839f874]
-  - @socialproof/mys@1.0.2
+  - @socialproof/myso@1.0.2
   - @socialproof/wallet-standard@0.12.2
   - @socialproof/zksend@0.9.2
 
@@ -635,7 +1024,7 @@
 ### Patch Changes
 
 - Updated dependencies [6fc6235984]
-  - @socialproof/mys@1.0.1
+  - @socialproof/myso@1.0.1
   - @socialproof/wallet-standard@0.12.1
   - @socialproof/zksend@0.9.1
 
@@ -643,17 +1032,17 @@
 
 ### Minor Changes
 
-- a92b03de42: The Typescript SDK has been renamed to `@socialproof/mys` and includes many new features
+- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new features
   and breaking changes. See the
-  [full migration guide](https://sdk.mysocial.network/typescript/migrations/mys-1.0) for details on
-  how to upgrade.
+  [full migration guide](https://sdk.mystenlabs.com/myso/migrations/myso-1.0) for details on how to
+  upgrade.
 
 ### Patch Changes
 
 - Updated dependencies [ebdfe7cf21]
 - Updated dependencies [3e1d716642]
 - Updated dependencies [a92b03de42]
-  - @socialproof/mys@1.0.0
+  - @socialproof/myso@1.0.0
   - @socialproof/zksend@0.9.0
   - @socialproof/wallet-standard@0.12.0
 
@@ -691,7 +1080,7 @@
 ### Patch Changes
 
 - Updated dependencies [99b112178c]
-  - @socialproof/mys.js@0.54.1
+  - @socialproof/myso.js@0.54.1
   - @socialproof/wallet-standard@0.11.6
   - @socialproof/zksend@0.7.2
 
@@ -704,7 +1093,7 @@
 - Updated dependencies [b7f673dbd9]
 - Updated dependencies [123b42c75c]
   - @socialproof/zksend@0.7.1
-  - @socialproof/mys.js@0.54.0
+  - @socialproof/myso.js@0.54.0
   - @socialproof/wallet-standard@0.11.5
 
 ## 0.12.13
@@ -713,7 +1102,7 @@
 
 - Updated dependencies [774bfb41a8]
 - Updated dependencies [879421a5ac]
-  - @socialproof/mys.js@0.53.0
+  - @socialproof/myso.js@0.53.0
   - @socialproof/zksend@0.7.0
   - @socialproof/wallet-standard@0.11.4
 
@@ -737,7 +1126,7 @@
 ### Patch Changes
 
 - Updated dependencies [929db4976a]
-  - @socialproof/mys.js@0.52.0
+  - @socialproof/myso.js@0.52.0
   - @socialproof/wallet-standard@0.11.3
   - @socialproof/zksend@0.4.4
 
@@ -754,7 +1143,7 @@
 ### Patch Changes
 
 - Updated dependencies [b4ecdb5860]
-  - @socialproof/mys.js@0.51.2
+  - @socialproof/myso.js@0.51.2
   - @socialproof/wallet-standard@0.11.2
   - @socialproof/zksend@0.4.2
 
@@ -763,7 +1152,7 @@
 ### Patch Changes
 
 - Updated dependencies [6984dd1e38]
-  - @socialproof/mys.js@0.51.1
+  - @socialproof/myso.js@0.51.1
   - @socialproof/wallet-standard@0.11.1
   - @socialproof/zksend@0.4.1
 
@@ -798,7 +1187,7 @@
 
 - Updated dependencies [0cafa94027]
 - Updated dependencies [437f0ca2ef]
-  - @socialproof/mys.js@0.51.0
+  - @socialproof/myso.js@0.51.0
   - @socialproof/wallet-standard@0.11.0
   - @socialproof/zksend@0.2.3
 
@@ -810,7 +1199,7 @@
 - Updated dependencies [4830361fa4]
 - Updated dependencies [4fd676671b]
   - @socialproof/wallet-standard@0.10.3
-  - @socialproof/mys.js@0.50.1
+  - @socialproof/myso.js@0.50.1
   - @socialproof/zksend@0.2.2
 
 ## 0.12.1
@@ -856,7 +1245,7 @@
 - Updated dependencies [a34f1cb67d]
 - Updated dependencies [ae9ae17eea]
 - Updated dependencies [220a766d86]
-  - @socialproof/mys.js@0.50.0
+  - @socialproof/myso.js@0.50.0
   - @socialproof/zksend@0.2.0
   - @socialproof/wallet-standard@0.10.2
 
@@ -866,7 +1255,7 @@
 
 - Updated dependencies [9ac0a4ec01]
   - @socialproof/wallet-standard@0.10.1
-  - @socialproof/mys.js@0.49.1
+  - @socialproof/myso.js@0.49.1
 
 ## 0.11.0
 
@@ -879,28 +1268,28 @@
 - 9ba167b0af: Default storage to memory storage when local storage isn't available during SSR
 - Updated dependencies [e5f9e3ba21]
   - @socialproof/wallet-standard@0.10.0
-  - @socialproof/mys.js@0.49.0
+  - @socialproof/myso.js@0.49.0
 
 ## 0.10.3
 
 ### Patch Changes
 
 - 165ad6b21d: Support both `id` and `name` as unique wallet identifiers.
-- dd362ec1d6: Update docs url to sdk.mysocial.network
+- dd362ec1d6: Update docs url to sdk.mystenlabs.com
 - d55db38647: Set a high z-index for the account dropdown so that it doesn't get hidden
 - Updated dependencies [dd362ec1d6]
 - Updated dependencies [165ad6b21d]
   - @socialproof/wallet-standard@0.9.0
-  - @socialproof/mys.js@0.48.1
+  - @socialproof/myso.js@0.48.1
 
 ## 0.10.2
 
 ### Patch Changes
 
 - 2ae1a6a108: Early return on `useAutoConnectWallet` to improve account switching performance
-- b30fecbbca: Fix missing export of useMysClientQueries
+- b30fecbbca: Fix missing export of useMySoClientQueries
 - Updated dependencies [cdcfa76c43]
-  - @socialproof/mys.js@0.48.0
+  - @socialproof/myso.js@0.48.0
   - @socialproof/wallet-standard@0.8.11
 
 ## 0.10.1
@@ -913,7 +1302,7 @@
 
 ### Minor Changes
 
-- 47b137d03: Add new useMysClientQueries hook to support variable client queries
+- 47b137d03: Add new useMySoClientQueries hook to support variable client queries
 
 ## 0.9.1
 
@@ -923,19 +1312,19 @@
 - Updated dependencies [9ac7e2f3d]
 - Updated dependencies [0259aec82]
 - Updated dependencies [64d45ba27]
-  - @socialproof/mys.js@0.47.0
+  - @socialproof/myso.js@0.47.0
   - @socialproof/wallet-standard@0.8.10
 
 ## 0.9.0
 
 ### Minor Changes
 
-- c5d4db238: Have useSignPersonalMessage fall back to use mys:signMessage
+- c5d4db238: Have useSignPersonalMessage fall back to use myso:signMessage
 
 ### Patch Changes
 
 - Updated dependencies [652bcdd92]
-  - @socialproof/mys.js@0.46.1
+  - @socialproof/myso.js@0.46.1
   - @socialproof/wallet-standard@0.8.9
 
 ## 0.8.0
@@ -951,7 +1340,7 @@
 - Updated dependencies [8d1e74e52]
 - Updated dependencies [093554a0d]
 - Updated dependencies [3718a230b]
-  - @socialproof/mys.js@0.46.0
+  - @socialproof/myso.js@0.46.0
   - @socialproof/wallet-standard@0.8.8
 
 ## 0.7.0
@@ -964,7 +1353,7 @@
 ### Patch Changes
 
 - Updated dependencies [30b47b758]
-  - @socialproof/mys.js@0.45.1
+  - @socialproof/myso.js@0.45.1
   - @socialproof/wallet-standard@0.8.7
 
 ## 0.6.0
@@ -981,10 +1370,10 @@
 
 ### Patch Changes
 
-- 09c103002: fix pagination in useMysClientInfiniteQuery
-- e0578094b: Fix typing of data for useMysClientInfiniteQuery
+- 09c103002: fix pagination in useMySoClientInfiniteQuery
+- e0578094b: Fix typing of data for useMySoClientInfiniteQuery
 - Updated dependencies [b9afb5567]
-  - @socialproof/mys.js@0.45.0
+  - @socialproof/myso.js@0.45.0
   - @socialproof/wallet-standard@0.8.6
 
 ## 0.5.0
@@ -997,7 +1386,7 @@
 
 ### Minor Changes
 
-- b7c304696: Show account label or mysNS domain in connect button
+- b7c304696: Show account label or mysoNS domain in connect button
 
 ## 0.3.0
 
@@ -1014,14 +1403,14 @@
 - Updated dependencies [b48289346]
 - Updated dependencies [11cf4e68b]
   - @socialproof/wallet-standard@0.8.5
-  - @socialproof/mys.js@0.44.0
+  - @socialproof/myso.js@0.44.0
 
 ## 0.2.4
 
 ### Patch Changes
 
 - Updated dependencies [004fb1991]
-  - @socialproof/mys.js@0.43.3
+  - @socialproof/myso.js@0.43.3
   - @socialproof/wallet-standard@0.8.4
 
 ## 0.2.3
@@ -1029,7 +1418,7 @@
 ### Patch Changes
 
 - Updated dependencies [9b052166d]
-  - @socialproof/mys.js@0.43.2
+  - @socialproof/myso.js@0.43.2
   - @socialproof/wallet-standard@0.8.3
 
 ## 0.2.2
@@ -1044,7 +1433,7 @@
 
 - Updated dependencies [faa13ded9]
 - Updated dependencies [c5684bb52]
-  - @socialproof/mys.js@0.43.1
+  - @socialproof/myso.js@0.43.1
   - @socialproof/wallet-standard@0.8.2
 
 ## 0.2.0
@@ -1053,14 +1442,14 @@
 
 - b29f66f18: Add theme definitions for our UI components
 - 1227ee1ce: Theme UI components based on provided theme and add design polish
-- 8e9590a8c: Exclude non-Mys accounts from the accounts state when someone connects a multi-chain
+- 8e9590a8c: Exclude non-MySo accounts from the accounts state when someone connects a multi-chain
   wallet
 
 ## 0.1.0
 
 ### Minor Changes
 
-- c51db090a: update useMysClientQuery hooks and remove generated RPC hooks
+- c51db090a: update useMySoClientQuery hooks and remove generated RPC hooks
 - ccfc810c0: Require wallets to have some default characteristics in order to be recognized
 
 ### Patch Changes
@@ -1070,7 +1459,7 @@
 - Updated dependencies [e4484852b]
 - Updated dependencies [71e0a3197]
 - Updated dependencies [1bc430161]
-  - @socialproof/mys.js@0.43.0
+  - @socialproof/myso.js@0.43.0
   - @socialproof/wallet-standard@0.8.1
 
 ## 0.0.5
@@ -1081,13 +1470,13 @@
 - Updated dependencies [fd8589806]
 - Updated dependencies [8b9e5f737]
   - @socialproof/wallet-standard@0.8.0
-  - @socialproof/mys.js@0.42.0
+  - @socialproof/myso.js@0.42.0
 
 ## 0.0.4
 
 ### Patch Changes
 
-- @socialproof/mys.js@0.41.2
+- @socialproof/myso.js@0.41.2
 - @socialproof/wallet-standard@0.7.2
 
 ## 0.0.3
@@ -1095,7 +1484,7 @@
 ### Patch Changes
 
 - Updated dependencies [24c21e1f0]
-  - @socialproof/mys.js@0.41.1
+  - @socialproof/myso.js@0.41.1
 
 ## 0.0.2
 
@@ -1103,7 +1492,7 @@
 
 - Updated dependencies [ba8e3b857]
 - Updated dependencies [f4b7b3474]
-  - @socialproof/mys.js@0.41.0
+  - @socialproof/myso.js@0.41.0
 
 ## 0.0.1
 
@@ -1111,4 +1500,4 @@
 
 - Updated dependencies [a503cad34]
 - Updated dependencies [8281e3d25]
-  - @socialproof/mys.js@0.40.0
+  - @socialproof/myso.js@0.40.0

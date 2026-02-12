@@ -2,7 +2,7 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-export function fromHex(hexStr: string): Uint8Array {
+export function fromHex(hexStr: string): Uint8Array<ArrayBuffer> {
 	const normalized = hexStr.startsWith('0x') ? hexStr.slice(2) : hexStr;
 	const padded = normalized.length % 2 === 0 ? normalized : `0${normalized}`;
 	const intArr = padded.match(/[0-9a-fA-F]{2}/g)?.map((byte) => parseInt(byte, 16)) ?? [];

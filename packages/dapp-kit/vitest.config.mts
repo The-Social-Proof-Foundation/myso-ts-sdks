@@ -22,12 +22,11 @@ export default defineConfig({
 			'@socialproof/wallet-standard': new URL('../wallet-standard/src', import.meta.url).pathname,
 			'@socialproof/bcs': new URL('../bcs/src', import.meta.url).pathname,
 			'@socialproof/utils': new URL('../utils/src', import.meta.url).pathname,
-			'@socialproof/sui/keypairs/ed25519': new URL('../typescript/src/keypairs/ed25519', import.meta.url)
+			'@socialproof/myso/keypairs/ed25519': new URL('../myso/src/keypairs/ed25519', import.meta.url)
 				.pathname,
-			'@socialproof/sui/client': new URL('../typescript/src/client', import.meta.url).pathname,
-			'@socialproof/sui/utils': new URL('../typescript/src/utils', import.meta.url).pathname,
-			'@socialproof/sui/transactions': new URL('../typescript/src/transactions', import.meta.url)
-				.pathname,
+			'@socialproof/myso/jsonRpc': new URL('../myso/src/jsonRpc', import.meta.url).pathname,
+			'@socialproof/myso/utils': new URL('../myso/src/utils', import.meta.url).pathname,
+			'@socialproof/myso/transactions': new URL('../myso/src/transactions', import.meta.url).pathname,
 		},
 	},
 });

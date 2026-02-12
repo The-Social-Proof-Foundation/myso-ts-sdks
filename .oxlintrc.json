@@ -1,0 +1,67 @@
+{
+	"plugins": [
+		"eslint",
+		"typescript",
+		"unicorn",
+		"react",
+		"react-perf",
+		"oxc",
+		"import",
+		"jsdoc",
+		"node",
+		"promise"
+	],
+	"ignorePatterns": [
+		"node_modules",
+		"build",
+		"dist",
+		"coverage",
+		"apps/icons/src",
+		"next-env.d.ts",
+		"doc/book",
+		"external-crates",
+		"storybook-static",
+		".next",
+		"packages/docs/public/typedoc",
+		"packages/move-bytecode-template",
+		"packages/file-storage-wasm",
+		"packages/file-storage/src/node-api",
+		"packages/myso/src/grpc/proto",
+		"packages/payment-kit/src/contracts",
+		"generated",
+		"vite-env.d.ts",
+		"vitest.config.*",
+		".git",
+		"packages/orderbook/examples",
+		"packages/utils/src/dataloader.ts"
+	],
+	"settings": {
+		"jsdoc": {
+			"tagNamePreference": {
+				"prop": "prop",
+				"cssprop": "cssprop",
+				"element": "element",
+				"slot": "slot",
+				"experimental": "experimental"
+			}
+		}
+	},
+	"rules": {
+		"no-new-array": "off",
+		"typescript/no-non-null-asserted-optional-chain": "off",
+		"@typescript-eslint/no-redundant-type-constituents": "off",
+		"@typescript-eslint/restrict-template-expressions": "off",
+		"@typescript-eslint/unbound-method": "off",
+		"import/extensions": [
+			"error",
+			"always",
+			{
+				"ignorePackages": true,
+				"js": "always",
+				"ts": "always",
+				"jsx": "always",
+				"tsx": "always"
+			}
+		]
+	}
+}

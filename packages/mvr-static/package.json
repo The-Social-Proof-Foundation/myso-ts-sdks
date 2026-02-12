@@ -1,8 +1,8 @@
 {
 	"name": "@socialproof/mvr-static",
-	"author": "The Social Proof Foundation <brandon@socialproof.foundation>",
+	"author": "Mysten Labs <build@socialprooflabs.com>",
 	"description": "The static generation tool for Move Registry (mvr)",
-	"homepage": "https://sdk.mysocial.network",
+	"homepage": "https://sdk.mystenlabs.com",
 	"version": "0.0.1",
 	"license": "Apache-2.0",
 	"files": [
@@ -12,21 +12,30 @@
 		"dist",
 		"src"
 	],
-	"type": "commonjs",
-	"main": "./dist/cjs/index.js",
-	"module": "./dist/esm/index.js",
-	"types": "./dist/cjs/index.d.ts",
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs",
+			"default": "./dist/index.mjs"
+		}
+	},
 	"scripts": {
 		"clean": "rm -rf tsconfig.tsbuildinfo ./dist",
-		"build": "tsc --build",
-		"prepublishOnly": "pnpm turbo build",
+		"build": "rm -rf dist && tsc --noEmit && tsdown",
 		"prettier:check": "prettier -c --ignore-unknown .",
 		"prettier:fix": "prettier -w --ignore-unknown .",
-		"eslint:check": "eslint --max-warnings=0 .",
-		"eslint:fix": "pnpm run eslint:check --fix",
-		"lint": "pnpm run eslint:check && pnpm run prettier:check",
-		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix",
+		"oxlint:check": "oxlint  .",
+		"oxlint:fix": "oxlint --fix",
+		"lint": "pnpm run oxlint:check && pnpm run prettier:check",
+		"lint:fix": "pnpm run oxlint:fix && pnpm run prettier:fix",
 		"test": "vitest run"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/MystenLabs/ts-sdks.git"
 	},
 	"bugs": {
 		"url": "https://github.com/MystenLabs/mvr/issues/new"
@@ -35,16 +44,15 @@
 		"access": "public"
 	},
 	"devDependencies": {
-		"@socialproof/build-scripts": "workspace:*",
-		"typescript": "^5.8.2",
-		"vitest": "^3.1.1"
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.17"
 	},
 	"dependencies": {
-		"@socialproof/mys": "workspace:*",
-		"@types/node": "^22.13.17",
+		"@socialproof/myso": "workspace:^",
+		"@types/node": "^25.0.8",
 		"enquirer": "^2.4.1",
-		"glob": "^11.0.1",
-		"prettier": "^3.5.3"
+		"glob": "^13.0.0",
+		"prettier": "^3.7.4"
 	},
 	"sideEffects": false,
 	"bin": "./bin/parser.js"

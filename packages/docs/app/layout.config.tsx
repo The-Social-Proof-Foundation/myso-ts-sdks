@@ -17,11 +17,11 @@ export const baseOptions: BaseLayoutProps = {
 	links: [
 		{
 			text: 'GitHub',
-			url: 'https://github.com/The-Social-Proof-Foundation/mys-ts-sdks',
+			url: 'https://github.com/MystenLabs/ts-sdks',
 		},
 		{
 			text: 'Discord',
-			url: 'https://discord.com/invite/Mys',
+			url: 'https://discord.com/invite/MySo',
 		},
 	],
 };

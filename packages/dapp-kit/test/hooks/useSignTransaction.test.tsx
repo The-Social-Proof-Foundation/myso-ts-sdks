@@ -2,7 +2,7 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Transaction } from '@socialproof/mys/transactions';
+import { Transaction } from '@socialproof/myso/transactions';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { Mock } from 'vitest';
 
@@ -11,7 +11,7 @@ import {
 	WalletNotConnectedError,
 } from '../../src/errors/walletErrors.js';
 import { useConnectWallet, useSignTransaction } from '../../src/index.js';
-import { mysFeatures } from '../mocks/mockFeatures.js';
+import { mysoFeatures } from '../mocks/mockFeatures.js';
 import { createWalletProviderContextWrapper, registerMockWallet } from '../test-utils.js';
 
 describe('useSignTransaction', () => {
@@ -19,7 +19,7 @@ describe('useSignTransaction', () => {
 		const wrapper = createWalletProviderContextWrapper();
 		const { result } = renderHook(() => useSignTransaction(), { wrapper });
 
-		result.current.mutate({ transaction: new Transaction(), chain: 'mys:testnet' });
+		result.current.mutate({ transaction: new Transaction(), chain: 'myso:testnet' });
 
 		await waitFor(() => expect(result.current.error).toBeInstanceOf(WalletNotConnectedError));
 	});
@@ -43,7 +43,7 @@ describe('useSignTransaction', () => {
 
 		result.current.signTransaction.mutate({
 			transaction: new Transaction(),
-			chain: 'mys:testnet',
+			chain: 'myso:testnet',
 		});
 		await waitFor(() =>
 			expect(result.current.signTransaction.error).toBeInstanceOf(WalletFeatureNotSupportedError),
@@ -55,7 +55,7 @@ describe('useSignTransaction', () => {
 	test('signing a transaction from the currently connected account works successfully', async () => {
 		const { unregister, mockWallet } = registerMockWallet({
 			walletName: 'Mock Wallet 1',
-			features: mysFeatures,
+			features: mysoFeatures,
 		});
 
 		const wrapper = createWalletProviderContextWrapper();
@@ -71,7 +71,7 @@ describe('useSignTransaction', () => {
 
 		await waitFor(() => expect(result.current.connectWallet.isSuccess).toBe(true));
 
-		const signTransactionFeature = mockWallet.features['mys:signTransaction'];
+		const signTransactionFeature = mockWallet.features['myso:signTransaction'];
 		const signTransactionMock = signTransactionFeature!.signTransaction as Mock;
 
 		signTransactionMock.mockReturnValueOnce({
@@ -81,20 +81,19 @@ describe('useSignTransaction', () => {
 
 		result.current.signTransaction.mutate({
 			transaction: new Transaction(),
-			chain: 'mys:testnet',
+			chain: 'myso:testnet',
 		});
 
 		await waitFor(() => expect(result.current.signTransaction.isSuccess).toBe(true));
 		expect(result.current.signTransaction.data).toStrictEqual({
 			bytes: 'abc',
 			signature: '123',
-			reportTransactionEffects: expect.any(Function),
 		});
 
 		expect(signTransactionMock).toHaveBeenCalledWith({
 			transaction: expect.any(Object),
 			account: mockWallet.accounts[0],
-			chain: `mys:testnet`,
+			chain: `myso:testnet`,
 		});
 
 		act(() => unregister());
@@ -103,7 +102,7 @@ describe('useSignTransaction', () => {
 	test('defaults the `chain` to the active network', async () => {
 		const { unregister, mockWallet } = registerMockWallet({
 			walletName: 'Mock Wallet 1',
-			features: mysFeatures,
+			features: mysoFeatures,
 		});
 
 		const wrapper = createWalletProviderContextWrapper();
@@ -119,7 +118,7 @@ describe('useSignTransaction', () => {
 
 		await waitFor(() => expect(result.current.connectWallet.isSuccess).toBe(true));
 
-		const signTransactionFeature = mockWallet.features['mys:signTransaction'];
+		const signTransactionFeature = mockWallet.features['myso:signTransaction'];
 		const signTransactionMock = signTransactionFeature!.signTransaction as Mock;
 
 		signTransactionMock.mockReturnValueOnce({
@@ -135,7 +134,7 @@ describe('useSignTransaction', () => {
 		expect(signTransactionMock).toHaveBeenCalledWith({
 			transaction: expect.any(Object),
 			account: mockWallet.accounts[0],
-			chain: 'mys:test',
+			chain: 'myso:test',
 		});
 
 		act(() => unregister());

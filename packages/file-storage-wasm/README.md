@@ -1,0 +1,1 @@
+# File Storage WASM bindings

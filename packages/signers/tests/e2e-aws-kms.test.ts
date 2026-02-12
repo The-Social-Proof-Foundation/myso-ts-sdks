@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { AwsKmsSigner } from '../src/aws/aws-kms-signer';
+import { AwsKmsSigner } from '../src/aws/aws-kms-signer.js';
 
 const { E2E_AWS_KMS_TEST_ENABLE } = process.env;
 
@@ -23,10 +23,10 @@ describe.runIf(E2E_AWS_KMS_TEST_ENABLE === 'true')('Aws KMS signer E2E testing',
 		});
 	});
 
-	it('should retrieve the correct mys address', async () => {
+	it('should retrieve the correct myso address', async () => {
 		// Get the public key
 		const publicKey = signer.getPublicKey();
-		expect(publicKey.toMysAddress()).toEqual(
+		expect(publicKey.toMySoAddress()).toEqual(
 			'0x2bfc782b6bf66f305fdeb19a203386efee3e62bce3ceb9d3d53eafbe0b14a035',
 		);
 	});

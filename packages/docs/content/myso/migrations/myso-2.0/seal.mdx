@@ -1,0 +1,14 @@
+---
+title: '@socialproof/mydata'
+---
+
+The deprecated `MyDataClient.asClientExtension()` static method has been removed. Use the `mydata()`
+registration function instead:
+
+```diff
+- import { MyDataClient } from '@socialproof/mydata';
++ import { mydata } from '@socialproof/mydata';
+
+- const client = mysoClient.$extend(MyDataClient.asClientExtension());
++ const client = mysoClient.$extend(mydata());
+```

@@ -1,21 +1,22 @@
 {
 	"name": "@socialproof/enoki",
 	"version": "0.0.1",
-	"description": "TODO: Description",
+	"description": "zkLogin authentication and sponsored transactions",
 	"license": "Apache-2.0",
-	"author": "The Social Proof Foundation <brandon@socialproof.foundation>",
-	"type": "commonjs",
-	"main": "./dist/cjs/index.js",
-	"module": "./dist/esm/index.js",
-	"types": "./dist/cjs/index.d.ts",
+	"author": "Mysten Labs <build@socialprooflabs.com>",
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
 	"exports": {
 		".": {
-			"import": "./dist/esm/index.js",
-			"require": "./dist/cjs/index.js"
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs",
+			"default": "./dist/index.mjs"
 		},
 		"./react": {
-			"import": "./dist/esm/react.js",
-			"require": "./dist/cjs/react.js"
+			"types": "./dist/react.d.mts",
+			"import": "./dist/react.mjs",
+			"default": "./dist/react.mjs"
 		}
 	},
 	"files": [
@@ -25,47 +26,46 @@
 	],
 	"scripts": {
 		"clean": "rm -rf tsconfig.tsbuildinfo ./dist",
-		"build": "build-package",
+		"build": "rm -rf dist && tsc --noEmit && tsdown",
 		"demo": "vite ./demo",
-		"prepublishOnly": "pnpm turbo build",
 		"prettier:check": "prettier -c --ignore-unknown .",
 		"prettier:fix": "prettier -w --ignore-unknown .",
-		"eslint:check": "eslint --max-warnings=0 .",
-		"eslint:fix": "pnpm run eslint:check --fix",
-		"lint": "pnpm run eslint:check && pnpm run prettier:check",
-		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix"
+		"oxlint:check": "oxlint  .",
+		"oxlint:fix": "oxlint --fix",
+		"lint": "pnpm run oxlint:check && pnpm run prettier:check",
+		"lint:fix": "pnpm run oxlint:fix && pnpm run prettier:fix"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/The-Social-Proof-Foundation/mys-ts-sdks.git"
+		"url": "git+https://github.com/MystenLabs/ts-sdks.git"
 	},
 	"bugs": {
-		"url": "https://github.com/The-Social-Proof-Foundation/mys-ts-sdks/issues"
+		"url": "https://github.com/mystenlabs/ts-sdks/issues"
 	},
-	"homepage": "https://github.com/The-Social-Proof-Foundation/mys-ts-sdks#readme",
+	"homepage": "https://docs.enoki.mystenlabs.com",
 	"devDependencies": {
-		"@socialproof/build-scripts": "workspace:*",
-		"@socialproof/dapp-kit": "workspace:*",
-		"@tanstack/react-query": "^5.71.3",
-		"@types/node": "^22.13.17",
-		"@types/react": "^18.3.3",
-		"@types/react-dom": "^18.3.0",
-		"@vitejs/plugin-react-swc": "^3.7.0",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
-		"typescript": "^5.8.2",
-		"vite": "^6.2.5"
+		"@socialproof/dapp-kit-react": "workspace:^",
+		"@socialproof/myso": "workspace:^",
+		"@types/node": "^25.0.8",
+		"@types/react": "^19.2.8",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react-swc": "^4.2.2",
+		"react": "^19.2.3",
+		"react-dom": "^19.2.3",
+		"typescript": "^5.9.3",
+		"vite": "^7.3.1"
 	},
 	"dependencies": {
-		"@socialproof/signers": "workspace:*",
-		"@socialproof/mys": "workspace:*",
-		"@socialproof/wallet-standard": "workspace:*",
+		"@socialproof/signers": "workspace:^",
+		"@socialproof/utils": "workspace:^",
+		"@socialproof/wallet-standard": "workspace:^",
 		"@nanostores/react": "^1.0.0",
-		"idb-keyval": "^6.2.1",
-		"mitt": "^3.0.1",
-		"nanostores": "^1.0.1"
+		"@wallet-standard/ui": "^1.0.1",
+		"idb-keyval": "^6.2.2",
+		"nanostores": "^1.1.0"
 	},
 	"peerDependencies": {
+		"@socialproof/myso": "workspace:^",
 		"@types/react": ">=17.0.0",
 		"react": ">=17.0.0"
 	},

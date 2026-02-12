@@ -1,0 +1,354 @@
+# @socialproof/codegen
+
+## 0.8.2
+
+### Patch Changes
+
+- 3d53583: Improve typing of generated bcs tuples
+
+## 0.8.1
+
+### Patch Changes
+
+- 99d1e00: Add default export condition
+- Updated dependencies [99d1e00]
+  - @socialproof/bcs@2.0.2
+  - @socialproof/myso@2.3.2
+
+## 0.8.0
+
+### Minor Changes
+
+- fcbf952: - Fix phantom type parameter index mismatch when generating BCS types for structs with
+  phantom types followed by non-phantom types
+  - Include phantom type parameters in generated MoveStruct names (e.g., `Pair<T, phantom U>`
+    instead of just `Pair<T>`)
+  - Add `includePhantomTypeParameters` config option to generate BCS types that include phantom type
+    parameters as function arguments
+  - Remove invalid `--yes` flag from `myso move summary` CLI calls
+
+### Patch Changes
+
+- Updated dependencies [724a13a]
+- Updated dependencies [fcbf952]
+  - @socialproof/myso@2.3.0
+
+## 0.7.0
+
+### Minor Changes
+
+- 03d43fa: Add `generate` option to package config for controlling type and function generation.
+  Replaces the old `modules` and `include` package-level properties with a unified
+  `generate: { types, functions, modules }` structure. Add CLI flags `--modules`, `--noTypes`,
+  `--noFunctions`, and `--private` to override generation options from the command line.
+- 6000f4e: Add flag --yes to myso move summary to not block CI pipelines
+
+### Patch Changes
+
+- Updated dependencies [6125fbd]
+  - @socialproof/myso@2.2.0
+
+## 0.6.0
+
+### Minor Changes
+
+- e00788c: Add automatic import aliasing to resolve naming conflicts and configurable import
+  extensions.
+
+  **Import Conflict Resolution:** When Move contracts define structs, enums, or functions with names
+  that conflict with SDK imports (e.g., `Transaction`, `BcsType`, `bcs`, `MoveStruct`,
+  `normalizeMoveArguments`), the codegen now automatically aliases the SDK imports to avoid
+  TypeScript compilation errors while preserving the user's original type names.
+
+  **Import Extension Configuration:** Added `importExtension` option to control file extensions in
+  generated import statements:
+  - Config file: `importExtension: '.js' | '.ts' | ''`
+  - CLI: `--import-extension .js|.ts|none`
+
+  This allows compatibility with different bundler/runtime configurations:
+  - `.js` (default): ESM compatible for Node.js
+  - `.ts`: For Bun, Deno, or bundlers that handle .ts imports directly
+  - `''` (none): For bundlers that don't require extensions
+
+- e00788c: Update to use MySoJsonRpcClient instead of MySoClient
+
+  Updated all type signatures, internal usages, examples, and documentation to use
+  `MySoJsonRpcClient` from `@socialproof/myso/jsonRpc` instead of the deprecated `MySoClient` from
+  `@socialproof/myso/client`.
+
+### Patch Changes
+
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+- Updated dependencies [e00788c]
+  - @socialproof/myso@2.0.0
+  - @socialproof/bcs@2.0.0
+
+## 0.5.13
+
+### Patch Changes
+
+- 40f7878: Fix hasFunctions() to respect privateMethods configuration
+
+  This change fixes a bug where modules with only entry functions (no types or public functions)
+  were not being generated even when privateMethods was set to 'entry'. The hasFunctions() method
+  now checks the #includedFunctions set instead of only looking for public functions, ensuring
+  consistency with the privateMethods option added in version 0.5.0.
+
+## 0.5.12
+
+### Patch Changes
+
+- Updated dependencies [29e8b92]
+  - @socialproof/myso@1.45.2
+
+## 0.5.11
+
+### Patch Changes
+
+- Updated dependencies [e3811f1]
+  - @socialproof/myso@1.45.1
+
+## 0.5.10
+
+### Patch Changes
+
+- baf3a35: Fix hasFunctions() to respect privateMethods configuration
+
+  This change fixes a bug where modules with only entry functions (no types or public functions)
+  were not being generated even when privateMethods was set to 'entry'. The hasFunctions() method
+  now checks the #includedFunctions set instead of only looking for public functions, ensuring
+  consistency with the privateMethods option added in version 0.5.0.
+
+- Updated dependencies [88bdbac]
+  - @socialproof/myso@1.45.0
+
+## 0.5.9
+
+### Patch Changes
+
+- Updated dependencies [44d9b4f]
+  - @socialproof/myso@1.44.0
+
+## 0.5.8
+
+### Patch Changes
+
+- Updated dependencies [89fa2dc]
+  - @socialproof/bcs@1.9.2
+  - @socialproof/myso@1.43.2
+
+## 0.5.7
+
+### Patch Changes
+
+- Updated dependencies [a37829f]
+  - @socialproof/bcs@1.9.1
+  - @socialproof/myso@1.43.1
+
+## 0.5.6
+
+### Patch Changes
+
+- Updated dependencies [f3b19a7]
+- Updated dependencies [f3b19a7]
+- Updated dependencies [bf9f85c]
+  - @socialproof/myso@1.43.0
+  - @socialproof/bcs@1.9.0
+
+## 0.5.5
+
+### Patch Changes
+
+- Updated dependencies [98c8a27]
+  - @socialproof/myso@1.42.0
+
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies [a17c337]
+- Updated dependencies [d554cd2]
+- Updated dependencies [04fcfbc]
+  - @socialproof/bcs@1.8.1
+  - @socialproof/myso@1.41.0
+
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies [f5fc0c0]
+  - @socialproof/myso@1.40.0
+
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [a9f9035]
+  - @socialproof/myso@1.39.1
+
+## 0.5.1
+
+### Patch Changes
+
+- 24e6b36: Optional struct generation should be bcs.option instead of bcs.vector
+- Updated dependencies [ca92487]
+- Updated dependencies [5ab3c0a]
+  - @socialproof/myso@1.39.0
+
+## 0.5.0
+
+### Minor Changes
+
+- 223d075: Add option to codegen private functions which defaults to generating only private entry
+  functions
+- ea1ac70: Update dependencies and improve support for typescript 5.9
+
+### Patch Changes
+
+- Updated dependencies [3c1741f]
+- Updated dependencies [ea1ac70]
+  - @socialproof/myso@1.38.0
+  - @socialproof/bcs@1.8.0
+
+## 0.4.5
+
+### Patch Changes
+
+- 78bd0e9: Update codegen arg normalization for object args
+- Updated dependencies [c689b98]
+- Updated dependencies [5b9ff1a]
+  - @socialproof/myso@1.37.6
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [3980d04]
+  - @socialproof/myso@1.37.5
+
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [6b03e57]
+  - @socialproof/myso@1.37.4
+
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [8ff1471]
+  - @socialproof/myso@1.37.3
+
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [660377c]
+  - @socialproof/myso@1.37.2
+
+## 0.4.0
+
+### Minor Changes
+
+- 22d727d: Execute `myso move summary` when generating code
+
+## 0.3.0
+
+### Minor Changes
+
+- 33230ed: Add typenames to exported bcs types
+- 33230ed: Export non-generic BCS types directly rather than wrapping with a function
+- 33230ed: Use new MoveStruct, MoveEnum, and MoveTuple classes for bcs types
+
+### Patch Changes
+
+- Updated dependencies [33230ed]
+- Updated dependencies [33230ed]
+- Updated dependencies [33230ed]
+  - @socialproof/bcs@1.7.0
+  - @socialproof/myso@1.37.1
+
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies [72168f0]
+  - @socialproof/myso@1.37.0
+
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [44354ab]
+  - @socialproof/myso@1.36.2
+
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [c76ddc5]
+  - @socialproof/myso@1.36.1
+
+## 0.2.2
+
+### Patch Changes
+
+- 319e234: Update arg fields' naming when an std arg is featured
+
+## 0.2.1
+
+### Patch Changes
+
+- 1c4a82d: update links in package.json
+- 470e3a7: Update codegen args' normalization
+- Updated dependencies [1c4a82d]
+- Updated dependencies [783bb9e]
+- Updated dependencies [783bb9e]
+- Updated dependencies [5cbbb21]
+  - @socialproof/bcs@1.6.4
+  - @socialproof/myso@1.36.0
+
+## 0.2.0
+
+### Minor Changes
+
+- 4ee5185: remove init function for generated modules. package addresses are now passed into move
+  calls or resolved via mvr
+- 4ee5185: Filter out well-known objects from move calls (clock, random, system, denyList)
+- 4ee5185: Allow move arguments to be passed as objects
+
+### Patch Changes
+
+- 888afe6: Fix falsy args
+- 4ee5185: Add argument interfaces for move calls
+- Updated dependencies [888afe6]
+  - @socialproof/myso@1.35.0
+
+## 0.1.0
+
+### Minor Changes
+
+- f3f2a08: Add support for config files and update cli to use positional args for packages to allow
+  for easier globbing
+
+## 0.0.1
+
+### Patch Changes
+
+- c0560fe: Fix check for context arg
+- c0560fe: remove support for generating from bytecode
+- Updated dependencies [3fb7a83]
+  - @socialproof/myso@1.34.0

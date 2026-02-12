@@ -1,43 +1,29 @@
-import { ConnectButton, useCurrentAccount } from "@socialproof/dapp-kit";
-import { isValidMysObjectId } from "@socialproof/mys/utils";
-import { Box, Container, Flex, Heading } from "@radix-ui/themes";
+import { ConnectButton, useCurrentAccount } from "@socialproof/dapp-kit-react";
+import { isValidMySoObjectId } from "@socialproof/myso/utils";
 import { useState } from "react";
 import { Counter } from "./Counter";
 import { CreateCounter } from "./CreateCounter";
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import { Wallet } from "lucide-react";
 
 function App() {
   const currentAccount = useCurrentAccount();
   const [counterId, setCounter] = useState(() => {
     const hash = window.location.hash.slice(1);
-    return isValidMysObjectId(hash) ? hash : null;
+    return isValidMySoObjectId(hash) ? hash : null;
   });
 
   return (
-    <>
-      <Flex
-        position="sticky"
-        px="4"
-        py="2"
-        justify="between"
-        style={{
-          borderBottom: "1px solid var(--gray-a2)",
-        }}
-      >
-        <Box>
-          <Heading>dApp Starter Template</Heading>
-        </Box>
-
-        <Box>
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex h-14 items-center justify-between px-4">
+          <h1 className="text-lg font-semibold">MySo Counter dApp</h1>
           <ConnectButton />
-        </Box>
-      </Flex>
-      <Container>
-        <Container
-          mt="5"
-          pt="2"
-          px="4"
-          style={{ background: "var(--gray-a2)", minHeight: 500 }}
-        >
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        <div className="mx-auto max-w-md">
           {currentAccount ? (
             counterId ? (
               <Counter id={counterId} />
@@ -50,11 +36,24 @@ function App() {
               />
             )
           ) : (
-            <Heading>Please connect your wallet</Heading>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wallet className="h-5 w-5" />
+                  Connect Wallet
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Connect your wallet to create and interact with counters on
+                  the MySo blockchain.
+                </p>
+              </CardContent>
+            </Card>
           )}
-        </Container>
-      </Container>
-    </>
+        </div>
+      </main>
+    </div>
   );
 }
 

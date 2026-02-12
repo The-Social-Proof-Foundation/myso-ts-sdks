@@ -2,35 +2,38 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import { getFullnodeUrl, MysClient } from '@socialproof/mys/client';
+import { getJsonRpcFullnodeUrl, MySoJsonRpcClient } from '@socialproof/myso/jsonRpc';
 import type { IdentifierRecord, ReadonlyWalletAccount } from '@socialproof/wallet-standard';
 import { getWallets } from '@socialproof/wallet-standard';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ComponentProps } from 'react';
 
 import { WalletProvider } from '../src/components/WalletProvider.js';
-import { MysClientProvider } from '../src/index.js';
+import { MySoClientProvider } from '../src/index.js';
 import { createMockAccount } from './mocks/mockAccount.js';
 import { MockWallet } from './mocks/mockWallet.js';
 
-export function createMysClientContextWrapper(client: MysClient) {
-	return function MysClientContextWrapper({ children }: { children: React.ReactNode }) {
-		return <MysClientProvider networks={{ test: client }}>{children}</MysClientProvider>;
+export function createMySoClientContextWrapper(client: MySoJsonRpcClient) {
+	return function MySoClientContextWrapper({ children }: { children: React.ReactNode }) {
+		return <MySoClientProvider networks={{ test: client }}>{children}</MySoClientProvider>;
 	};
 }
 
 export function createWalletProviderContextWrapper(
 	providerProps: Omit<ComponentProps<typeof WalletProvider>, 'children'> = {},
-	mysClient: MysClient = new MysClient({ url: getFullnodeUrl('localnet') }),
+	mysoClient: MySoJsonRpcClient = new MySoJsonRpcClient({
+		url: getJsonRpcFullnodeUrl('localnet'),
+		network: 'localnet',
+	}),
 ) {
 	const queryClient = new QueryClient();
 	return function WalletProviderContextWrapper({ children }: { children: React.ReactNode }) {
 		return (
-			<MysClientProvider networks={{ test: mysClient }}>
+			<MySoClientProvider networks={{ test: mysoClient }}>
 				<QueryClientProvider client={queryClient}>
 					<WalletProvider {...providerProps}>{children}</WalletProvider>;
 				</QueryClientProvider>
-			</MysClientProvider>
+			</MySoClientProvider>
 		);
 	};
 }

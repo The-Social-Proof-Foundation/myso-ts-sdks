@@ -2,7 +2,7 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import { fromBase64, toBase64 } from '@socialproof/mys/utils';
+import { fromBase64, toBase64 } from '@socialproof/myso/utils';
 
 /**
  * A general interface for specifying how data should be encrypted and decrypted.
@@ -34,7 +34,7 @@ export function createDefaultEncryption(): Encryption {
 		const derivedKey = await crypto.subtle.deriveKey(
 			{
 				name: 'PBKDF2',
-				salt,
+				salt: salt as BufferSource,
 				iterations: 900_000,
 				hash: 'SHA-256',
 			},

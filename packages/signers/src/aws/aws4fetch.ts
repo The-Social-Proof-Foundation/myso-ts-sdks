@@ -245,7 +245,7 @@ export class AwsV4Signer {
 
 		// headers are always lowercase in keys()
 
-		this.signableHeaders = ['host', ...(this.headers as any).keys()]
+		this.signableHeaders = ['host', ...((this.headers as any).keys() as string[])]
 			.filter((header) => allHeaders || !UNSIGNABLE_HEADERS.has(header))
 			.sort();
 
@@ -283,7 +283,7 @@ export class AwsV4Signer {
 		if (this.service === 's3') {
 			try {
 				this.encodedPath = decodeURIComponent(this.url.pathname.replace(/\+/g, ' '));
-			} catch (e) {
+			} catch {
 				this.encodedPath = this.url.pathname;
 			}
 		} else {

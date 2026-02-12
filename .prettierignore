@@ -11,6 +11,7 @@ yarn-debug.log*
 .next/
 .source/
 .swc/
+.claude
 build/
 coverage/
 dist/
@@ -21,7 +22,9 @@ storybook-static/
 CHANGELOG.md
 packages/move-bytecode-template/pkg
 packages/docs/public/typedoc
-packages/walrus-wasm
-packages/walrus/src/client
+packages/file-storage-wasm
+packages/move-bytecode-template
+packages/file-storage/src/client
 package.json
 pnpm-lock.yaml
+package_summaries/

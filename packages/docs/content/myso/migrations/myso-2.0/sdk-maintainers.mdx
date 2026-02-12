@@ -1,0 +1,93 @@
+---
+title: SDK Maintainers
+---
+
+# Upgrading SDKs to @socialproof/myso@2.0.0
+
+This guide covers the key breaking changes for SDK maintainers building on top of `@socialproof/myso`.
+
+For comprehensive SDK development patterns, see the [Building SDKs guide](/myso/sdk-building).
+
+## Use `ClientWithCoreApi`
+
+Accept `ClientWithCoreApi` instead of `MySoClient` to support all 3 MySo clients (JSON-RPC, GraphQL,
+gRPC):
+
+```diff
+- import { MySoClient } from '@socialproof/myso/client';
++ import type { ClientWithCoreApi } from '@socialproof/myso/client';
+
+export class MySDKClient {
+-   client: MySoClient;
++   client: ClientWithCoreApi;
+}
+```
+
+## Access Data via `client.core` methods
+
+All data access methods are namespaced under `client.core`:
+
+```diff
+- const result = await this.client.getObject({ objectId });
++ const result = await this.client.core.getObject({ objectId });
+
+- const result = await this.client.getOwnedObjects({ owner });
++ const result = await this.client.core.listOwnedObjects({ owner });
+```
+
+| v1.x Method                      | v2.0 Method                       |
+| -------------------------------- | --------------------------------- |
+| `client.getObject()`             | `client.core.getObject()`         |
+| `client.getOwnedObjects()`       | `client.core.listOwnedObjects()`  |
+| `client.getDynamicFieldObject()` | `client.core.getDynamicField()`   |
+| `client.getDynamicFields()`      | `client.core.listDynamicFields()` |
+| `client.multiGetObjects()`       | `client.core.getObjects()`        |
+
+See the [Core API documentation](/myso/clients/core) for all available methods.
+
+## Use Peer Dependencies
+
+Declare `@socialproof/*` packages as peer dependencies:
+
+```json
+{
+	"peerDependencies": {
+		"@socialproof/myso": "^2.0.0"
+	},
+	"devDependencies": {
+		"@socialproof/myso": "^2.0.0"
+	}
+}
+```
+
+## Client Extensions
+
+v2.0 introduces client extensions that let users add your SDK to any MySo client:
+
+```typescript
+import type { ClientWithCoreApi } from '@socialproof/myso/client';
+
+export function mySDK() {
+	return {
+		name: 'mySDK',
+		register: (client: ClientWithCoreApi) => {
+			return new MySDKClient({ client });
+		},
+	};
+}
+
+// Users can then extend any client
+const client = new MySoGrpcClient({ ... }).$extend(mySDK());
+await client.mySDK.doSomething();
+```
+
+See the [Building SDKs guide](/myso/sdk-building#client-extensions) for the complete extension
+pattern.
+
+## Code Generation
+
+Use **[@socialproof/codegen](/codegen)** to generate type-safe TypeScript bindings from your Move
+packages. See the [codegen documentation](/codegen) for setup instructions.
+
+For complete SDK development patterns including client extensions, transaction thunks, and best
+practices, see the [Building SDKs guide](/myso/sdk-building).

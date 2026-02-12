@@ -7,7 +7,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { useAutoConnectWallet } from '../../src/hooks/wallet/useAutoConnectWallet.js';
 import { useConnectWallet, useCurrentWallet } from '../../src/index.js';
 import { createMockAccount } from '../mocks/mockAccount.js';
-import { mysFeatures } from '../mocks/mockFeatures.js';
+import { mysoFeatures } from '../mocks/mockFeatures.js';
 import { createWalletProviderContextWrapper, registerMockWallet } from '../test-utils.js';
 import { promiseWithResolvers } from '@socialproof/utils';
 
@@ -28,7 +28,7 @@ describe('useAutoConnectWallet', () => {
 		const { unregister, mockWallet } = registerMockWallet({
 			walletName: 'Mock Wallet 1',
 			accounts: [createMockAccount(), createMockAccount()],
-			features: mysFeatures,
+			features: mysoFeatures,
 		});
 
 		const wrapper = createWalletProviderContextWrapper({

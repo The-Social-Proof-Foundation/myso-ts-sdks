@@ -3,29 +3,66 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type ts from 'typescript';
-import { getSafeName } from './render-types.js';
-import { parseTS, printStatements } from './utils.js';
+import { parseTS, printNodes } from './utils.js';
 import { relative, resolve } from 'path';
+import { getSafeName } from './render-types.js';
 
 export class FileBuilder {
 	statements: ts.Statement[] = [];
 	exports: string[] = [];
 	imports: Map<string, Set<string>> = new Map();
 	starImports: Map<string, string> = new Map();
+	protected reservedNames: Set<string> = new Set();
 
-	addImport(module: string, name: string) {
+	addImport(module: string, name: string): string {
 		if (!this.imports.has(module)) {
 			this.imports.set(module, new Set());
 		}
 
+		const isTypeImport = name.startsWith('type ');
+		const baseName = isTypeImport ? name.slice(5) : name;
+
+		if (this.reservedNames.has(baseName)) {
+			const alias = this.getUnusedName(baseName);
+			const aliasedImport = isTypeImport
+				? `type ${baseName} as ${alias}`
+				: `${baseName} as ${alias}`;
+			this.imports.get(module)!.add(aliasedImport);
+			return alias;
+		}
+
 		this.imports.get(module)!.add(name);
+		return baseName;
 	}
 
 	addStarImport(module: string, name: string) {
-		this.starImports.set(getSafeName(name), module);
+		const importName = this.getUnusedName(name);
+		this.starImports.set(importName, module);
+		return importName;
 	}
 
-	toString(modDir: string, filePath: string) {
+	getUnusedName(name: string) {
+		let deConflictedName = getSafeName(name);
+
+		let i = 1;
+		while (this.reservedNames.has(deConflictedName)) {
+			deConflictedName = `${name}_${i}`;
+			i++;
+		}
+
+		return deConflictedName;
+	}
+
+	async getHeader() {
+		return [
+			'/**************************************************************',
+			' * THIS FILE IS GENERATED AND SHOULD NOT BE MANUALLY MODIFIED *',
+			' **************************************************************/',
+			'',
+		].join('\n');
+	}
+
+	async toString(modDir: string, filePath: string) {
 		const importStatements = [...this.imports.entries()].flatMap(
 			([module, names]) =>
 				parseTS`import { ${[...names].join(', ')} } from '${modulePath(module)}'`,
@@ -34,21 +71,18 @@ export class FileBuilder {
 			([name, module]) => parseTS`import * as ${name} from '${modulePath(module)}'`,
 		);
 
-		const header =
-			'// Copyright (c) Mysten Labs, Inc.\n// Copyright (c) The Social Proof Foundation, LLC.\n// SPDX-License-Identifier: Apache-2.0\n\n';
-
-		return `${header}${printStatements([...importStatements, ...starImportStatements, ...this.statements])}`;
+		return `${await this.getHeader()}${printNodes(...importStatements, ...starImportStatements, ...this.statements)}`;
 
 		function modulePath(mod: string) {
-			const sourcePath = resolve(modDir, filePath);
-			const destPath = resolve(modDir, mod);
-			const sourceDirectory = sourcePath.split('/').slice(0, -1).join('/');
-			const relativePath = relative(sourceDirectory, destPath);
-			if (mod.startsWith('./')) {
-				return relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
+			if (!mod.startsWith('~root/')) {
+				return mod;
 			}
 
-			return mod;
+			const sourcePath = resolve(modDir, filePath);
+			const destPath = resolve(modDir, mod.replace('~root/', './'));
+			const sourceDirectory = sourcePath.split('/').slice(0, -1).join('/');
+			const relativePath = relative(sourceDirectory, destPath);
+			return relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
 		}
 	}
 }

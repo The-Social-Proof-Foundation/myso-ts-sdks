@@ -34,7 +34,7 @@ export interface BcsWriterOptions {
  * BCS value or a part of a composed structure/vector.
  */
 export class BcsWriter {
-	private dataView: DataView;
+	private dataView: DataView<ArrayBuffer>;
 	private bytePosition: number = 0;
 	private size: number;
 	private maxSize: number;
@@ -54,7 +54,10 @@ export class BcsWriter {
 	private ensureSizeOrGrow(bytes: number) {
 		const requiredSize = this.bytePosition + bytes;
 		if (requiredSize > this.size) {
-			const nextSize = Math.min(this.maxSize, this.size + this.allocateSize);
+			const nextSize = Math.min(
+				this.maxSize,
+				Math.max(this.size + requiredSize, this.size + this.allocateSize),
+			);
 			if (requiredSize > nextSize) {
 				throw new Error(
 					`Attempting to serialize to BCS, but buffer does not have enough size. Allocated size: ${this.size}, Max size: ${this.maxSize}, Required size: ${requiredSize}`,
@@ -87,6 +90,21 @@ export class BcsWriter {
 		this.ensureSizeOrGrow(1);
 		this.dataView.setUint8(this.bytePosition, Number(value));
 		return this.shift(1);
+	}
+
+	/**
+	 * Write a U8 value into a buffer and shift cursor position by 1.
+	 * @param {Number} value Value to write.
+	 * @returns {this}
+	 */
+	writeBytes(bytes: Uint8Array): this {
+		this.ensureSizeOrGrow(bytes.length);
+
+		for (let i = 0; i < bytes.length; i++) {
+			this.dataView.setUint8(this.bytePosition + i, bytes[i]);
+		}
+
+		return this.shift(bytes.length);
 	}
 	/**
 	 * Write a U16 value into a buffer and shift cursor position by 2.
@@ -168,6 +186,7 @@ export class BcsWriter {
 	 * Adds support for iterations over the object.
 	 * @returns {Uint8Array}
 	 */
+	// oxlint-disable-next-line require-yields
 	*[Symbol.iterator](): Iterator<number, Iterable<number>> {
 		for (let i = 0; i < this.bytePosition; i++) {
 			yield this.dataView.getUint8(i);
@@ -179,7 +198,7 @@ export class BcsWriter {
 	 * Get underlying buffer taking only value bytes (in case initial buffer size was bigger).
 	 * @returns {Uint8Array} Resulting bcs.
 	 */
-	toBytes(): Uint8Array {
+	toBytes(): Uint8Array<ArrayBuffer> {
 		return new Uint8Array(this.dataView.buffer.slice(0, this.bytePosition));
 	}
 

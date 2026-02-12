@@ -2,11 +2,11 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Transaction } from '@socialproof/mys/transactions';
-import { toBase64 } from '@socialproof/mys/utils';
+import type { Transaction } from '@socialproof/myso/transactions';
+import { toBase64 } from '@socialproof/myso/utils';
 import type {
-	MysSignAndExecuteTransactionInput,
-	MysSignAndExecuteTransactionOutput,
+	MySoSignAndExecuteTransactionInput,
+	MySoSignAndExecuteTransactionOutput,
 } from '@socialproof/wallet-standard';
 import { signTransaction } from '@socialproof/wallet-standard';
 import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
@@ -19,19 +19,18 @@ import {
 	WalletNotConnectedError,
 } from '../../errors/walletErrors.js';
 import type { PartialBy } from '../../types/utilityTypes.js';
-import { useMysClientContext } from '../useMysClient.js';
+import { useMySoClientContext } from '../useMySoClient.js';
 import { useCurrentAccount } from './useCurrentAccount.js';
 import { useCurrentWallet } from './useCurrentWallet.js';
-import { useReportTransactionEffects } from './useReportTransactionEffects.js';
 
 type UseSignAndExecuteTransactionArgs = PartialBy<
-	Omit<MysSignAndExecuteTransactionInput, 'transaction'>,
+	Omit<MySoSignAndExecuteTransactionInput, 'transaction'>,
 	'account' | 'chain'
 > & {
 	transaction: Transaction | string;
 };
 
-type UseSignAndExecuteTransactionResult = MysSignAndExecuteTransactionOutput;
+type UseSignAndExecuteTransactionResult = MySoSignAndExecuteTransactionOutput;
 
 type UseSignAndExecuteTransactionError =
 	| WalletFeatureNotSupportedError
@@ -78,8 +77,7 @@ export function useSignAndExecuteTransaction<
 > {
 	const { currentWallet, supportedIntents } = useCurrentWallet();
 	const currentAccount = useCurrentAccount();
-	const { client, network } = useMysClientContext();
-	const { mutate: reportTransactionEffects } = useReportTransactionEffects();
+	const { client, network } = useMySoClientContext();
 
 	const executeTransaction: ({
 		bytes,
@@ -122,15 +120,19 @@ export function useSignAndExecuteTransaction<
 			}
 
 			if (
-				!currentWallet.features['mys:signTransaction'] &&
-				!currentWallet.features['mys:signTransactionBlock']
+				!currentWallet.features['myso:signTransaction'] &&
+				!currentWallet.features['myso:signTransactionBlock']
 			) {
 				throw new WalletFeatureNotSupportedError(
 					"This wallet doesn't support the `signTransaction` feature.",
 				);
 			}
 
-			const chain = signTransactionArgs.chain ?? `mys:${network}`;
+			if (typeof transaction !== 'string' && 'setSenderIfNotSet' in transaction) {
+				transaction.setSenderIfNotSet(signerAccount.address);
+			}
+
+			const chain = signTransactionArgs.chain ?? `myso:${network}`;
 			const { signature, bytes } = await signTransaction(currentWallet, {
 				...signTransactionArgs,
 				transaction: {
@@ -148,18 +150,6 @@ export function useSignAndExecuteTransaction<
 			});
 
 			const result = await executeTransaction({ bytes, signature });
-
-			let effects: string;
-
-			if ('effects' in result && result.effects?.bcs) {
-				effects = result.effects.bcs;
-			} else if ('rawEffects' in result) {
-				effects = toBase64(new Uint8Array(result.rawEffects!));
-			} else {
-				throw new Error('Could not parse effects from transaction result.');
-			}
-
-			reportTransactionEffects({ effects, account: signerAccount, chain });
 
 			return result as Result;
 		},

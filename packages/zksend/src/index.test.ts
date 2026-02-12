@@ -2,62 +2,55 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import { describe } from 'node:test';
-import { getFullnodeUrl, MysClient, MysObjectChange } from '@socialproof/mys/client';
-import { decodeMysPrivateKey, Keypair } from '@socialproof/mys/cryptography';
-import { getFaucetHost, requestMysFromFaucetV2 } from '@socialproof/mys/faucet';
-import { Ed25519Keypair } from '@socialproof/mys/keypairs/ed25519';
-import { Transaction } from '@socialproof/mys/transactions';
-import { MIST_PER_MYS, toBase64 } from '@socialproof/mys/utils';
-import { beforeAll, expect, test } from 'vitest';
+import { MySoGrpcClient } from '@socialproof/myso/grpc';
+import type { Keypair } from '@socialproof/myso/cryptography';
+import { getFaucetHost, requestMySoFromFaucetV2 } from '@socialproof/myso/faucet';
+import { Ed25519Keypair } from '@socialproof/myso/keypairs/ed25519';
+import { Transaction } from '@socialproof/myso/transactions';
+import { MIST_PER_MYSO } from '@socialproof/myso/utils';
+import { beforeAll, describe, expect, test } from 'vitest';
 
-import {
-	getSentTransactionsWithLinks,
-	listCreatedLinks,
-	ZkSendLink,
-	ZkSendLinkBuilder,
-} from './index.js';
+import { zksend } from './index.js';
 
 export const DEMO_BEAR_CONFIG = {
 	packageId: '0xab8ed19f16874f9b8b66b0b6e325ee064848b1a7fdcb1c2f0478b17ad8574e65',
 	type: '0xab8ed19f16874f9b8b66b0b6e325ee064848b1a7fdcb1c2f0478b17ad8574e65::demo_bear::DemoBear',
 };
 
-const client = new MysClient({
-	url: getFullnodeUrl('testnet'),
-});
+const client = new MySoGrpcClient({
+	baseUrl: 'https://fullnode.testnet.mysocial.network:443',
+	network: 'testnet',
+}).$extend(zksend());
 
 // address:  0x8ab2b2a5cfa538db19062b79622abe28f3171c8b8048c5957b01846d57574630
 const keypair = Ed25519Keypair.fromSecretKey(
-	'mysprivkey1qz3v0pjxalg3z3p9p6lp4x84y74g0qt2y2q36amvkgfh9zzmm4q66y6ccdz',
+	'mysoprivkey1qz3v0pjxalg3z3p9p6lp4x84y74g0qt2y2q36amvkgfh9zzmm4q66y6ccdz',
 );
 
 // Automatically get gas from testnet is not working reliably, manually request gas via discord,
 // or uncomment the beforeAll and gas function below
 beforeAll(async () => {
-	const balance = await client.getBalance({
-		owner: keypair.toMysAddress(),
+	const balance = await client.core.getBalance({
+		owner: keypair.toMySoAddress(),
 	});
 
-	if (Number(balance.totalBalance) < Number(MIST_PER_MYS) * 0.02) {
-		await getMysFromFaucet(keypair);
+	if (Number(balance.balance.balance) < Number(MIST_PER_MYSO) * 0.02) {
+		await getMySoFromFaucet(keypair);
 	}
 }, 30_000);
 
-async function getMysFromFaucet(keypair: Keypair) {
+async function getMySoFromFaucet(keypair: Keypair) {
 	const faucetHost = getFaucetHost('testnet');
-	await requestMysFromFaucetV2({
+	await requestMySoFromFaucetV2({
 		host: faucetHost,
-		recipient: keypair.toMysAddress(),
+		recipient: keypair.toMySoAddress(),
 	});
 }
 
 describe('Contract links', () => {
 	test('create and claim link', async () => {
-		const link = new ZkSendLinkBuilder({
-			client,
-			network: 'testnet',
-			sender: keypair.toMysAddress(),
+		const link = client.zksend.linkBuilder({
+			sender: keypair.toMySoAddress(),
 		});
 
 		const bears = await createBears(3);
@@ -75,11 +68,7 @@ describe('Contract links', () => {
 			waitForTransaction: true,
 		});
 
-		const claimLink = await ZkSendLink.fromUrl(linkUrl, {
-			network: 'testnet',
-
-			client,
-		});
+		const claimLink = await client.zksend.loadLinkFromUrl(linkUrl);
 
 		const claimableAssets = claimLink.assets!;
 
@@ -89,45 +78,38 @@ describe('Contract links', () => {
 				[
 				  {
 				    "amount": 100n,
-				    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::mys::MYS",
+				    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO",
 				  },
 				]
 			`);
 
-		const claim = await claimLink.claimAssets(keypair.toMysAddress());
+		const claim = await claimLink.claimAssets(keypair.toMySoAddress());
 
-		const res = await client.waitForTransaction({
-			digest: claim.digest,
-			options: {
-				showObjectChanges: true,
+		const res = await client.core.waitForTransaction({
+			result: claim,
+			include: {
+				effects: true,
 			},
 		});
 
-		expect(res.objectChanges?.length).toEqual(
+		expect(res.Transaction?.effects?.changedObjects.length).toBeGreaterThanOrEqual(
 			3 + // bears,
 				1 + // coin
 				1 + // gas
 				1, // bag
 		);
 
-		const link2 = await ZkSendLink.fromUrl(linkUrl, {
-			network: 'testnet',
-		});
-		expect(link2.assets?.balances).toEqual(claimLink.assets?.balances);
-		expect(link2.assets?.nfts.map((nft) => nft.objectId)).toEqual(
-			claimLink.assets?.nfts.map((nft) => nft.objectId),
-		);
+		const link2 = await client.zksend.loadLinkFromUrl(linkUrl);
+		expect(link2.assets).toBeUndefined();
 		expect(link2.claimed).toEqual(true);
 	}, 30_000);
 
 	test('regenerate links', async () => {
 		const linkKp = new Ed25519Keypair();
 
-		const link = new ZkSendLinkBuilder({
+		const link = client.zksend.linkBuilder({
 			keypair: linkKp,
-			client,
-			network: 'testnet',
-			sender: keypair.toMysAddress(),
+			sender: keypair.toMySoAddress(),
 		});
 
 		const bears = await createBears(3);
@@ -138,84 +120,67 @@ describe('Contract links', () => {
 
 		link.addClaimableMist(100n);
 
-		const { digest } = await link.create({
+		const createResult = await link.create({
 			signer: keypair,
 			waitForTransaction: true,
 		});
 
-		await client.waitForTransaction({ digest });
+		await client.core.waitForTransaction({ result: createResult });
 
-		const {
-			data: [
-				{
-					links: [lostLink],
-				},
-			],
-		} = await getSentTransactionsWithLinks({
-			address: keypair.toMysAddress(),
-			network: 'testnet',
+		const lostLink = await client.zksend.loadLink({
+			address: linkKp.toMySoAddress(),
 		});
 
-		const { url, transaction } = await lostLink.createRegenerateTransaction(keypair.toMysAddress());
+		const { url, transaction } = await lostLink.createRegenerateTransaction(
+			keypair.toMySoAddress(),
+			{ client },
+		);
 
-		const result = await client.signAndExecuteTransaction({
+		const result = await keypair.signAndExecuteTransaction({
 			transaction,
-			signer: keypair,
-			options: {
-				showEffects: true,
-				showObjectChanges: true,
-			},
+			client,
 		});
 
-		await client.waitForTransaction({ digest: result.digest });
+		await client.core.waitForTransaction({ digest: result.Transaction!.digest });
 
-		const claimLink = await ZkSendLink.fromUrl(url, {
-			network: 'testnet',
-		});
+		const claimLink = await client.zksend.loadLinkFromUrl(url);
 
 		expect(claimLink.assets?.nfts.length).toEqual(3);
 		expect(claimLink.assets?.balances).toMatchInlineSnapshot(`
 				[
 				  {
 				    "amount": 100n,
-				    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::mys::MYS",
+				    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO",
 				  },
 				]
 			`);
 
-		const claim = await claimLink.claimAssets(keypair.toMysAddress());
+		const claim = await claimLink.claimAssets(keypair.toMySoAddress());
 
-		const res = await client.waitForTransaction({
-			digest: claim.digest,
-			options: {
-				showObjectChanges: true,
+		const res = await client.core.waitForTransaction({
+			result: claim,
+			include: {
+				effects: true,
 			},
 		});
 
-		expect(res.objectChanges?.length).toEqual(
+		expect(res.Transaction?.effects?.changedObjects.length).toBeGreaterThanOrEqual(
 			3 + // bears,
 				1 + // coin
 				1 + // gas
 				1, // bag
 		);
-		const link2 = await ZkSendLink.fromUrl(url, {
-			network: 'testnet',
-		});
-		expect(link2.assets?.balances).toEqual(claimLink.assets?.balances);
-		expect(link2.assets?.nfts.map((nft) => nft.objectId)).toEqual(
-			claimLink.assets?.nfts.map((nft) => nft.objectId),
-		);
+		const link2 = await client.zksend.loadLinkFromUrl(url);
+		expect(link2.assets).toBeUndefined();
 		expect(link2.claimed).toEqual(true);
 	}, 30_000);
 
 	test('reclaim links', async () => {
 		const linkKp = new Ed25519Keypair();
 
-		const link = new ZkSendLinkBuilder({
+		const link = client.zksend.linkBuilder({
 			keypair: linkKp,
-			client,
-			network: 'testnet',
-			sender: keypair.toMysAddress(),
+			sender: keypair.toMySoAddress(),
 		});
 
 		const bears = await createBears(3);
@@ -226,35 +191,30 @@ describe('Contract links', () => {
 
 		link.addClaimableMist(100n);
 
-		const { digest } = await link.create({
+		const createResult = await link.create({
 			signer: keypair,
 			waitForTransaction: true,
 		});
 
-		await client.waitForTransaction({ digest });
+		await client.core.waitForTransaction({ result: createResult });
 
-		const {
-			data: [
-				{
-					links: [lostLink],
-				},
-			],
-		} = await getSentTransactionsWithLinks({
-			address: keypair.toMysAddress(),
-			network: 'testnet',
+		const lostLink = await client.zksend.loadLink({
+			address: linkKp.toMySoAddress(),
 		});
 
-		const { digest: claimDigest } = await lostLink.claimAssets(keypair.toMysAddress(), {
+		const { Transaction: claimTx } = await lostLink.claimAssets(keypair.toMySoAddress(), {
 			reclaim: true,
 			sign: async (tx) => (await keypair.signTransaction(tx)).signature,
 		});
 
-		const result = await client.waitForTransaction({
-			digest: claimDigest,
-			options: { showObjectChanges: true, showEffects: true },
+		const result = await client.core.waitForTransaction({
+			digest: claimTx!.digest,
+			include: {
+				effects: true,
+			},
 		});
 
-		expect(result.objectChanges?.length).toEqual(
+		expect(result.Transaction?.effects?.changedObjects.length).toBeGreaterThanOrEqual(
 			3 + // bears,
 				1 + // coin
 				1 + // gas
@@ -267,10 +227,8 @@ describe('Contract links', () => {
 
 		const links = [];
 		for (const bear of bears) {
-			const link = new ZkSendLinkBuilder({
-				client,
-				network: 'testnet',
-				sender: keypair.toMysAddress(),
+			const link = client.zksend.linkBuilder({
+				sender: keypair.toMySoAddress(),
 			});
 
 			link.addClaimableMist(100n);
@@ -279,25 +237,19 @@ describe('Contract links', () => {
 			links.push(link);
 		}
 
-		const tx = await ZkSendLinkBuilder.createLinks({
-			links,
-			client,
-			network: 'testnet',
-		});
+		const tx = await client.zksend.createLinks({ links });
 
-		const result = await client.signAndExecuteTransaction({
+		const result = await keypair.signAndExecuteTransaction({
 			transaction: tx,
-			signer: keypair,
+			client,
 		});
 
-		await client.waitForTransaction({ digest: result.digest });
+		await client.core.waitForTransaction({ digest: result.Transaction!.digest });
 
 		for (const link of links) {
 			const linkUrl = link.getLink();
 
-			const claimLink = await ZkSendLink.fromUrl(linkUrl, {
-				network: 'testnet',
-			});
+			const claimLink = await client.zksend.loadLinkFromUrl(linkUrl);
 
 			const claimableAssets = claimLink.assets!;
 
@@ -307,21 +259,21 @@ describe('Contract links', () => {
 					[
 					  {
 					    "amount": 100n,
-					    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::mys::MYS",
+					    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO",
 					  },
 					]
 				`);
 
-			const claim = await claimLink.claimAssets(keypair.toMysAddress());
+			const claim = await claimLink.claimAssets(keypair.toMySoAddress());
 
-			const res = await client.waitForTransaction({
-				digest: claim.digest,
-				options: {
-					showObjectChanges: true,
+			const res = await client.core.waitForTransaction({
+				digest: claim.Transaction!.digest,
+				include: {
+					effects: true,
 				},
 			});
 
-			expect(res.objectChanges?.length).toEqual(
+			expect(res.Transaction?.effects?.changedObjects.length).toBeGreaterThanOrEqual(
 				1 + // bears,
 					1 + // coin
 					1 + // gas
@@ -329,169 +281,10 @@ describe('Contract links', () => {
 			);
 		}
 	}, 60_000);
-});
-
-describe('Non contract links', () => {
-	test('Links with separate gas coin', async () => {
-		const link = new ZkSendLinkBuilder({
-			client,
-			sender: keypair.toMysAddress(),
-			network: 'testnet',
-			contract: null,
-		});
-
-		const bears = await createBears(3);
-
-		for (const bear of bears) {
-			link.addClaimableObject(bear.objectId);
-		}
-
-		link.addClaimableMist(100n);
-
-		const linkUrl = link.getLink();
-
-		// await link.create({
-		// 	signer: keypair,
-		// 	waitForTransaction: true,
-		// });
-
-		// Balances sometimes not updated even though we wait for the transaction to be indexed
-		await new Promise((resolve) => setTimeout(resolve, 3000));
-
-		const claimLink = await ZkSendLink.fromUrl(linkUrl, {
-			network: 'testnet',
-		});
-
-		expect(claimLink.assets?.nfts.length).toEqual(3);
-		expect(claimLink.assets?.balances).toMatchInlineSnapshot(`
-					[
-					  {
-					    "amount": 100n,
-					    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::mys::MYS",
-					  },
-					]
-				`);
-
-		const claimTx = await claimLink.claimAssets(new Ed25519Keypair().toMysAddress());
-
-		const res = await client.waitForTransaction({
-			digest: claimTx.digest,
-			options: {
-				showObjectChanges: true,
-			},
-		});
-
-		expect(res.objectChanges?.length).toEqual(
-			3 + // bears,
-				1 + // coin
-				1, // gas
-		);
-
-		const link2 = await ZkSendLink.fromUrl(linkUrl, {
-			network: 'testnet',
-		});
-		expect(link2.assets?.balances).toEqual(claimLink.assets?.balances);
-		expect(link2.assets?.nfts.map((nft) => nft.objectId)).toEqual(
-			claimLink.assets?.nfts.map((nft) => nft.objectId),
-		);
-		expect(link2.claimed).toEqual(true);
-	}, 30_000);
-
-	test('Links with single coin', async () => {
-		const linkKp = new Ed25519Keypair();
-
-		const tx = new Transaction();
-
-		const [coin] = tx.splitCoins(tx.gas, [5_000_000]);
-		tx.transferObjects([coin], linkKp.toMysAddress());
-
-		const { digest } = await client.signAndExecuteTransaction({
-			signer: keypair,
-			transaction: tx,
-		});
-
-		await client.waitForTransaction({ digest });
-
-		const claimLink = new ZkSendLink({
-			keypair: linkKp,
-			network: 'testnet',
-			isContractLink: false,
-		});
-
-		await claimLink.loadAssets();
-
-		expect(claimLink.assets?.nfts.length).toEqual(0);
-		expect(claimLink.assets?.balances.length).toEqual(1);
-		expect(claimLink.assets?.balances[0].coinType).toEqual(
-			'0x0000000000000000000000000000000000000000000000000000000000000002::mys::MYS',
-		);
-
-		const claimTx = await claimLink.claimAssets(keypair.toMysAddress());
-
-		const res = await client.waitForTransaction({
-			digest: claimTx.digest,
-			options: {
-				showBalanceChanges: true,
-			},
-		});
-
-		expect(res.balanceChanges?.length).toEqual(2);
-		const link2 = await ZkSendLink.fromUrl(
-			`https://zksend.con/claim#${toBase64(decodeMysPrivateKey(linkKp.getSecretKey()).secretKey)}`,
-			{
-				network: 'testnet',
-			},
-		);
-		expect(link2.assets?.balances).toEqual(claimLink.assets?.balances);
-		expect(link2.assets?.nfts.map((nft) => nft.objectId)).toEqual(
-			claimLink.assets?.nfts.map((nft) => nft.objectId),
-		);
-		expect(link2.claimed).toEqual(true);
-	}, 30_000);
-
-	test('Send to address', async () => {
-		const link = new ZkSendLinkBuilder({
-			client,
-			sender: keypair.toMysAddress(),
-			network: 'testnet',
-			contract: null,
-		});
-
-		const bears = await createBears(3);
-
-		for (const bear of bears) {
-			link.addClaimableObject(bear.objectId);
-		}
-
-		link.addClaimableMist(100n);
-
-		const receiver = new Ed25519Keypair();
-
-		const tx = await link.createSendToAddressTransaction({
-			address: receiver.toMysAddress(),
-		});
-
-		const { digest } = await client.signAndExecuteTransaction({
-			transaction: tx,
-			signer: keypair,
-		});
-
-		await client.waitForTransaction({
-			digest,
-		});
-
-		const objects = await client.getOwnedObjects({
-			owner: receiver.toMysAddress(),
-		});
-
-		expect(objects.data.length).toEqual(4);
-	}, 30_000);
 
 	test('create link with minted assets', async () => {
-		const link = new ZkSendLinkBuilder({
-			client,
-			network: 'testnet',
-			sender: keypair.toMysAddress(),
+		const link = client.zksend.linkBuilder({
+			sender: keypair.toMySoAddress(),
 		});
 
 		const tx = new Transaction();
@@ -515,9 +308,7 @@ describe('Non contract links', () => {
 			waitForTransaction: true,
 		});
 
-		const claimLink = await ZkSendLink.fromUrl(linkUrl, {
-			network: 'testnet',
-		});
+		const claimLink = await client.zksend.loadLinkFromUrl(linkUrl);
 
 		const claimableAssets = claimLink.assets!;
 
@@ -527,122 +318,29 @@ describe('Non contract links', () => {
 				[
 				  {
 				    "amount": 100n,
-				    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::mys::MYS",
+				    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO",
 				  },
 				]
 			`);
 
-		const claim = await claimLink.claimAssets(keypair.toMysAddress());
+		const claim = await claimLink.claimAssets(keypair.toMySoAddress());
 
-		const res = await client.waitForTransaction({
-			digest: claim.digest,
-			options: {
-				showObjectChanges: true,
+		const res = await client.core.waitForTransaction({
+			result: claim,
+			include: {
+				effects: true,
 			},
 		});
 
-		expect(res.objectChanges?.length).toEqual(
+		expect(res.Transaction?.effects?.changedObjects.length).toBeGreaterThanOrEqual(
 			3 + // bears,
 				1 + // coin
 				1 + // gas
 				1, // bag
 		);
 
-		const link2 = await ZkSendLink.fromUrl(linkUrl, {
-			network: 'testnet',
-		});
-		expect(link2.assets?.balances).toEqual(claimLink.assets?.balances);
-		expect(link2.assets?.nfts.map((nft) => nft.objectId).sort()).toEqual(
-			claimLink.assets?.nfts.map((nft) => nft.objectId).sort(),
-		);
-		expect(link2.claimed).toEqual(true);
-	}, 30_000);
-
-	test('list created links', async () => {
-		const link = new ZkSendLinkBuilder({
-			client,
-			network: 'testnet',
-			sender: keypair.toMysAddress(),
-		});
-
-		const bears = await createBears(3);
-
-		for (const bear of bears) {
-			link.addClaimableObject(bear.objectId);
-		}
-
-		link.addClaimableMist(100n);
-
-		const linkUrl = link.getLink();
-
-		// await link.create({
-		// 	signer: keypair,
-		// 	waitForTransaction: true,
-		// });
-
-		// wait for graphql indexing
-		await new Promise((resolve) => setTimeout(resolve, 3000));
-
-		const createdLinks = await listCreatedLinks({
-			network: 'testnet',
-			address: keypair.toMysAddress(),
-		});
-
-		expect(createdLinks.links[0]?.link.address).toEqual(link.keypair.toMysAddress());
-
-		expect(createdLinks.links[0].claimed).toEqual(false);
-		expect(createdLinks.links[0].assets).toMatchObject({
-			balances: [
-				{
-					coinType: '0x0000000000000000000000000000000000000000000000000000000000000002::mys::MYS',
-					amount: 100n,
-				},
-			],
-			nfts: [expect.any(Object), expect.any(Object), expect.any(Object)],
-		});
-
-		const claimLink = await ZkSendLink.fromUrl(linkUrl, {
-			network: 'testnet',
-
-			client,
-		});
-
-		const claimableAssets = claimLink.assets!;
-
-		expect(claimLink.claimed).toEqual(false);
-		expect(claimableAssets.nfts.length).toEqual(3);
-		expect(claimableAssets.balances).toMatchInlineSnapshot(`
-				[
-				  {
-				    "amount": 100n,
-				    "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::mys::MYS",
-				  },
-				]
-			`);
-
-		const claim = await claimLink.claimAssets(keypair.toMysAddress());
-
-		const res = await client.waitForTransaction({
-			digest: claim.digest,
-			options: {
-				showObjectChanges: true,
-			},
-		});
-
-		expect(res.objectChanges?.length).toEqual(
-			3 + // bears,
-				1 + // coin
-				1 + // gas
-				1, // bag
-		);
-
-		const link2 = await ZkSendLink.fromUrl(linkUrl, {
-			network: 'testnet',
-		});
-		expect(link2.assets?.balances).toEqual(claimLink.assets?.balances);
-		expect(link2.assets?.nfts.map((nft) => nft.objectId)).toEqual(
-			claimLink.assets?.nfts.map((nft) => nft.objectId),
-		);
+		const link2 = await client.zksend.loadLinkFromUrl(linkUrl);
+		expect(link2.assets).toBeUndefined();
 		expect(link2.claimed).toEqual(true);
 	}, 30_000);
 });
@@ -660,29 +358,32 @@ async function createBears(totalBears: number) {
 		bears.push(bear);
 	}
 
-	tx.transferObjects(bears, tx.pure.address(keypair.toMysAddress()));
+	tx.transferObjects(bears, tx.pure.address(keypair.toMySoAddress()));
 
-	const res = await client.signAndExecuteTransaction({
+	const res = await keypair.signAndExecuteTransaction({
 		transaction: tx,
-		signer: keypair,
-		options: {
-			showObjectChanges: true,
-		},
+		client,
 	});
 
-	await client.waitForTransaction({
-		digest: res.digest,
+	await client.core.waitForTransaction({
+		digest: res.Transaction!.digest,
 	});
 
-	const bearList = res
-		.objectChanges!.filter(
-			(x: MysObjectChange) => x.type === 'created' && x.objectType.includes(DEMO_BEAR_CONFIG.type),
+	const objects = await client.core.getObjects({
+		objectIds: res
+			.Transaction!.effects!.changedObjects.filter((obj) => obj.idOperation === 'Created')
+			.map((obj) => obj.objectId),
+	});
+
+	const bearList = objects.objects
+		.filter(
+			(obj): obj is Exclude<typeof obj, Error> =>
+				!(obj instanceof Error) && obj.type.includes(DEMO_BEAR_CONFIG.type),
 		)
-		.map((x: MysObjectChange) => {
-			if (!('objectId' in x)) throw new Error('invalid data');
+		.map((obj) => {
 			return {
-				objectId: x.objectId,
-				type: x.objectType,
+				objectId: obj.objectId,
+				type: obj.type,
 			};
 		});
 

@@ -1,11 +1,11 @@
-# Mys KMS Signers
+# MySo KMS Signers
 
-The Mys KMS Signers package provides a set of tools for securely signing transactions using Key
+The MySo KMS Signers package provides a set of tools for securely signing transactions using Key
 Management Services (KMS) like AWS KMS and GCP KMS.
 
 ## Table of Contents
 
-- [Mys KMS Signers](#mys-kms-signers)
+- [MySo KMS Signers](#myso-kms-signers)
   - [Table of Contents](#table-of-contents)
   - [AWS KMS Signer](#aws-kms-signer)
     - [Usage](#usage)
@@ -26,7 +26,7 @@ Management Services (KMS) like AWS KMS and GCP KMS.
 
 ## AWS KMS Signer
 
-The AWS KMS Signer allows you to leverage AWS's Key Management Service to sign Mys transactions.
+The AWS KMS Signer allows you to leverage AWS's Key Management Service to sign MySo transactions.
 
 ### Usage
 
@@ -81,14 +81,14 @@ const signer = await AwsKmsSigner.fromKeyId('your-kms-key-id', {
 ```
 
 Returns
-**[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[AwsKmsSigner](https://github.com/The-Social-Proof-Foundation/mys-ts-sdks/blob/main/packages/signers/src/aws/aws-kms-signer.ts)>**
+**[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[AwsKmsSigner](https://github.com/MystenLabs/ts-sdks/blob/main/packages/signers/src/aws/aws-kms-signer.ts)>**
 An instance of AwsKmsSigner.
 
 **Notice**: AWS Signer requires Node >=20 due to dependency on `crypto`
 
 ## GCP KMS Signer
 
-The GCP KMS Signer allows you to leverage Google Cloud's Key Management Service to sign Mys
+The GCP KMS Signer allows you to leverage Google Cloud's Key Management Service to sign MySo
 transactions.
 
 ### Usage
@@ -131,9 +131,9 @@ const signer = await GcpKmsSigner.fromOptions({
 	cryptoKeyVersion: 'your-google-key-name-version',
 });
 
-// Retrieve the public key and get the Mys address
+// Retrieve the public key and get the MySo address
 const publicKey = signer.getPublicKey();
-console.log(publicKey.toMysAddress());
+console.log(publicKey.toMySoAddress());
 
 // Define a test message
 const testMessage = 'Hello, GCP KMS Signer!';
@@ -149,7 +149,7 @@ console.log(isValid); // Should print true if the signature is valid
 
 ## Ledger Signer
 
-The Ledger Signer allows you to leverage a Ledger hardware wallet to sign Mys transactions.
+The Ledger Signer allows you to leverage a Ledger hardware wallet to sign MySo transactions.
 
 ### Usage
 
@@ -172,23 +172,26 @@ cryptographic operations.
 
 ```typescript
 import Transport from '@ledgerhq/hw-transport-node-hid';
-import MysLedgerClient from '@socialproof/ledgerjs-hw-app-mys';
+import MySoLedgerClient from '@socialproof/ledgerjs-hw-app-myso';
 import { LedgerSigner } from '@socialproof/signers/ledger';
-import { getFullnodeUrl, MysClient } from '@socialproof/mys/client';
-import { Transaction } from '@socialproof/mys/transactions';
+import { MySoGrpcClient } from '@socialproof/myso/grpc';
+import { Transaction } from '@socialproof/myso/transactions';
 
 const transport = await Transport.open(undefined);
-const ledgerClient = new MysLedgerClient(transport);
-const mysClient = new MysClient({ url: getFullnodeUrl('testnet') });
+const ledgerClient = new MySoLedgerClient(transport);
+const mysoClient = new MySoGrpcClient({
+	network: 'testnet',
+	baseUrl: 'https://fullnode.testnet.mysocial.network:443',
+});
 
 const signer = await LedgerSigner.fromDerivationPath(
 	"m/44'/6976'/0'/0'/0'",
 	ledgerClient,
-	mysClient,
+	mysoClient,
 );
 
-// Log the Mys address:
-console.log(signer.toMysAddress());
+// Log the MySo address:
+console.log(signer.toMySoAddress());
 
 // Define a test transaction:
 const testTransaction = new Transaction();
