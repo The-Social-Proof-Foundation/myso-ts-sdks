@@ -1,0 +1,54 @@
+{
+	"name": "@socialproof/mysocial-auth",
+	"version": "0.1.0",
+	"private": false,
+	"description": "MySocial Auth SDK for Login with MySocial via popup or redirect",
+	"license": "Apache-2.0",
+	"author": "Mysten Labs <build@socialprooflabs.com>",
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs",
+			"default": "./dist/index.mjs"
+		}
+	},
+	"sideEffects": false,
+	"files": [
+		"CHANGELOG.md",
+		"dist"
+	],
+	"scripts": {
+		"clean": "rm -rf tsconfig.tsbuildinfo ./dist",
+		"build": "rm -rf dist && tsc --noEmit && tsdown",
+		"vitest": "vitest",
+		"test": "pnpm test:typecheck && pnpm test:unit",
+		"test:typecheck": "tsc -p ./test",
+		"test:unit": "vitest run",
+		"prettier:check": "prettier -c --ignore-unknown .",
+		"prettier:fix": "prettier -w --ignore-unknown .",
+		"oxlint:check": "oxlint .",
+		"oxlint:fix": "oxlint --fix .",
+		"lint": "pnpm run oxlint:check && pnpm run prettier:check",
+		"lint:fix": "pnpm run oxlint:fix && pnpm run prettier:fix"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/MystenLabs/ts-sdks.git"
+	},
+	"bugs": {
+		"url": "https://github.com/mystenlabs/ts-sdks/issues"
+	},
+	"homepage": "https://github.com/MystenLabs/ts-sdks/tree/main/packages/mysocial-auth#readme",
+	"devDependencies": {
+		"@types/node": "^25.0.8",
+		"happy-dom": "^20.1.0",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.17"
+	},
+	"dependencies": {
+		"@socialproof/utils": "workspace:^"
+	}
+}

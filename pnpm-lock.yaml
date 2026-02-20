@@ -1145,6 +1145,25 @@ importers:
         specifier: ^8.19.0
         version: 8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
 
+  packages/mysocial-auth:
+    dependencies:
+      '@socialproof/utils':
+        specifier: workspace:^
+        version: link:../utils
+    devDependencies:
+      '@types/node':
+        specifier: ^25.0.8
+        version: 25.2.3
+      happy-dom:
+        specifier: ^20.1.0
+        version: 20.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.17
+        version: 4.0.17(@types/node@25.2.3)(happy-dom@20.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(jiti@2.6.1)(jsdom@27.4.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(lightningcss@1.30.2)(msw@2.12.7(@types/node@25.2.3)(typescript@5.9.3))(tsx@4.21.0)(yaml@2.8.2)
+
   packages/orderbook:
     dependencies:
       '@noble/hashes':
@@ -15492,7 +15511,7 @@ snapshots:
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 25.0.8
+      '@types/node': 25.2.3
     optional: true
 
   '@types/debug@4.1.12':
@@ -15598,7 +15617,7 @@ snapshots:
 
   '@types/ws@7.4.7':
     dependencies:
-      '@types/node': 25.0.8
+      '@types/node': 25.2.3
     optional: true
 
   '@types/ws@8.18.1':
@@ -17329,7 +17348,7 @@ snapshots:
 
   eval@0.1.8:
     dependencies:
-      '@types/node': 25.0.8
+      '@types/node': 25.2.3
       require-like: 0.1.2
 
   event-target-shim@5.0.1: {}

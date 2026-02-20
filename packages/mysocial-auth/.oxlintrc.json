@@ -1,0 +1,6 @@
+{
+	"rules": {
+		"import/extensions": "off",
+		"jsdoc/check-tag-names": "off"
+	}
+}
