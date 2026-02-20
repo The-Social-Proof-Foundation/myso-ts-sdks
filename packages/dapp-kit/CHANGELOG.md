@@ -1,5 +1,16 @@
 # @socialproof/dapp-kit
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/myso@0.0.2
+  - @socialproof/slush-wallet@0.0.2
+  - @socialproof/utils@0.0.2
+  - @socialproof/wallet-standard@0.0.2
+
 ## 1.0.3
 
 ### Patch Changes
@@ -446,7 +457,8 @@
 
 ### Minor Changes
 
-- c5adcb8: Integrated @socialproof/slush-wallet, swapped registerStashedWallet for registerSlushWallet
+- c5adcb8: Integrated @socialproof/slush-wallet, swapped registerStashedWallet for
+  registerSlushWallet
 
 ### Patch Changes
 
@@ -814,8 +826,9 @@
 
 ### Patch Changes
 
-- 640b757: Add `getMySoClientQuery` to get the `queryOptions` config for usage with the `QueryClient`
-  outside of React hooks. Added `useMySoClientSuspenseQuery` to support suspense-based data fetching.
+- 640b757: Add `getMySoClientQuery` to get the `queryOptions` config for usage with the
+  `QueryClient` outside of React hooks. Added `useMySoClientSuspenseQuery` to support suspense-based
+  data fetching.
 
 ## 0.14.22
 
@@ -1032,8 +1045,8 @@
 
 ### Minor Changes
 
-- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new features
-  and breaking changes. See the
+- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new
+  features and breaking changes. See the
   [full migration guide](https://sdk.mystenlabs.com/myso/migrations/myso-1.0) for details on how to
   upgrade.
 

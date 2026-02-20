@@ -1,5 +1,11 @@
 # @socialproof/ledgerjs-hw-app-myso
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+
 ## 0.7.1
 
 ### Patch Changes
@@ -57,8 +63,8 @@
 
 ### Minor Changes
 
-- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new features
-  and breaking changes. See the
+- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new
+  features and breaking changes. See the
   [full migration guide](https://sdk.mystenlabs.com/myso/migrations/myso-1.0) for details on how to
   upgrade.
 

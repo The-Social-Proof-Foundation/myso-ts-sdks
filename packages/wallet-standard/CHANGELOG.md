@@ -1,5 +1,11 @@
 # @socialproof/wallet-standard
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+
 ## 0.20.1
 
 ### Patch Changes
@@ -705,8 +711,8 @@
 
 ### Minor Changes
 
-- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new features
-  and breaking changes. See the
+- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new
+  features and breaking changes. See the
   [full migration guide](https://sdk.mystenlabs.com/myso/migrations/myso-1.0) for details on how to
   upgrade.
 
@@ -1129,8 +1135,8 @@
   capitalizations/forms) to their equivalent "stake"-based name. Function names, function argument
   names, RPC endpoints, Move functions, and object fields have been updated with this new naming
   convention.
-- c718deef4: wallet-standard: changes myso:signAndExecuteTransaction and myso:signTransaction features
-  to support account and chain options wallet-adapter-wallet-standard: change
+- c718deef4: wallet-standard: changes myso:signAndExecuteTransaction and myso:signTransaction
+  features to support account and chain options wallet-adapter-wallet-standard: change
   signAndExecuteTransaction and signTransaction signatures to support account and chain options
   wallet-adapter-wallet-standard: ensure version compatibility for of the wallet
   signAndExecuteTransaction and signTransaction features before using them (same major version)
@@ -1242,8 +1248,8 @@
 
 ### Minor Changes
 
-- 473005d8f: Add protocol_version to CheckpointSummary and MySoSystemObject. Consolidate end-of-epoch
-  information in CheckpointSummary.
+- 473005d8f: Add protocol_version to CheckpointSummary and MySoSystemObject. Consolidate
+  end-of-epoch information in CheckpointSummary.
 
 ### Patch Changes
 

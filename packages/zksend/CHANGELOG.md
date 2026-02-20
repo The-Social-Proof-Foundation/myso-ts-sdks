@@ -1,5 +1,16 @@
 # @socialproof/zksend
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/myso@0.0.2
+  - @socialproof/utils@0.0.2
+  - @socialproof/wallet-standard@0.0.2
+  - @socialproof/window-wallet-core@0.0.2
+
 ## 1.0.2
 
 ### Patch Changes
@@ -985,8 +996,8 @@
 
 ### Minor Changes
 
-- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new features
-  and breaking changes. See the
+- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new
+  features and breaking changes. See the
   [full migration guide](https://sdk.mystenlabs.com/myso/migrations/myso-1.0) for details on how to
   upgrade.
 

@@ -1,5 +1,14 @@
 # @socialproof/myso.js
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/bcs@0.0.2
+  - @socialproof/utils@0.0.2
+
 ## 2.3.2
 
 ### Patch Changes
@@ -678,9 +687,11 @@
 ### Minor Changes
 
 - ec2dc7f: Add legacyAddress flag to zklogin methods that generate addresses
-- ec2dc7f: All functionality from `@socialproof/zklogin` has been moved to `@socialproof/myso/zklogin`
+- ec2dc7f: All functionality from `@socialproof/zklogin` has been moved to
+  `@socialproof/myso/zklogin`
 
-  For most methods, simply replace the `@socialproof/zklogin` import with `@socialproof/myso/zklogin`
+  For most methods, simply replace the `@socialproof/zklogin` import with
+  `@socialproof/myso/zklogin`
 
   2 Methods require one small additional change:
 
@@ -944,8 +955,8 @@
 
 ### Major Changes
 
-- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new features
-  and breaking changes. See the
+- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new
+  features and breaking changes. See the
   [full migration guide](https://sdk.mystenlabs.com/myso/migrations/myso-1.0) for details on how to
   upgrade.
 
@@ -1215,8 +1226,8 @@
 
 ### Minor Changes
 
-- ba8e3b857: Rename TransactionBlock generated type in @socialproof/myso.js/client to MySoTransactionBlock
-  to avoid conflicting names in exports
+- ba8e3b857: Rename TransactionBlock generated type in @socialproof/myso.js/client to
+  MySoTransactionBlock to avoid conflicting names in exports
 
 ### Patch Changes
 
@@ -1280,8 +1291,8 @@
   to be available in this release (with deprecation warnings). With the large number of deprecations
   there may be functionality that should be moved into the new modular version of the SDK. If you
   find there are features that were deprecated without a suitable replacement, we have created a
-  [Github Discussion thread](https://github.com/the-social-proof-foundation/myso-core/discussions/13150) to track those
-  use-cases.
+  [Github Discussion thread](https://github.com/the-social-proof-foundation/myso-core/discussions/13150)
+  to track those use-cases.
 
   #### Migrating imports
 
@@ -1562,8 +1573,8 @@
 - be3c4f51e: Add `display` field in `MySoObjectResponse` for frontend rendering. See more details in
   https://forums.mysocial.network/t/nft-object-display-proposal/4872
 - dbe73d5a4: Update `executeTransaction` and `signAndExecuteTransaction` to take in an additional
-  parameter `MySoTransactionBlockResponseOptions` which is used to specify which fields to include in
-  `MySoTransactionBlockResponse` (e.g., transaction, effects, events, etc). By default, only the
+  parameter `MySoTransactionBlockResponseOptions` which is used to specify which fields to include
+  in `MySoTransactionBlockResponse` (e.g., transaction, effects, events, etc). By default, only the
   transaction digest will be included.
 - c82e4b454: Introduce BigInt struct to myso-json-rpc-types to serialize and deserialize amounts
   to/from string. Change ts-sdk to serialize amounts of PayMySo and Pay as string.
@@ -1582,8 +1593,8 @@
 - da72e73a9: Change the address of Move package for staking and validator related Move modules.
 - a0955c479: Switch from 20 to 32-byte address. Match Secp256k1.deriveKeypair with Ed25519.
 - 0c9047698: Remove all gas selection APIs from the json rpc provider.
-- d5ef1b6e5: Added dependencies to publish command, dependencies now also returned from the myso move
-  CLI with the `--dump-bytecode-as-base64` flag
+- d5ef1b6e5: Added dependencies to publish command, dependencies now also returned from the myso
+  move CLI with the `--dump-bytecode-as-base64` flag
 - 0a7b42a6d: This changes almost all occurences of "delegate", "delegation" (and various
   capitalizations/forms) to their equivalent "stake"-based name. Function names, function argument
   names, RPC endpoints, Move functions, and object fields have been updated with this new naming
@@ -1682,8 +1693,8 @@
 
 ### Minor Changes
 
-- 473005d8f: Add protocol_version to CheckpointSummary and MySoSystemObject. Consolidate end-of-epoch
-  information in CheckpointSummary.
+- 473005d8f: Add protocol_version to CheckpointSummary and MySoSystemObject. Consolidate
+  end-of-epoch information in CheckpointSummary.
 - 59641dc29: Support for deserializing new ConsensusCommitPrologue system transaction
 - 629804d26: Remove usage of `Base64DataBuffer`, and use `Uint8Array` instead.
 - f51c85e85: remove get_objects_owned_by_object and replace it with get_dynamic_fields

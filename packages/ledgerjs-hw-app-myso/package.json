@@ -1,6 +1,6 @@
 {
 	"name": "@socialproof/ledgerjs-hw-app-myso",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Ledger Hardware Wallet MySo Application API",
 	"keywords": [
 		"Ledger",

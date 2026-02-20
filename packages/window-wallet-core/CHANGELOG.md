@@ -1,5 +1,13 @@
 # @socialproof/window-wallet-core
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/utils@0.0.2
+
 ## 0.1.3
 
 ### Patch Changes

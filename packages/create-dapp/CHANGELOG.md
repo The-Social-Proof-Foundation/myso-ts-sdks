@@ -1,5 +1,15 @@
 # @socialproof/create-dapp
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/codegen@0.0.2
+  - @socialproof/dapp-kit-react@0.0.2
+  - @socialproof/myso@0.0.2
+
 ## 0.6.2
 
 ### Patch Changes
@@ -903,8 +913,8 @@
 
 ### Minor Changes
 
-- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new features
-  and breaking changes. See the
+- a92b03de42: The Typescript SDK has been renamed to `@socialproof/myso` and includes many new
+  features and breaking changes. See the
   [full migration guide](https://sdk.mystenlabs.com/myso/migrations/myso-1.0) for details on how to
   upgrade.
 

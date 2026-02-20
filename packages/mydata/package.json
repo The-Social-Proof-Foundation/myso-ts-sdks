@@ -1,6 +1,6 @@
 {
 	"name": "@socialproof/mydata",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "MyData SDK",
 	"license": "Apache-2.0",
 	"author": "Mysten Labs <build@socialprooflabs.com>",

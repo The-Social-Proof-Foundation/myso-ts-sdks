@@ -1,6 +1,6 @@
 {
 	"name": "@socialproof/walletconnect-wallet",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Wallet adapter for WalletConnect on MySo",
 	"license": "Apache-2.0",
 	"author": "Mysten Labs <build@socialprooflabs.com>",

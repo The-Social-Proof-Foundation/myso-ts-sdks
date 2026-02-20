@@ -1,5 +1,14 @@
 # @socialproof/signers
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/ledgerjs-hw-app-myso@0.0.2
+  - @socialproof/myso@0.0.2
+
 ## 1.0.1
 
 ### Patch Changes
@@ -16,8 +25,8 @@
 - e00788c: Remove manual BCS serialization from ledger signer
 
   **Breaking Changes:**
-  - **Removed `MySoMoveObject` export**: The custom BCS schema for Move objects has been removed. The
-    ledger signer now uses server-provided BCS bytes directly.
+  - **Removed `MySoMoveObject` export**: The custom BCS schema for Move objects has been removed.
+    The ledger signer now uses server-provided BCS bytes directly.
   - **Client type change**: `LedgerSigner` and `getInputObjects` now accepts `ClientWithCoreApi`
     instead of `MySoJsonRpcClient` (this is still compatible with `MySoJsonRpcClient`)
 

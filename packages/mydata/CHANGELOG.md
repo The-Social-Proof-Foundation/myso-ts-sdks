@@ -1,5 +1,14 @@
 # @socialproof/mydata
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/bcs@0.0.2
+  - @socialproof/myso@0.0.2
+
 ## 1.0.1
 
 ### Patch Changes

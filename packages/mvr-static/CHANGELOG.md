@@ -1,5 +1,13 @@
 # @socialproof/mvr-static
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/myso@0.0.2
+
 ## 0.3.1
 
 ### Patch Changes

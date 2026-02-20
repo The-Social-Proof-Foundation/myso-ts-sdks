@@ -1,5 +1,14 @@
 # @socialproof/orderbook
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/bcs@0.0.2
+  - @socialproof/myso@0.0.2
+
 ## 1.0.9
 
 ### Patch Changes
@@ -85,8 +94,8 @@
 
   **Removed `Environment` type export**
 
-  The `Environment` type has been removed. Use `MySoClientTypes.Network` from `@socialproof/myso/client`
-  instead:
+  The `Environment` type has been removed. Use `MySoClientTypes.Network` from
+  `@socialproof/myso/client` instead:
 
   ```diff
   -import { Environment } from '@socialproof/orderbook';

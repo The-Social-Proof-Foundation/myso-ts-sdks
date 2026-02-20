@@ -1,5 +1,13 @@
 # @socialproof/dapp-kit-react
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/dapp-kit-core@0.0.2
+
 ## 1.0.2
 
 ### Patch Changes

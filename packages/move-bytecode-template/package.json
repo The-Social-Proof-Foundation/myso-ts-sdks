@@ -1,6 +1,6 @@
 {
 	"name": "@socialproof/move-bytecode-template",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Move Binary Format implementation in WASM",
 	"main": "index.js",
 	"types": "./index.d.mts",

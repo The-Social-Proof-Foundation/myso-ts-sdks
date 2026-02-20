@@ -1,5 +1,16 @@
 # @socialproof/slush-wallet
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/myso@0.0.2
+  - @socialproof/utils@0.0.2
+  - @socialproof/wallet-standard@0.0.2
+  - @socialproof/window-wallet-core@0.0.2
+
 ## 1.0.2
 
 ### Patch Changes
@@ -389,7 +400,8 @@
 
 ### Minor Changes
 
-- c5adcb8: Integrated @socialproof/slush-wallet, swapped registerStashedWallet for registerSlushWallet
+- c5adcb8: Integrated @socialproof/slush-wallet, swapped registerStashedWallet for
+  registerSlushWallet
 
 ### Patch Changes
 

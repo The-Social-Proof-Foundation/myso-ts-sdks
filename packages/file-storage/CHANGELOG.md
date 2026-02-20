@@ -1,5 +1,16 @@
 # @socialproof/file-storage
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/bcs@0.0.2
+  - @socialproof/myso@0.0.2
+  - @socialproof/utils@0.0.2
+  - @socialproof/file-storage-wasm@0.0.2
+
 ## 1.0.3
 
 ### Patch Changes
@@ -118,7 +129,7 @@
 
 ### Minor Changes
 
-- 8894443: Set _fileStorageBlobType for quilts
+- 8894443: Set \_fileStorageBlobType for quilts
 - f3b19a7: Use bcs.byteVector and bcs.bytes instead of bcs.vector(bcs.u8()) and bcs.fixedArrray(n,
   bcs.u8()) to improve performance
 - bf9f85c: deprecate asClientExtension methods

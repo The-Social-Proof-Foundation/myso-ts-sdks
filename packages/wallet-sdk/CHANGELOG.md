@@ -1,5 +1,14 @@
 # @socialproof/wallet-sdk
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+- Updated dependencies [8d9e2f3]
+  - @socialproof/bcs@0.0.2
+  - @socialproof/wallet-standard@0.0.2
+
 ## 0.1.1
 
 ### Patch Changes

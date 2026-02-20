@@ -1,5 +1,11 @@
 # @socialproof/file-storage-wasm
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+
 ## 0.2.0
 
 ### Minor Changes

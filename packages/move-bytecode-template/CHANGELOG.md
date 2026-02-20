@@ -1,5 +1,11 @@
 # @socialproof/move-bytecode-template
 
+## 0.0.2
+
+### Patch Changes
+
+- 8d9e2f3: first
+
 ## 0.3.0
 
 ### Minor Changes
