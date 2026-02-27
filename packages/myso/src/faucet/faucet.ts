@@ -83,7 +83,7 @@ export async function requestMySoFromFaucetV2(input: {
 export function getFaucetHost(network: 'testnet' | 'devnet' | 'localnet') {
 	switch (network) {
 		case 'testnet':
-			return 'https://faucet.testnet.mysocial.network';
+			return 'https://faucet.mysocial.network';
 		case 'devnet':
 			return 'https://faucet.devnet.mysocial.network';
 		case 'localnet':
