@@ -2,7 +2,7 @@
 	"name": "@socialproof/orderbook",
 	"author": "Mysten Labs <build@socialprooflabs.com>",
 	"description": "MySo Orderbook SDK",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"license": "Apache-2.0",
 	"type": "module",
 	"main": "./dist/index.mjs",

@@ -3,7 +3,7 @@
 	"author": "Mysten Labs <build@socialprooflabs.com>",
 	"description": "MySo TypeScript API",
 	"homepage": "https://sdk.mystenlabs.com",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"license": "Apache-2.0",
 	"sideEffects": false,
 	"files": [

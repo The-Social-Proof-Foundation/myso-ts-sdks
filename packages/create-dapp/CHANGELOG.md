@@ -1,5 +1,14 @@
 # @socialproof/create-dapp
 
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @socialproof/myso@0.0.3
+  - @socialproof/codegen@0.0.3
+  - @socialproof/dapp-kit-react@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes

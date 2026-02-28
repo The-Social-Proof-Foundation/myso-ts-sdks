@@ -1,6 +1,6 @@
 {
 	"name": "@socialproof/codegen",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "typescript codegen for myso move",
 	"license": "Apache-2.0",
 	"author": "Mysten Labs <build@socialprooflabs.com>",

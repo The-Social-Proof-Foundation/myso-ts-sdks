@@ -1,6 +1,6 @@
 {
 	"name": "@socialproof/zksend",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Create claimable links for transferring coins and NFTs",
 	"license": "Apache-2.0",
 	"author": "Mysten Labs <build@socialprooflabs.com>",
