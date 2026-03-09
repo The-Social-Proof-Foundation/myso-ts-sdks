@@ -95,6 +95,10 @@ await auth.signOut();
 
 ## Hosted UI Contract (auth.mysocial.network)
 
+The SDK passes `return_origin` in the login URL params. This must match the dApp's origin
+(`window.location.origin`) so the auth server can post the auth result to the correct target.
+The auth server uses `return_origin` as the `postMessage` targetOrigin when sending the result.
+
 The popup page must call:
 
 ```javascript
@@ -140,6 +144,22 @@ allowlist for `client_id`.
 - `POST ${apiBaseUrl}/auth/refresh`: `{ refresh_token }` →
   `{ access_token, refresh_token?, expires_in, user }`
 - `POST ${apiBaseUrl}/auth/logout`
+
+## Troubleshooting
+
+### Popup stays open after login
+
+If the popup does not close after successful authentication:
+
+1. **`return_origin` mismatch** – The SDK sends `return_origin` (derived from `window.location.origin`)
+   in the login URL. The auth server posts with this as the `postMessage` target. Ensure your dApp
+   runs on the same origin you expect (e.g. `https://dripdrop.social` vs `https://www.dripdrop.social`).
+
+2. **`authOrigin` mismatch** – The SDK's `authOrigin` must match the auth server's origin exactly
+   (e.g. `https://auth.mysocial.network`, or `http://localhost:3000` for local development).
+
+3. **`redirectUri` origin** – The `redirectUri` must be allowlisted per `clientId`. Its origin
+   should match your dApp's origin for consistency.
 
 ## Security Notes
 

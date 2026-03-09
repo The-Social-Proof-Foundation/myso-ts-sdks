@@ -55,7 +55,8 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 
 	const state = generateState();
 	const nonce = generateNonce();
-	const returnOrigin = getReturnOrigin(redirectUri);
+	const returnOrigin =
+		typeof window !== 'undefined' ? window.location.origin : getReturnOrigin(redirectUri);
 
 	let requestId: string | undefined;
 	if (useRequestId) {
@@ -134,7 +135,11 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 				}
 
 				cleanup();
-				popup.close();
+				try {
+					popup.close();
+				} catch {
+					// Popup may already be closed by auth server
+				}
 
 				exchangeCode(apiBaseUrl, {
 					code: msg.code,
@@ -149,7 +154,11 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 			} else if (data.type === 'MYSOCIAL_AUTH_ERROR') {
 				const msg = data as AuthErrorMessage;
 				cleanup();
-				popup.close();
+				try {
+					popup.close();
+				} catch {
+					// Popup may already be closed
+				}
 				reject(new Error(msg.error ?? 'Authentication failed'));
 			}
 		};
@@ -158,7 +167,11 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 
 		timeoutId = setTimeout(() => {
 			cleanup();
-			popup.close();
+			try {
+				popup.close();
+			} catch {
+				// Popup may already be closed
+			}
 			reject(new AuthTimeoutError());
 		}, timeout);
 
