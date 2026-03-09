@@ -1,5 +1,11 @@
 # @socialproof/mysocial-auth
 
+## 0.2.0
+
+### Minor Changes
+
+- improved auth callback
+
 ## 0.1.0
 
 ### Minor Changes
