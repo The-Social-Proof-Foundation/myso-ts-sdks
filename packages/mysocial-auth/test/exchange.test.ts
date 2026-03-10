@@ -114,6 +114,42 @@ describe('exchange', () => {
 		expect(requestId).toBe('req-123');
 	});
 
+	it('exchangeCode works without code_verifier when auth frontend already exchanged', async () => {
+		const mockSession = {
+			access_token: 'at',
+			refresh_token: 'rt',
+			expires_in: 3600,
+			user: { id: 'u1' },
+		};
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: true,
+			json: async () => mockSession,
+		} as Response);
+
+		const session = await exchangeCode('https://api.test', {
+			code: 'c1',
+			redirect_uri: 'https://app.test/cb',
+			state: 's1',
+			nonce: 'n1',
+		});
+
+		expect(fetch).toHaveBeenCalledWith(
+			'https://api.test/auth/exchange',
+			expect.objectContaining({
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					code: 'c1',
+					redirect_uri: 'https://app.test/cb',
+					state: 's1',
+					nonce: 'n1',
+				}),
+			}),
+		);
+		expect(session.access_token).toBe('at');
+		expect(session.user.id).toBe('u1');
+	});
+
 	it('exchangeCode throws on non-ok response', async () => {
 		vi.mocked(fetch).mockResolvedValueOnce({
 			ok: false,

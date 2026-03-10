@@ -95,7 +95,9 @@ await auth.signOut();
 
 ## Hosted UI Contract (auth.mysocial.network)
 
-The SDK passes `return_origin` in the login URL params. This must match the dApp's origin
+The SDK passes `return_origin` and `code_challenge_method: S256` in the login URL params. The auth
+frontend generates PKCE (code_challenge/code_verifier) server-side for Google/Apple; the package
+does not send them. `return_origin` must match the dApp's origin
 (`window.location.origin`) so the auth server can post the auth result to the correct target.
 The auth server uses `return_origin` as the `postMessage` targetOrigin when sending the result.
 
@@ -125,7 +127,6 @@ window.opener.postMessage(payload, validatedTargetOrigin); // targetOrigin, NOT 
 	"type": "MYSOCIAL_AUTH_ERROR",
 	"error": "error_code_or_message",
 	"state": "...",
-	"nonce": "...",
 	"clientId": "...",
 	"requestId": "..."
 }
@@ -134,12 +135,15 @@ window.opener.postMessage(payload, validatedTargetOrigin); // targetOrigin, NOT 
 `return_origin` must never be trusted from the query param. The backend must validate it against the
 allowlist for `client_id`.
 
+**Important:** The package calls your app's backend (`apiBaseUrl`), never the auth frontend. The auth
+frontend's `/api/auth/callback` is internal and is not used by this SDK.
+
 ## Backend Contract
 
 - `POST ${apiBaseUrl}/auth/request` (optional): `{ client_id, redirect_uri, return_origin }` →
   `{ request_id }`
 - `POST ${apiBaseUrl}/auth/exchange`:
-  `{ code, code_verifier?, redirect_uri, state?, nonce?, request_id? }` →
+  `{ code, redirect_uri, state?, nonce?, request_id? }` (your app's backend; code_verifier not sent—auth frontend handles OAuth/salt internally) →
   `{ access_token, refresh_token?, expires_in, user }`
 - `POST ${apiBaseUrl}/auth/refresh`: `{ refresh_token }` →
   `{ access_token, refresh_token?, expires_in, user }`

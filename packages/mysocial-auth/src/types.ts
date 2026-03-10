@@ -70,7 +70,6 @@ export interface AuthErrorMessage {
 	type: 'MYSOCIAL_AUTH_ERROR';
 	error: string;
 	state: string;
-	nonce?: string;
 	clientId?: string;
 	requestId?: string;
 }

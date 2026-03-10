@@ -8,12 +8,7 @@ import {
 	PopupBlockedError,
 	PopupClosedError,
 } from './errors.js';
-import {
-	generateCodeChallenge,
-	generateCodeVerifier,
-	generateNonce,
-	generateState,
-} from './pkce.js';
+import { generateNonce, generateState } from './pkce.js';
 import { getPopupFeatures } from './popup-utils.js';
 import { exchangeCode, fetchRequestId } from './exchange.js';
 import type { Session } from './types.js';
@@ -67,12 +62,6 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 		});
 	}
 
-	const { codeVerifier, codeChallenge } = await (async () => {
-		const verifier = await generateCodeVerifier();
-		const challenge = await generateCodeChallenge(verifier);
-		return { codeVerifier: verifier, codeChallenge: challenge };
-	})();
-
 	// Open popup immediately (Safari requires user gesture). Use about:blank, then set location.
 	const features = getPopupFeatures(420, 720);
 	const popup = window.open('about:blank', '_blank', features);
@@ -89,7 +78,6 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 		return_origin: returnOrigin,
 		mode: 'popup',
 		provider: provider ?? '',
-		code_challenge: codeChallenge,
 		code_challenge_method: 'S256',
 	});
 	if (requestId) params.set('request_id', requestId);
@@ -143,7 +131,6 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 
 				exchangeCode(apiBaseUrl, {
 					code: msg.code,
-					code_verifier: codeVerifier,
 					redirect_uri: redirectUri,
 					state,
 					nonce,

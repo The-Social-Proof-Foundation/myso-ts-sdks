@@ -11,12 +11,7 @@ import type {
 import { createStorage, redirectStorage, SESSION_KEY, REDIRECT_STATE_PREFIX } from './storage.js';
 import { openAuthPopup } from './popup.js';
 import { exchangeCode, refreshTokens, logout, fetchRequestId } from './exchange.js';
-import {
-	generateCodeVerifier,
-	generateCodeChallenge,
-	generateState,
-	generateNonce,
-} from './pkce.js';
+import { generateState, generateNonce } from './pkce.js';
 
 type AuthEvents = { change: Session | null };
 
@@ -102,8 +97,6 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			// Redirect mode
 			const state = generateState();
 			const nonce = generateNonce();
-			const codeVerifier = await generateCodeVerifier();
-			const codeChallenge = await generateCodeChallenge(codeVerifier);
 			const returnOrigin = getReturnOrigin(config.redirectUri);
 
 			let requestId: string | undefined;
@@ -118,7 +111,6 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			const redirectState = {
 				state,
 				nonce,
-				codeVerifier,
 				requestId,
 			};
 			const key = `${REDIRECT_STATE_PREFIX}${state}`;
@@ -132,7 +124,6 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 				return_origin: returnOrigin,
 				mode: 'redirect',
 				provider: provider ?? '',
-				code_challenge: codeChallenge,
 				code_challenge_method: 'S256',
 			});
 			if (requestId) params.set('request_id', requestId);
@@ -190,7 +181,6 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			const redirectState = JSON.parse(raw) as {
 				state: string;
 				nonce: string;
-				codeVerifier: string;
 				requestId?: string;
 			};
 
@@ -207,7 +197,6 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 
 			const session = await exchangeCode(config.apiBaseUrl, {
 				code,
-				code_verifier: redirectState.codeVerifier,
 				redirect_uri: config.redirectUri,
 				state,
 				nonce,
