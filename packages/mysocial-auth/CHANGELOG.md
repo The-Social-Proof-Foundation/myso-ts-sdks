@@ -1,5 +1,11 @@
 # @socialproof/mysocial-auth
 
+## 0.4.0
+
+### Minor Changes
+
+- fixed
+
 ## 0.3.0
 
 ### Minor Changes
