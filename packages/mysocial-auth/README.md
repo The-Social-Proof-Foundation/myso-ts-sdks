@@ -34,9 +34,11 @@ document
 // 2. User redirected to auth.mysocial.network, then back to redirectUri with ?code=...&state=...&nonce=...
 // 3. On callback page: await auth.handleRedirectCallback()
 
-// Check session
+// Check session - use user.address for the wallet (0x...), not code or salt
 const session = await auth.getSession();
-if (session) console.log(session.user);
+if (session) {
+	const address = session.user?.address; // Wallet address
+}
 
 // Listen for changes
 auth.onAuthStateChange((session) => {
@@ -93,6 +95,15 @@ await auth.signOut();
 
 - Subscribe to session changes. Returns unsubscribe function.
 
+### Wallet address
+
+Use `session.user.address` (0x...) for the wallet address. Do not use `code`, `salt`, or id_token:
+
+```typescript
+const session = await auth.getSession();
+const address = session?.user?.address; // Wallet address
+```
+
 ## Hosted UI Contract (auth.mysocial.network)
 
 The SDK passes `return_origin`, `code_challenge_method: S256`, and `provider` in the login URL
@@ -119,14 +130,16 @@ window.opener.postMessage(payload, validatedTargetOrigin); // targetOrigin, NOT 
 	"clientId": "...",
 	"requestId": "...",
 	"salt": "...",
-	"user": {},
+	"user": { "address": "0x...", "id": "...", "email": "...", "name": "..." },
 	"access_token": "...",
 	"refresh_token": "...",
 	"expires_at": 0
 }
 ```
 
-`code` is the token (id_token or access_token). Optional: `salt`, `user`, `access_token`, `refresh_token`, `expires_at`.
+Use `user.address` for the wallet. Do not use `code` or `salt` as the address.
+
+`code` is the token. **Use `user.address` (0x...) for the wallet address**—do not use `code` or `salt` for that. Optional: `salt`, `user`, `access_token`, `refresh_token`, `expires_at`.
 
 **Error payload:**
 

@@ -7,11 +7,12 @@ export type AuthProvider = 'google' | 'apple' | 'facebook' | 'twitch' | 'none';
 /** Auth flow mode: popup (opens window) or redirect (navigates away) */
 export type AuthMode = 'popup' | 'redirect';
 
-/** User object returned from exchange/refresh */
+/** User object returned from auth. Use user.address for the wallet address (0x...). */
 export interface AuthUser {
 	id?: string;
 	email?: string;
 	name?: string;
+	address?: string;
 	[key: string]: unknown;
 }
 

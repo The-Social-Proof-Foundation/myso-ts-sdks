@@ -66,8 +66,14 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 	const features = getPopupFeatures(420, 720);
 	const popup = window.open('about:blank', '_blank', features);
 
-	if (!popup || popup.closed) {
+	if (!popup) {
 		throw new PopupBlockedError();
+	}
+	try {
+		if (popup.closed) throw new PopupBlockedError();
+	} catch (err) {
+		if (err instanceof PopupBlockedError) throw err;
+		// COOP blocks popup.closed; proceed, setInterval will handle or timeout
 	}
 
 	const params = new URLSearchParams({
@@ -162,9 +168,13 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 		}, timeout);
 
 		closedCheckId = setInterval(() => {
-			if (popup.closed) {
-				cleanup();
-				reject(new PopupClosedError());
+			try {
+				if (popup.closed) {
+					cleanup();
+					reject(new PopupClosedError());
+				}
+			} catch {
+				// COOP blocks access to popup.closed; treat as unknown, rely on timeout
 			}
 		}, 200);
 	});
