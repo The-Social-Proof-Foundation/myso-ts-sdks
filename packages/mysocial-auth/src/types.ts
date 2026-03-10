@@ -1,8 +1,8 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-/** OAuth provider options for Login with MySocial */
-export type AuthProvider = 'google' | 'apple' | 'facebook' | 'twitch';
+/** OAuth provider options for Login with MySocial. Use 'none' for home screen (user picks provider). */
+export type AuthProvider = 'google' | 'apple' | 'facebook' | 'twitch' | 'none';
 
 /** Auth flow mode: popup (opens window) or redirect (navigates away) */
 export type AuthMode = 'popup' | 'redirect';
@@ -21,6 +21,7 @@ export interface Session {
 	refresh_token?: string;
 	expires_at: number;
 	user: AuthUser;
+	salt?: string;
 }
 
 /** Storage adapter for persisting session (memory, sessionStorage, or custom) */
@@ -48,6 +49,7 @@ export interface MySocialAuthConfig {
 
 /** Sign-in options */
 export interface SignInOptions {
+	/** Provider to use. Default 'none' shows auth home screen. */
 	provider?: AuthProvider;
 	mode?: AuthMode;
 }
@@ -63,6 +65,11 @@ export interface AuthResultMessage {
 	nonce: string;
 	clientId: string;
 	requestId?: string;
+	salt?: string;
+	user?: AuthUser;
+	access_token?: string;
+	refresh_token?: string;
+	expires_at?: number;
 }
 
 /** PostMessage error payload from auth.mysocial.network popup */

@@ -10,7 +10,7 @@ import {
 } from './errors.js';
 import { generateNonce, generateState } from './pkce.js';
 import { getPopupFeatures } from './popup-utils.js';
-import { exchangeCode, fetchRequestId } from './exchange.js';
+import { fetchRequestId } from './exchange.js';
 import type { Session } from './types.js';
 
 /** Get return_origin from redirectUri (e.g. https://dripdrop.social/auth/callback -> https://dripdrop.social) */
@@ -77,7 +77,7 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 		nonce,
 		return_origin: returnOrigin,
 		mode: 'popup',
-		provider: provider ?? '',
+		provider: provider ?? 'none',
 		code_challenge_method: 'S256',
 	});
 	if (requestId) params.set('request_id', requestId);
@@ -129,15 +129,14 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 					// Popup may already be closed by auth server
 				}
 
-				exchangeCode(apiBaseUrl, {
-					code: msg.code,
-					redirect_uri: redirectUri,
-					state,
-					nonce,
-					request_id: requestId,
-				})
-					.then(resolve)
-					.catch(reject);
+				const session: Session = {
+					access_token: msg.access_token ?? msg.code,
+					refresh_token: msg.refresh_token,
+					user: msg.user ?? {},
+					expires_at: msg.expires_at ?? Date.now() + 3600_000,
+					...(msg.salt && { salt: msg.salt }),
+				};
+				resolve(session);
 			} else if (data.type === 'MYSOCIAL_AUTH_ERROR') {
 				const msg = data as AuthErrorMessage;
 				cleanup();

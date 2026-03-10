@@ -1,10 +1,10 @@
 {
 	"name": "@socialproof/mysocial-auth",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"private": false,
 	"description": "MySocial Auth SDK for Login with MySocial via popup or redirect",
 	"license": "Apache-2.0",
-	"author": "Mysten Labs <build@socialprooflabs.com>",
+	"author": "The Social Proof Foundation, LLC. <build@socialprooflabs.com>",
 	"type": "module",
 	"main": "./dist/index.mjs",
 	"types": "./dist/index.d.mts",
@@ -36,12 +36,12 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/MystenLabs/ts-sdks.git"
+		"url": "git+https://github.com/the-social-proof-foundation/myso-ts-sdks.git"
 	},
 	"bugs": {
-		"url": "https://github.com/mystenlabs/ts-sdks/issues"
+		"url": "https://github.com/the-social-proof-foundation/myso-ts-sdks/issues"
 	},
-	"homepage": "https://github.com/MystenLabs/ts-sdks/tree/main/packages/mysocial-auth#readme",
+	"homepage": "https://github.com/the-social-proof-foundation/myso-ts-sdks/tree/main/packages/mysocial-auth#readme",
 	"devDependencies": {
 		"@types/node": "^25.0.8",
 		"happy-dom": "^20.1.0",

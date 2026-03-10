@@ -10,7 +10,7 @@ import type {
 } from './types.js';
 import { createStorage, redirectStorage, SESSION_KEY, REDIRECT_STATE_PREFIX } from './storage.js';
 import { openAuthPopup } from './popup.js';
-import { exchangeCode, refreshTokens, logout, fetchRequestId } from './exchange.js';
+import { refreshTokens, logout, fetchRequestId } from './exchange.js';
 import { generateState, generateNonce } from './pkce.js';
 
 type AuthEvents = { change: Session | null };
@@ -123,7 +123,7 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 				nonce,
 				return_origin: returnOrigin,
 				mode: 'redirect',
-				provider: provider ?? '',
+				provider: provider ?? 'none',
 				code_challenge_method: 'S256',
 			});
 			if (requestId) params.set('request_id', requestId);
@@ -167,6 +167,11 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			const state = parsed.searchParams.get('state');
 			const nonce = parsed.searchParams.get('nonce');
 			const requestId = parsed.searchParams.get('request_id') ?? undefined;
+			const salt = parsed.searchParams.get('salt') ?? undefined;
+			const accessToken = parsed.searchParams.get('access_token') ?? undefined;
+			const refreshToken = parsed.searchParams.get('refresh_token') ?? undefined;
+			const expiresAtParam = parsed.searchParams.get('expires_at');
+			const userParam = parsed.searchParams.get('user');
 
 			if (!code || !state || !nonce) {
 				throw new Error('Missing code, state, or nonce in callback URL');
@@ -195,13 +200,22 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 
 			redirectStorage.remove(key);
 
-			const session = await exchangeCode(config.apiBaseUrl, {
-				code,
-				redirect_uri: config.redirectUri,
-				state,
-				nonce,
-				request_id: requestId ?? redirectState.requestId,
-			});
+			let user: Session['user'] = {};
+			if (userParam) {
+				try {
+					user = JSON.parse(decodeURIComponent(userParam)) as Session['user'];
+				} catch {
+					// Ignore invalid user param
+				}
+			}
+
+			const session: Session = {
+				access_token: accessToken ?? code,
+				refresh_token: refreshToken,
+				user,
+				expires_at: expiresAtParam ? Number(expiresAtParam) : Date.now() + 3600_000,
+				...(salt && { salt }),
+			};
 
 			await saveSession(session);
 			emitter.emit('change', session);
