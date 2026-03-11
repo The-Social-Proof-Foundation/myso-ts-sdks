@@ -212,6 +212,13 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 					// Ignore invalid user param
 				}
 			}
+			// Fallback: auth callback sets sub/address as individual params in redirect mode
+			if (Object.keys(user).length === 0) {
+				const subParam = parsed.searchParams.get('sub');
+				const addressParam = parsed.searchParams.get('address');
+				if (subParam) user.sub = subParam;
+				if (addressParam) user.address = addressParam;
+			}
 
 			const session: Session = {
 				access_token: accessToken ?? code,

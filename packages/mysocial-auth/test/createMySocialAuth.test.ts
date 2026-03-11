@@ -130,4 +130,24 @@ describe('createMySocialAuth', () => {
 
 		expect(session.sub).toBe('u3');
 	});
+
+	it('handleRedirectCallback reads sub and address from query params when user param is missing (redirect mode)', async () => {
+		const state = 'state-redirect';
+		const nonce = 'nonce-redirect';
+		redirectStorage.set(`${REDIRECT_STATE_PREFIX}${state}`, JSON.stringify({ state, nonce }));
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+		});
+
+		const url = `https://app.test/cb?code=token-xyz&state=${state}&nonce=${nonce}&sub=111631294628286022835&address=0x123abc`;
+		const session = await auth.handleRedirectCallback(url);
+
+		expect(session.sub).toBe('111631294628286022835');
+		expect(session.user.sub).toBe('111631294628286022835');
+		expect(session.user.address).toBe('0x123abc');
+	});
 });

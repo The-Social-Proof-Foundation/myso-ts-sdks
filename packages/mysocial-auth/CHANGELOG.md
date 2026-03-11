@@ -1,5 +1,11 @@
 # @socialproof/mysocial-auth
 
+## 0.7.0
+
+### Minor Changes
+
+- Updated handleRedirectCallback
+
 ## 0.6.0
 
 ### Minor Changes
