@@ -70,6 +70,7 @@ export async function refreshTokens(apiBaseUrl: string, refreshToken: string): P
 	return {
 		access_token: data.access_token,
 		refresh_token: data.refresh_token ?? refreshToken,
+		...(data.id_token != null && { id_token: data.id_token }),
 		expires_at,
 		sub: user?.sub ?? user?.id ?? '',
 		user,

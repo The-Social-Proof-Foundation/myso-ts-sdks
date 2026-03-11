@@ -33,6 +33,23 @@ function getReturnOrigin(redirectUri: string): string {
 	}
 }
 
+/** Extract sub claim from JWT payload. No signature verification (auth server already validated). */
+function extractSubFromJwt(jwt: string): string | undefined {
+	try {
+		const parts = jwt.split('.');
+		if (parts.length !== 3) return undefined;
+		const payload = parts[1];
+		if (!payload) return undefined;
+		const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+		const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+		const decoded = atob(padded);
+		const parsed = JSON.parse(decoded) as { sub?: string };
+		return parsed.sub;
+	} catch {
+		return undefined;
+	}
+}
+
 export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 	const storage = createStorage(config.storage);
 	const emitter: Emitter<AuthEvents> = mitt<AuthEvents>();
@@ -48,14 +65,23 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			if (session.sub === undefined) {
 				session.sub = session.user?.sub ?? session.user?.id ?? '';
 			}
+			if (!session.sub && session.id_token) {
+				const subFromJwt = extractSubFromJwt(session.id_token);
+				if (subFromJwt) {
+					session.sub = subFromJwt;
+					if (session.user) session.user.sub = subFromJwt;
+					await saveSession(session);
+				}
+			}
 			if (session.expires_at && session.expires_at > Date.now()) {
 				return session;
 			}
 			if (session.refresh_token) {
 				const refreshed = await refreshTokens(config.apiBaseUrl, session.refresh_token);
-				await saveSession(refreshed);
-				emitter.emit('change', refreshed);
-				return refreshed;
+				const merged = mergeRefreshedSession(refreshed, session);
+				await saveSession(merged);
+				emitter.emit('change', merged);
+				return merged;
 			}
 			storage.remove(SESSION_KEY);
 			cachedSession = null;
@@ -66,6 +92,15 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			cachedSession = null;
 			return null;
 		}
+	}
+
+	/** Preserve id_token and salt from existing session when refresh response omits them. */
+	function mergeRefreshedSession(refreshed: Session, existing: Session): Session {
+		return {
+			...refreshed,
+			id_token: refreshed.id_token ?? existing.id_token,
+			salt: refreshed.salt ?? existing.salt,
+		};
 	}
 
 	async function saveSession(session: Session): Promise<void> {
@@ -159,9 +194,10 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			const session = await loadSession();
 			if (!session?.refresh_token) return null;
 			const refreshed = await refreshTokens(config.apiBaseUrl, session.refresh_token);
-			await saveSession(refreshed);
-			emitter.emit('change', refreshed);
-			return refreshed;
+			const merged = mergeRefreshedSession(refreshed, session);
+			await saveSession(merged);
+			emitter.emit('change', merged);
+			return merged;
 		},
 
 		async handleRedirectCallback(url?: string) {
@@ -172,10 +208,15 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			const nonce = parsed.searchParams.get('nonce');
 			const requestId = parsed.searchParams.get('request_id') ?? undefined;
 			const salt = parsed.searchParams.get('salt') ?? undefined;
-			const accessToken = parsed.searchParams.get('access_token') ?? undefined;
-			const refreshToken = parsed.searchParams.get('refresh_token') ?? undefined;
-			const expiresAtParam = parsed.searchParams.get('expires_at');
 			const userParam = parsed.searchParams.get('user');
+
+			// Tokens are in hash fragment (#access_token=...&id_token=...), not query params
+			const hashParams = new URLSearchParams(parsed.hash?.slice(1) || '');
+			const accessToken = hashParams.get('access_token') ?? parsed.searchParams.get('access_token');
+			const idToken = hashParams.get('id_token') ?? parsed.searchParams.get('id_token');
+			const refreshToken =
+				hashParams.get('refresh_token') ?? parsed.searchParams.get('refresh_token');
+			const expiresAtParam = hashParams.get('expires_at') ?? parsed.searchParams.get('expires_at');
 
 			if (!code || !state || !nonce) {
 				throw new Error('Missing code, state, or nonce in callback URL');
@@ -212,18 +253,30 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 					// Ignore invalid user param
 				}
 			}
-			// Fallback: auth callback sets sub/address as individual params in redirect mode
-			if (Object.keys(user).length === 0) {
-				const subParam = parsed.searchParams.get('sub');
-				const addressParam = parsed.searchParams.get('address');
+			// Fallback: auth callback sets sub/address as individual params (query or hash)
+			if (!user.sub && !user.id) {
+				const subParam = parsed.searchParams.get('sub') ?? hashParams.get('sub');
 				if (subParam) user.sub = subParam;
+			}
+			if (!user.address) {
+				const addressParam = parsed.searchParams.get('address') ?? hashParams.get('address');
 				if (addressParam) user.address = addressParam;
+			}
+
+			let sub = user?.sub ?? user?.id ?? '';
+			if (!sub && idToken) {
+				const subFromJwt = extractSubFromJwt(idToken);
+				if (subFromJwt) {
+					sub = subFromJwt;
+					user.sub = subFromJwt;
+				}
 			}
 
 			const session: Session = {
 				access_token: accessToken ?? code,
-				refresh_token: refreshToken,
-				sub: user?.sub ?? user?.id ?? '',
+				refresh_token: refreshToken ?? undefined,
+				...(idToken && { id_token: idToken }),
+				sub,
 				user,
 				expires_at: expiresAtParam ? Number(expiresAtParam) : Date.now() + 3600_000,
 				...(salt && { salt }),

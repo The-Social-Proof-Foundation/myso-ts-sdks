@@ -22,6 +22,8 @@ export interface AuthUser {
 export interface Session {
 	access_token: string;
 	refresh_token?: string;
+	/** OAuth id_token (JWT) - required for salt fetch via POST /salt. Use with { jwt: session.id_token }. */
+	id_token?: string;
 	expires_at: number;
 	/** Stable user ID for keypair derivation (user.sub ?? user.id). Use for salt + sub derivation. */
 	sub: string;
@@ -73,6 +75,7 @@ export interface AuthResultMessage {
 	salt?: string;
 	user?: AuthUser;
 	access_token?: string;
+	id_token?: string;
 	refresh_token?: string;
 	expires_at?: number;
 }
@@ -100,6 +103,7 @@ export interface ExchangeRequest {
 export interface ExchangeResponse {
 	access_token: string;
 	refresh_token?: string;
+	id_token?: string;
 	expires_in: number;
 	user: AuthUser;
 }

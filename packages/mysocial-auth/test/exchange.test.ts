@@ -79,6 +79,24 @@ describe('exchange', () => {
 		expect(session.sub).toBe('u1');
 	});
 
+	it('refreshTokens returns id_token when backend includes it', async () => {
+		const mockSession = {
+			access_token: 'at2',
+			refresh_token: 'rt2',
+			id_token: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1MSJ9.sig',
+			expires_in: 3600,
+			user: { id: 'u1' },
+		};
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: true,
+			json: async () => mockSession,
+		} as Response);
+
+		const session = await refreshTokens('https://api.test', 'rt1');
+
+		expect(session.id_token).toBe(mockSession.id_token);
+	});
+
 	it('exchangeCode sets sub from user.sub when present', async () => {
 		const mockSession = {
 			access_token: 'at',
