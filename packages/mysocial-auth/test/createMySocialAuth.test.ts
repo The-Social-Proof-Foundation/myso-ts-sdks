@@ -3,7 +3,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createMySocialAuth } from '../src/createMySocialAuth.js';
-import { REDIRECT_STATE_PREFIX } from '../src/storage.js';
+import { redirectStorage, REDIRECT_STATE_PREFIX } from '../src/storage.js';
 
 describe('createMySocialAuth', () => {
 	beforeEach(() => {
@@ -69,10 +69,7 @@ describe('createMySocialAuth', () => {
 	it('handleRedirectCallback builds session from URL params without calling exchange', async () => {
 		const state = 'state-123';
 		const nonce = 'nonce-456';
-		sessionStorage.setItem(
-			`${REDIRECT_STATE_PREFIX}${state}`,
-			JSON.stringify({ state, nonce }),
-		);
+		redirectStorage.set(`${REDIRECT_STATE_PREFIX}${state}`, JSON.stringify({ state, nonce }));
 
 		const auth = createMySocialAuth({
 			apiBaseUrl: 'https://api.test',
@@ -86,7 +83,51 @@ describe('createMySocialAuth', () => {
 
 		expect(session.access_token).toBe('token-abc');
 		expect(session.user).toEqual({});
+		expect(session.sub).toBe('');
 		expect(session.expires_at).toBeGreaterThan(Date.now());
 		expect(fetch).not.toHaveBeenCalled();
+	});
+
+	it('handleRedirectCallback sets sub from user param', async () => {
+		const state = 'state-789';
+		const nonce = 'nonce-012';
+		redirectStorage.set(`${REDIRECT_STATE_PREFIX}${state}`, JSON.stringify({ state, nonce }));
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+		});
+
+		const userParam = encodeURIComponent(
+			JSON.stringify({ id: 'u2', sub: 'sub-456', address: '0xabc' }),
+		);
+		const url = `https://app.test/cb?code=token-xyz&state=${state}&nonce=${nonce}&user=${userParam}`;
+		const session = await auth.handleRedirectCallback(url);
+
+		expect(session.access_token).toBe('token-xyz');
+		expect(session.sub).toBe('sub-456');
+		expect(session.user.id).toBe('u2');
+		expect(session.user.address).toBe('0xabc');
+	});
+
+	it('handleRedirectCallback sets sub from user.id when sub is absent', async () => {
+		const state = 'state-111';
+		const nonce = 'nonce-222';
+		redirectStorage.set(`${REDIRECT_STATE_PREFIX}${state}`, JSON.stringify({ state, nonce }));
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+		});
+
+		const userParam = encodeURIComponent(JSON.stringify({ id: 'u3' }));
+		const url = `https://app.test/cb?code=token-def&state=${state}&nonce=${nonce}&user=${userParam}`;
+		const session = await auth.handleRedirectCallback(url);
+
+		expect(session.sub).toBe('u3');
 	});
 });

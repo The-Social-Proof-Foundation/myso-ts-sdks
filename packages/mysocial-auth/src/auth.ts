@@ -44,6 +44,10 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 		if (!raw) return null;
 		try {
 			const session = JSON.parse(raw) as Session;
+			// Ensure sub is present (handles legacy sessions saved before sub was added)
+			if (session.sub === undefined) {
+				session.sub = session.user?.sub ?? session.user?.id ?? '';
+			}
 			if (session.expires_at && session.expires_at > Date.now()) {
 				return session;
 			}
@@ -212,6 +216,7 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			const session: Session = {
 				access_token: accessToken ?? code,
 				refresh_token: refreshToken,
+				sub: user?.sub ?? user?.id ?? '',
 				user,
 				expires_at: expiresAtParam ? Number(expiresAtParam) : Date.now() + 3600_000,
 				...(salt && { salt }),

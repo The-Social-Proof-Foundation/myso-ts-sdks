@@ -1,5 +1,17 @@
 # @socialproof/mysocial-auth
 
+## 0.6.0
+
+### Minor Changes
+
+- Added support for for salt + sub derivation.
+
+## 0.5.0
+
+### Minor Changes
+
+- added wallet address
+
 ## 0.4.0
 
 ### Minor Changes

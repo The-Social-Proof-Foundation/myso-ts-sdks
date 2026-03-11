@@ -51,6 +51,7 @@ describe('exchange', () => {
 		expect(session.refresh_token).toBe('rt');
 		expect(session.expires_at).toBeGreaterThan(Date.now());
 		expect(session.user.id).toBe('u1');
+		expect(session.sub).toBe('u1');
 	});
 
 	it('refreshTokens sends refresh_token and returns session', async () => {
@@ -75,6 +76,46 @@ describe('exchange', () => {
 			}),
 		);
 		expect(session.access_token).toBe('at2');
+		expect(session.sub).toBe('u1');
+	});
+
+	it('exchangeCode sets sub from user.sub when present', async () => {
+		const mockSession = {
+			access_token: 'at',
+			refresh_token: 'rt',
+			expires_in: 3600,
+			user: { id: 'u1', sub: 'sub-oauth-123' },
+		};
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: true,
+			json: async () => mockSession,
+		} as Response);
+
+		const session = await exchangeCode('https://api.test', {
+			code: 'c1',
+			redirect_uri: 'https://app.test/cb',
+		});
+
+		expect(session.sub).toBe('sub-oauth-123');
+	});
+
+	it('exchangeCode falls back to user.id when user.sub is absent', async () => {
+		const mockSession = {
+			access_token: 'at',
+			expires_in: 3600,
+			user: { id: 'u1' },
+		};
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: true,
+			json: async () => mockSession,
+		} as Response);
+
+		const session = await exchangeCode('https://api.test', {
+			code: 'c1',
+			redirect_uri: 'https://app.test/cb',
+		});
+
+		expect(session.sub).toBe('u1');
 	});
 
 	it('logout calls backend', async () => {
@@ -148,6 +189,7 @@ describe('exchange', () => {
 		);
 		expect(session.access_token).toBe('at');
 		expect(session.user.id).toBe('u1');
+		expect(session.sub).toBe('u1');
 	});
 
 	it('exchangeCode throws on non-ok response', async () => {

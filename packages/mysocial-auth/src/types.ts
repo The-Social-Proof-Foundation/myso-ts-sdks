@@ -10,6 +10,8 @@ export type AuthMode = 'popup' | 'redirect';
 /** User object returned from auth. Use user.address for the wallet address (0x...). */
 export interface AuthUser {
 	id?: string;
+	/** Stable OAuth/OIDC subject identifier for keypair derivation. Falls back to id when absent. */
+	sub?: string;
 	email?: string;
 	name?: string;
 	address?: string;
@@ -21,6 +23,8 @@ export interface Session {
 	access_token: string;
 	refresh_token?: string;
 	expires_at: number;
+	/** Stable user ID for keypair derivation (user.sub ?? user.id). Use for salt + sub derivation. */
+	sub: string;
 	user: AuthUser;
 	salt?: string;
 }

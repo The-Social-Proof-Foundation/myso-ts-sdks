@@ -42,11 +42,13 @@ export async function exchangeCode(apiBaseUrl: string, body: ExchangeRequest): P
 	}
 	const data = (await res.json()) as ExchangeResponse;
 	const expires_at = Date.now() + data.expires_in * 1000;
+	const user = data.user;
 	return {
 		access_token: data.access_token,
 		refresh_token: data.refresh_token,
 		expires_at,
-		user: data.user,
+		sub: user?.sub ?? user?.id ?? '',
+		user,
 	};
 }
 
@@ -64,11 +66,13 @@ export async function refreshTokens(apiBaseUrl: string, refreshToken: string): P
 	}
 	const data = (await res.json()) as ExchangeResponse;
 	const expires_at = Date.now() + data.expires_in * 1000;
+	const user = data.user;
 	return {
 		access_token: data.access_token,
 		refresh_token: data.refresh_token ?? refreshToken,
 		expires_at,
-		user: data.user,
+		sub: user?.sub ?? user?.id ?? '',
+		user,
 	};
 }
 

@@ -104,14 +104,54 @@ const session = await auth.getSession();
 const address = session?.user?.address; // Wallet address
 ```
 
+### Keypair derivation and salt service
+
+Apps that need to derive an Ed25519 keypair client-side for signing blockchain transactions (e.g.
+profile creation) can use the session's token and stable `sub` with the salt service.
+
+**Session shape for keypair derivation:**
+
+| Field                  | Description                                                   |
+| ---------------------- | ------------------------------------------------------------- |
+| `session.access_token` | Token to pass to the salt service (JWT or opaque token)       |
+| `session.sub`          | Stable user ID for keypair derivation (`user.sub ?? user.id`) |
+| `session.user.address` | MySocial address (0x...); verify derived keypair matches      |
+
+**Flow:**
+
+1. After sign-in: `const session = await auth.getSession()`
+2. Fetch salt: `POST https://salt.testnet.mysocial.network/salt` (or equivalent) with body:
+   - `{ jwt: session.access_token }` if the access token is a JWT, or
+   - `{ provider: 'mysocial', token: session.access_token }`
+3. Derive seed: `SHA256(sub + "_" + salt)[0:32]` (first 32 bytes of the hash)
+4. Derive Ed25519 keypair from the seed and verify `derivedAddress === session.user.address`
+
+**Example:**
+
+```typescript
+const session = await auth.getSession();
+if (!session) return;
+
+// Fetch salt from salt service
+const saltRes = await fetch('https://salt.testnet.mysocial.network/salt', {
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({ jwt: session.access_token }),
+});
+const { salt } = await saltRes.json();
+
+// Derive keypair (sub + salt) and verify address matches session.user.address
+// Use your existing generateKeypairFromSalt(session.sub, salt) or equivalent
+```
+
 ## Hosted UI Contract (auth.mysocial.network)
 
 The SDK passes `return_origin`, `code_challenge_method: S256`, and `provider` in the login URL
 params. `provider` is never empty: `'google'`, `'apple'`, `'facebook'`, `'twitch'`, or `'none'`
 (home screen). The auth frontend generates PKCE server-side; the package does not send
-code_challenge. `return_origin` must match the dApp's origin
-(`window.location.origin`) so the auth server can post the auth result to the correct target.
-The auth server uses `return_origin` as the `postMessage` targetOrigin when sending the result.
+code_challenge. `return_origin` must match the dApp's origin (`window.location.origin`) so the auth
+server can post the auth result to the correct target. The auth server uses `return_origin` as the
+`postMessage` targetOrigin when sending the result.
 
 The popup page must call:
 
@@ -130,7 +170,7 @@ window.opener.postMessage(payload, validatedTargetOrigin); // targetOrigin, NOT 
 	"clientId": "...",
 	"requestId": "...",
 	"salt": "...",
-	"user": { "address": "0x...", "id": "...", "email": "...", "name": "..." },
+	"user": { "address": "0x...", "id": "...", "sub": "...", "email": "...", "name": "..." },
 	"access_token": "...",
 	"refresh_token": "...",
 	"expires_at": 0
@@ -139,7 +179,12 @@ window.opener.postMessage(payload, validatedTargetOrigin); // targetOrigin, NOT 
 
 Use `user.address` for the wallet. Do not use `code` or `salt` as the address.
 
-`code` is the token. **Use `user.address` (0x...) for the wallet address**—do not use `code` or `salt` for that. Optional: `salt`, `user`, `access_token`, `refresh_token`, `expires_at`.
+`code` is the token. **Use `user.address` (0x...) for the wallet address**—do not use `code` or
+`salt` for that. Optional: `salt`, `user`, `access_token`, `refresh_token`, `expires_at`.
+
+The `user` object should include `sub` (stable OAuth/OIDC subject) when available for keypair
+derivation. If only `id` is returned, the SDK uses `id` as the derivation identifier
+(`session.sub = user.sub ?? user.id`).
 
 **Error payload:**
 
@@ -173,9 +218,10 @@ does not call `/auth/exchange`. `MYSOCIAL_AUTH_RESULT` is the final result: `cod
 
 If the popup does not close after successful authentication:
 
-1. **`return_origin` mismatch** – The SDK sends `return_origin` (derived from `window.location.origin`)
-   in the login URL. The auth server posts with this as the `postMessage` target. Ensure your dApp
-   runs on the same origin you expect (e.g. `https://dripdrop.social` vs `https://www.dripdrop.social`).
+1. **`return_origin` mismatch** – The SDK sends `return_origin` (derived from
+   `window.location.origin`) in the login URL. The auth server posts with this as the `postMessage`
+   target. Ensure your dApp runs on the same origin you expect (e.g. `https://dripdrop.social` vs
+   `https://www.dripdrop.social`).
 
 2. **`authOrigin` mismatch** – The SDK's `authOrigin` must match the auth server's origin exactly
    (e.g. `https://auth.mysocial.network`, or `http://localhost:3000` for local development).

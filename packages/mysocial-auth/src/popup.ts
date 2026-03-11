@@ -135,10 +135,12 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 					// Popup may already be closed by auth server
 				}
 
+				const user = msg.user ?? {};
 				const session: Session = {
 					access_token: msg.access_token ?? msg.code,
 					refresh_token: msg.refresh_token,
-					user: msg.user ?? {},
+					sub: user.sub ?? user.id ?? '',
+					user,
 					expires_at: msg.expires_at ?? Date.now() + 3600_000,
 					...(msg.salt && { salt: msg.salt }),
 				};
