@@ -100,6 +100,10 @@ export interface AuthResultMessage {
 	expires_at?: number;
 	/** Token expiry in seconds (e.g. 1800). Used when session_access_token is present. */
 	expires_in?: number;
+	/** Ephemeral; never persisted. Use onWalletCredentials callback if needed. Sent when backend succeeds after Create/Import. */
+	mnemonic?: string;
+	/** Ephemeral; never persisted. Use onWalletCredentials callback if needed. Sent when backend succeeds after Create/Import. */
+	privateKey?: string;
 }
 
 /** PostMessage error payload from auth.mysocial.network popup */

@@ -166,6 +166,18 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 					expires_at: expiresAt,
 					...(msg.salt && { salt: msg.salt }),
 				};
+				// Backend success after Create/Import also sends mnemonic/privateKey; invoke callback if provided
+				if (onWalletCredentials && (msg.mnemonic ?? msg.privateKey) && user.address) {
+					try {
+						onWalletCredentials({
+							address: user.address,
+							...(msg.mnemonic && { mnemonic: msg.mnemonic }),
+							...(msg.privateKey && { privateKey: msg.privateKey }),
+						});
+					} catch {
+						// Callback errors must not break the flow
+					}
+				}
 				resolve(session);
 			} else if (data.type === 'MYSOCIAL_WALLET_RESULT') {
 				const msg = data as WalletResultMessage;

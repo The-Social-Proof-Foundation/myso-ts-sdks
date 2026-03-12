@@ -1,5 +1,17 @@
 # @socialproof/mysocial-auth
 
+## 0.12.0
+
+### Minor Changes
+
+- Added keyring passback to the frontend for signing.
+
+## 0.11.0
+
+### Minor Changes
+
+- Passed down keypair to the dapp for local wallets.
+
 ## 0.10.0
 
 ### Minor Changes
