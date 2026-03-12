@@ -38,6 +38,7 @@ describe('createMySocialAuth', () => {
 		expect(auth.refresh).toBeDefined();
 		expect(auth.handleRedirectCallback).toBeDefined();
 		expect(auth.onAuthStateChange).toBeDefined();
+		expect(auth.getAccessTokenForApi).toBeDefined();
 	});
 
 	it('getSession returns null when no session', async () => {
@@ -228,6 +229,183 @@ describe('createMySocialAuth', () => {
 		const session = await auth.getSession();
 		expect(session).not.toBeNull();
 		expect(session!.sub).toBe('legacy-sub-from-jwt');
+	});
+
+	it('handleRedirectCallback stores session_access_token, refresh_token, expires_in from URL', async () => {
+		const state = 'state-session';
+		const nonce = 'nonce-session';
+		redirectStorage.set(`${REDIRECT_STATE_PREFIX}${state}`, JSON.stringify({ state, nonce }));
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+		});
+
+		const url = `https://app.test/cb?code=code&state=${state}&nonce=${nonce}&session_access_token=jwt-session&refresh_token=rt-long&expires_in=1800`;
+		const session = await auth.handleRedirectCallback(url);
+
+		expect(session.session_access_token).toBe('jwt-session');
+		expect(session.refresh_token).toBe('rt-long');
+		expect(session.access_token).toBe('jwt-session');
+		expect(session.expires_at).toBeGreaterThan(Date.now());
+		expect(session.expires_at).toBeLessThanOrEqual(Date.now() + 1801_000);
+	});
+
+	it('signOut passes refresh_token to logout when session has it', async () => {
+		const state = 'state-logout';
+		const nonce = 'nonce-logout';
+		redirectStorage.set(`${REDIRECT_STATE_PREFIX}${state}`, JSON.stringify({ state, nonce }));
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+		});
+
+		const url = `https://app.test/cb?code=c&state=${state}&nonce=${nonce}&refresh_token=rt-to-revoke`;
+		await auth.handleRedirectCallback(url);
+
+		vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
+
+		await auth.signOut();
+
+		expect(fetch).toHaveBeenCalledWith(
+			'https://api.test/auth/logout',
+			expect.objectContaining({
+				body: JSON.stringify({ refresh_token: 'rt-to-revoke' }),
+			}),
+		);
+	});
+
+	it('getAccessTokenForApi returns session_access_token when present', async () => {
+		const state = 'state-token';
+		const nonce = 'nonce-token';
+		redirectStorage.set(`${REDIRECT_STATE_PREFIX}${state}`, JSON.stringify({ state, nonce }));
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+		});
+
+		const url = `https://app.test/cb?code=c&state=${state}&nonce=${nonce}&session_access_token=jwt-for-api&expires_in=1800`;
+		await auth.handleRedirectCallback(url);
+
+		const token = await auth.getAccessTokenForApi();
+		expect(token).toBe('jwt-for-api');
+	});
+
+	it('getAccessTokenForApi returns undefined when no session', async () => {
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+		});
+
+		const token = await auth.getAccessTokenForApi();
+		expect(token).toBeUndefined();
+	});
+
+	it('getAccessTokenForApi returns undefined for wallet-only session', async () => {
+		const walletOnlySession = {
+			access_token: 'wallet-only',
+			sub: '0x123',
+			user: { address: '0x123' },
+			expires_at: Date.now() + 3600_000,
+		};
+		const customStorage = {
+			get: (k: string) =>
+				k === 'mysocial_auth_session' ? JSON.stringify(walletOnlySession) : null,
+			set: vi.fn(),
+			remove: vi.fn(),
+		};
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+			storage: customStorage,
+		});
+
+		const token = await auth.getAccessTokenForApi();
+		expect(token).toBeUndefined();
+	});
+
+	it('getSession clears session when refresh returns 401', async () => {
+		const storedSession = {
+			access_token: 'at-old',
+			refresh_token: 'rt1',
+			expires_at: Date.now() - 1000,
+			sub: 'u1',
+			user: { id: 'u1' },
+		};
+		const customStorage = {
+			get: (k: string) => (k === 'mysocial_auth_session' ? JSON.stringify(storedSession) : null),
+			set: vi.fn(),
+			remove: vi.fn(),
+		};
+
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: false,
+			status: 401,
+			text: async () => 'Unauthorized',
+		} as Response);
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+			storage: customStorage,
+		});
+
+		const session = await auth.getSession();
+		expect(session).toBeNull();
+		expect(customStorage.remove).toHaveBeenCalled();
+	});
+
+	it('refresh preserves user when backend does not return it', async () => {
+		const storedSession = {
+			access_token: 'at-old',
+			refresh_token: 'rt1',
+			expires_at: Date.now() - 1000,
+			sub: 'u1',
+			user: { id: 'u1', address: '0xabc' },
+		};
+		const customStorage = {
+			get: (k: string) => (k === 'mysocial_auth_session' ? JSON.stringify(storedSession) : null),
+			set: vi.fn(),
+			remove: vi.fn(),
+		};
+
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				access_token: 'at-new',
+				refresh_token: 'rt2',
+				expires_in: 1800,
+			}),
+		} as Response);
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+			storage: customStorage,
+		});
+
+		const session = await auth.getSession();
+		expect(session).not.toBeNull();
+		expect(session!.user.id).toBe('u1');
+		expect(session!.user.address).toBe('0xabc');
+		expect(session!.sub).toBe('u1');
 	});
 
 	it('refresh preserves id_token when backend does not return it', async () => {

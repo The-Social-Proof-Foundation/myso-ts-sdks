@@ -12,8 +12,13 @@ import { createStorage, redirectStorage, SESSION_KEY, REDIRECT_STATE_PREFIX } fr
 import { openAuthPopup } from './popup.js';
 import { refreshTokens, logout, fetchRequestId } from './exchange.js';
 import { generateState, generateNonce } from './pkce.js';
+import { SessionRevokedError } from './errors.js';
+import { WALLET_ONLY_ACCESS_TOKEN } from './types.js';
 
 type AuthEvents = { change: Session | null };
+
+/** Refresh when token expires within this many ms (1-2 min buffer) */
+const REFRESH_BUFFER_MS = 120_000;
 
 export interface MySocialAuth {
 	signIn(options?: SignInOptions): Promise<Session>;
@@ -22,6 +27,8 @@ export interface MySocialAuth {
 	refresh(): Promise<Session | null>;
 	handleRedirectCallback(url?: string): Promise<Session>;
 	onAuthStateChange(callback: AuthStateChangeCallback): () => void;
+	/** Returns token for Authorization: Bearer. Refreshes if expired. Use for /salt and protected endpoints. */
+	getAccessTokenForApi(): Promise<string | undefined>;
 }
 
 function getReturnOrigin(redirectUri: string): string {
@@ -55,6 +62,27 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 	const emitter: Emitter<AuthEvents> = mitt<AuthEvents>();
 
 	let cachedSession: Session | null = null;
+	let refreshPromise: Promise<Session | null> | null = null;
+
+	async function doRefresh(session: Session): Promise<Session | null> {
+		try {
+			const refreshed = await refreshTokens(config.apiBaseUrl, session.refresh_token!);
+			const merged = mergeRefreshedSession(refreshed, session);
+			await saveSession(merged);
+			emitter.emit('change', merged);
+			return merged;
+		} catch (err) {
+			if (err instanceof SessionRevokedError) {
+				storage.remove(SESSION_KEY);
+				cachedSession = null;
+				emitter.emit('change', null);
+				return null;
+			}
+			throw err;
+		} finally {
+			refreshPromise = null;
+		}
+	}
 
 	async function loadSession(): Promise<Session | null> {
 		const raw = storage.get(SESSION_KEY);
@@ -73,15 +101,17 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 					await saveSession(session);
 				}
 			}
-			if (session.expires_at && session.expires_at > Date.now()) {
+			const now = Date.now();
+			const expiresWithinBuffer = session.expires_at - now < REFRESH_BUFFER_MS;
+			if (session.expires_at > now && !expiresWithinBuffer) {
 				return session;
 			}
 			if (session.refresh_token) {
-				const refreshed = await refreshTokens(config.apiBaseUrl, session.refresh_token);
-				const merged = mergeRefreshedSession(refreshed, session);
-				await saveSession(merged);
-				emitter.emit('change', merged);
-				return merged;
+				if (refreshPromise) {
+					return refreshPromise;
+				}
+				refreshPromise = doRefresh(session);
+				return refreshPromise;
 			}
 			storage.remove(SESSION_KEY);
 			cachedSession = null;
@@ -90,16 +120,20 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 		} catch {
 			storage.remove(SESSION_KEY);
 			cachedSession = null;
+			refreshPromise = null;
 			return null;
 		}
 	}
 
-	/** Preserve id_token and salt from existing session when refresh response omits them. */
+	/** Preserve id_token, salt, user, sub from existing session when refresh response omits them. */
 	function mergeRefreshedSession(refreshed: Session, existing: Session): Session {
 		return {
 			...refreshed,
 			id_token: refreshed.id_token ?? existing.id_token,
 			salt: refreshed.salt ?? existing.salt,
+			user:
+				refreshed.user && Object.keys(refreshed.user).length > 0 ? refreshed.user : existing.user,
+			sub: refreshed.sub || existing.sub,
 		};
 	}
 
@@ -127,6 +161,7 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 					provider,
 					timeout: config.popupTimeout ?? 120_000,
 					useRequestId: config.useRequestId ?? false,
+					onWalletCredentials: options.onWalletCredentials,
 				});
 				await saveSession(session);
 				emitter.emit('change', session);
@@ -174,17 +209,33 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 		},
 
 		async signOut() {
+			let refreshToken: string | undefined;
 			try {
-				await logout(config.apiBaseUrl);
+				const raw = storage.get(SESSION_KEY);
+				if (raw) {
+					const session = JSON.parse(raw) as Session;
+					refreshToken = session.refresh_token;
+				}
+			} catch {
+				// Ignore parse errors
+			}
+			try {
+				await logout(config.apiBaseUrl, refreshToken);
 			} catch {
 				// Best-effort; clear local state regardless
 			}
 			await clearSession();
+			refreshPromise = null;
 			emitter.emit('change', null);
 		},
 
 		async getSession() {
-			if (cachedSession && cachedSession.expires_at > Date.now()) {
+			const now = Date.now();
+			if (
+				cachedSession &&
+				cachedSession.expires_at > now &&
+				cachedSession.expires_at - now >= REFRESH_BUFFER_MS
+			) {
 				return cachedSession;
 			}
 			return loadSession();
@@ -193,11 +244,17 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 		async refresh() {
 			const session = await loadSession();
 			if (!session?.refresh_token) return null;
-			const refreshed = await refreshTokens(config.apiBaseUrl, session.refresh_token);
-			const merged = mergeRefreshedSession(refreshed, session);
-			await saveSession(merged);
-			emitter.emit('change', merged);
-			return merged;
+			if (refreshPromise) return refreshPromise;
+			refreshPromise = doRefresh(session);
+			return refreshPromise;
+		},
+
+		async getAccessTokenForApi() {
+			const session = await this.getSession();
+			if (!session) return undefined;
+			// Never return wallet-only sentinel or address as Bearer token
+			if (session.access_token === WALLET_ONLY_ACCESS_TOKEN) return undefined;
+			return session.session_access_token ?? (session.refresh_token ? session.access_token : undefined);
 		},
 
 		async handleRedirectCallback(url?: string) {
@@ -213,10 +270,13 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			// Tokens are in hash fragment (#access_token=...&id_token=...), not query params
 			const hashParams = new URLSearchParams(parsed.hash?.slice(1) || '');
 			const accessToken = hashParams.get('access_token') ?? parsed.searchParams.get('access_token');
+			const sessionAccessToken =
+				hashParams.get('session_access_token') ?? parsed.searchParams.get('session_access_token');
 			const idToken = hashParams.get('id_token') ?? parsed.searchParams.get('id_token');
 			const refreshToken =
 				hashParams.get('refresh_token') ?? parsed.searchParams.get('refresh_token');
 			const expiresAtParam = hashParams.get('expires_at') ?? parsed.searchParams.get('expires_at');
+			const expiresInParam = hashParams.get('expires_in') ?? parsed.searchParams.get('expires_in');
 
 			if (!code || !state || !nonce) {
 				throw new Error('Missing code, state, or nonce in callback URL');
@@ -272,13 +332,21 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 				}
 			}
 
+			const effectiveToken = sessionAccessToken ?? accessToken ?? code;
+			const expiresAt = expiresAtParam
+				? Number(expiresAtParam)
+				: expiresInParam
+					? Date.now() + Number(expiresInParam) * 1000
+					: Date.now() + 3600_000;
+
 			const session: Session = {
-				access_token: accessToken ?? code,
+				access_token: effectiveToken,
+				...(sessionAccessToken && { session_access_token: sessionAccessToken }),
 				refresh_token: refreshToken ?? undefined,
 				...(idToken && { id_token: idToken }),
 				sub,
 				user,
-				expires_at: expiresAtParam ? Number(expiresAtParam) : Date.now() + 3600_000,
+				expires_at: expiresAt,
 				...(salt && { salt }),
 			};
 

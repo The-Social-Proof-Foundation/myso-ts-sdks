@@ -1,5 +1,17 @@
 # @socialproof/mysocial-auth
 
+## 0.10.0
+
+### Minor Changes
+
+- Added JWT session & local import and generate wallets.
+
+## 0.9.0
+
+### Minor Changes
+
+- Added id_token
+
 ## 0.8.0
 
 ### Minor Changes

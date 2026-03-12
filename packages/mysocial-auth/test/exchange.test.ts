@@ -3,6 +3,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { exchangeCode, refreshTokens, logout, fetchRequestId } from '../src/exchange.js';
+import { RateLimitError, SessionRevokedError } from '../src/errors.js';
 
 describe('exchange', () => {
 	beforeEach(() => {
@@ -145,6 +146,61 @@ describe('exchange', () => {
 			'https://api.test/auth/logout',
 			expect.objectContaining({ method: 'POST' }),
 		);
+	});
+
+	it('logout sends refresh_token in body when provided', async () => {
+		vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
+
+		await logout('https://api.test', 'rt-123');
+
+		expect(fetch).toHaveBeenCalledWith(
+			'https://api.test/auth/logout',
+			expect.objectContaining({
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ refresh_token: 'rt-123' }),
+			}),
+		);
+	});
+
+	it('refreshTokens throws SessionRevokedError on 401', async () => {
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: false,
+			status: 401,
+			text: async () => 'Unauthorized',
+		} as Response);
+
+		await expect(refreshTokens('https://api.test', 'rt1')).rejects.toThrow(SessionRevokedError);
+	});
+
+	it('refreshTokens throws RateLimitError on 429', async () => {
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: false,
+			status: 429,
+			text: async () => 'Too Many Requests',
+		} as Response);
+
+		await expect(refreshTokens('https://api.test', 'rt1')).rejects.toThrow(RateLimitError);
+	});
+
+	it('refreshTokens handles response without user', async () => {
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				access_token: 'at2',
+				refresh_token: 'rt2',
+				expires_in: 1800,
+			}),
+		} as Response);
+
+		const session = await refreshTokens('https://api.test', 'rt1');
+
+		expect(session.access_token).toBe('at2');
+		expect(session.session_access_token).toBe('at2');
+		expect(session.refresh_token).toBe('rt2');
+		expect(session.expires_at).toBeGreaterThan(Date.now());
+		expect(session.user).toEqual({});
+		expect(session.sub).toBe('');
 	});
 
 	it('fetchRequestId returns request_id', async () => {

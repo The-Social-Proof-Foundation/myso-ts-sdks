@@ -20,9 +20,15 @@ export interface AuthUser {
 
 /** Session object after successful auth */
 export interface Session {
+	/**
+	 * OAuth provider token or WALLET_ONLY_ACCESS_TOKEN for wallet-only sessions.
+	 * Never use directly for Authorization: Bearer. Use getAccessTokenForApi() or session_access_token.
+	 */
 	access_token: string;
+	/** Our JWT (30 min) for API calls. Use for Authorization: Bearer on /salt and protected endpoints. */
+	session_access_token?: string;
 	refresh_token?: string;
-	/** OAuth id_token (JWT) - required for salt fetch via POST /salt. Use with { jwt: session.id_token }. */
+	/** OAuth id_token (JWT). */
 	id_token?: string;
 	expires_at: number;
 	/** Stable user ID for keypair derivation (user.sub ?? user.id). Use for salt + sub derivation. */
@@ -54,11 +60,23 @@ export interface MySocialAuthConfig {
 	useRequestId?: boolean;
 }
 
+/** Ephemeral wallet credentials; never persisted. Handle immediately and do not store. */
+export interface WalletCredentials {
+	address: string;
+	mnemonic?: string;
+	privateKey?: string;
+}
+
 /** Sign-in options */
 export interface SignInOptions {
 	/** Provider to use. Default 'none' shows auth home screen. */
 	provider?: AuthProvider;
 	mode?: AuthMode;
+	/**
+	 * Opt-in callback for Create/Import Wallet flow. Receives mnemonic/privateKey ephemerally.
+	 * SECURITY: Never persist. Handle immediately (e.g. derive keypair, show backup UI) and discard.
+	 */
+	onWalletCredentials?: (credentials: WalletCredentials) => void;
 }
 
 /** Auth state change callback */
@@ -70,14 +88,18 @@ export interface AuthResultMessage {
 	code: string;
 	state: string;
 	nonce: string;
-	clientId: string;
+	clientId?: string;
 	requestId?: string;
 	salt?: string;
 	user?: AuthUser;
 	access_token?: string;
+	/** Our JWT (30 min) for API auth. Use for Authorization: Bearer. */
+	session_access_token?: string;
 	id_token?: string;
 	refresh_token?: string;
 	expires_at?: number;
+	/** Token expiry in seconds (e.g. 1800). Used when session_access_token is present. */
+	expires_in?: number;
 }
 
 /** PostMessage error payload from auth.mysocial.network popup */
@@ -87,6 +109,25 @@ export interface AuthErrorMessage {
 	state: string;
 	clientId?: string;
 	requestId?: string;
+}
+
+/** PostMessage payload from Create/Import Wallet flow (fallback when backend lacks wallet auth) */
+export interface WalletResultMessage {
+	type: 'MYSOCIAL_WALLET_RESULT';
+	address: string;
+	source: 'create' | 'import';
+	/** Ephemeral; never persisted. Use onWalletCredentials callback if needed. */
+	mnemonic?: string;
+	/** Ephemeral; never persisted. Use onWalletCredentials callback if needed. */
+	privateKey?: string;
+}
+
+/** Sentinel for wallet-only sessions. access_token is this value; never use as Bearer token. */
+export const WALLET_ONLY_ACCESS_TOKEN = 'wallet-only' as const;
+
+/** True when session has no API token (session_access_token or refresh_token). Do not call protected endpoints. */
+export function isWalletOnlySession(session: Session): boolean {
+	return !session.session_access_token && !session.refresh_token;
 }
 
 /** Exchange request body */
@@ -105,7 +146,16 @@ export interface ExchangeResponse {
 	refresh_token?: string;
 	id_token?: string;
 	expires_in: number;
-	user: AuthUser;
+	user?: AuthUser;
+}
+
+/** Refresh response - user optional; preserve from existing session when omitted */
+export interface RefreshResponse {
+	access_token: string;
+	refresh_token?: string;
+	id_token?: string;
+	expires_in: number;
+	user?: AuthUser;
 }
 
 /** Request request body (for request_id flow) */

@@ -1,7 +1,14 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AuthProvider, AuthResultMessage, AuthErrorMessage } from './types.js';
+import type {
+	AuthProvider,
+	AuthResultMessage,
+	AuthErrorMessage,
+	WalletResultMessage,
+	WalletCredentials,
+} from './types.js';
+import { WALLET_ONLY_ACCESS_TOKEN } from './types.js';
 import {
 	AuthTimeoutError,
 	InvalidStateError,
@@ -31,6 +38,11 @@ export interface OpenPopupOptions {
 	provider?: AuthProvider;
 	timeout?: number;
 	useRequestId?: boolean;
+	/**
+	 * Opt-in callback for Create/Import Wallet flow. Receives mnemonic/privateKey ephemerally.
+	 * SECURITY: Never persist. Handle immediately and discard.
+	 */
+	onWalletCredentials?: (credentials: WalletCredentials) => void;
 }
 
 /**
@@ -46,6 +58,7 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 		provider,
 		timeout = 120_000,
 		useRequestId = false,
+		onWalletCredentials,
 	} = options;
 
 	const state = generateState();
@@ -117,7 +130,7 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 					reject(new InvalidStateError());
 					return;
 				}
-				if (msg.clientId !== clientId) {
+				if (msg.clientId != null && msg.clientId !== clientId) {
 					cleanup();
 					reject(new InvalidStateError());
 					return;
@@ -136,14 +149,50 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 				}
 
 				const user = msg.user ?? {};
+				const effectiveToken = msg.session_access_token ?? msg.access_token ?? msg.code;
+				const expiresAt =
+					msg.expires_at != null
+						? msg.expires_at
+						: msg.expires_in != null
+							? Date.now() + msg.expires_in * 1000
+							: Date.now() + 3600_000;
 				const session: Session = {
-					access_token: msg.access_token ?? msg.code,
+					access_token: effectiveToken,
+					...(msg.session_access_token && { session_access_token: msg.session_access_token }),
 					refresh_token: msg.refresh_token,
 					...(msg.id_token && { id_token: msg.id_token }),
 					sub: user.sub ?? user.id ?? '',
 					user,
-					expires_at: msg.expires_at ?? Date.now() + 3600_000,
+					expires_at: expiresAt,
 					...(msg.salt && { salt: msg.salt }),
+				};
+				resolve(session);
+			} else if (data.type === 'MYSOCIAL_WALLET_RESULT') {
+				const msg = data as WalletResultMessage;
+				cleanup();
+				try {
+					popup.close();
+				} catch {
+					// Popup may already be closed by auth server
+				}
+				// Never persist mnemonic/privateKey. Opt-in callback receives them ephemerally.
+				if (onWalletCredentials && (msg.mnemonic ?? msg.privateKey)) {
+					try {
+						onWalletCredentials({
+							address: msg.address,
+							...(msg.mnemonic && { mnemonic: msg.mnemonic }),
+							...(msg.privateKey && { privateKey: msg.privateKey }),
+						});
+					} catch {
+						// Callback errors must not break the flow
+					}
+				}
+				// Use sentinel so access_token is never mistaken for a real Bearer token
+				const session: Session = {
+					access_token: WALLET_ONLY_ACCESS_TOKEN,
+					sub: msg.address,
+					user: { address: msg.address },
+					expires_at: Date.now() + 3600_000,
 				};
 				resolve(session);
 			} else if (data.type === 'MYSOCIAL_AUTH_ERROR') {

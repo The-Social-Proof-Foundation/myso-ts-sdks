@@ -12,7 +12,11 @@ export type {
 	AuthMode,
 	StorageAdapter,
 	StorageOption,
+	RefreshResponse,
+	WalletResultMessage,
+	WalletCredentials,
 } from './types.js';
+export { WALLET_ONLY_ACCESS_TOKEN, isWalletOnlySession } from './types.js';
 export {
 	MySocialAuthError,
 	PopupBlockedError,
@@ -21,5 +25,7 @@ export {
 	InvalidOriginError,
 	InvalidSourceError,
 	InvalidStateError,
+	SessionRevokedError,
+	RateLimitError,
 } from './errors.js';
 export { getPopupFeatures } from './popup-utils.js';

@@ -72,6 +72,7 @@ await auth.signOut();
 
 - `provider?`: 'google' | 'apple' | 'facebook' | 'twitch' | 'none' (default 'none' = home screen)
 - `mode?`: 'popup' | 'redirect' (default: 'popup')
+- `onWalletCredentials?`: Opt-in callback for Create/Import Wallet flow. Receives `{ address, mnemonic?, privateKey? }` ephemerally. **SECURITY: Never persist.** Handle immediately (e.g. derive keypair, show backup UI) and discard.
 - Returns: `Promise<Session>` (popup) or never (redirect; page navigates)
 
 ### auth.signOut()
@@ -86,6 +87,14 @@ await auth.signOut();
 
 - Refreshes access token. Returns new session or null.
 
+### auth.getAccessTokenForApi()
+
+- Returns the token for `Authorization: Bearer` on `/salt` and other protected endpoints. Refreshes
+  if expired. Use only Bearer auth; no body-based token auth.
+- Returns `undefined` for wallet-only sessions. **Never use `session.access_token` directly**—it may
+  be the sentinel `"wallet-only"` for wallet-only sessions. Always use `getAccessTokenForApi()` or
+  check `session.session_access_token` before calling protected endpoints.
+
 ### auth.handleRedirectCallback(url?)
 
 - For redirect mode. Parses URL for code/state/nonce, builds session from payload (no exchange).
@@ -94,6 +103,11 @@ await auth.signOut();
 ### auth.onAuthStateChange(callback)
 
 - Subscribe to session changes. Returns unsubscribe function.
+
+### isWalletOnlySession(session)
+
+- Returns `true` when the session has no API token (`session_access_token` or `refresh_token`).
+- Use before calling protected endpoints: `if (isWalletOnlySession(session)) { /* redirect to full auth */ }`
 
 ### Wallet address
 
@@ -111,38 +125,51 @@ profile creation) can use the session's token and stable `sub` with the salt ser
 
 **Session shape for keypair derivation:**
 
-| Field                  | Description                                                   |
-| ---------------------- | ------------------------------------------------------------- |
-| `session.access_token` | Token to pass to the salt service (JWT or opaque token)       |
-| `session.sub`          | Stable user ID for keypair derivation (`user.sub ?? user.id`) |
-| `session.user.address` | MySocial address (0x...); verify derived keypair matches      |
+| Field                          | Description                                                                 |
+| ------------------------------ | --------------------------------------------------------------------------- |
+| `session.session_access_token` | JWT (30 min) for Bearer auth. Use for `Authorization: Bearer`.              |
+| `session.access_token`        | OAuth token or `"wallet-only"` sentinel. **Never use directly for Bearer.** |
+| `session.sub`                 | Stable user ID for keypair derivation (`user.sub ?? user.id`)                |
+| `session.user.address`        | MySocial address (0x...); verify derived keypair matches                     |
+
+Use `isWalletOnlySession(session)` to check if the session has API access.
 
 **Flow:**
 
-1. After sign-in: `const session = await auth.getSession()`
-2. Fetch salt: `POST https://salt.testnet.mysocial.network/salt` (or equivalent) with body:
-   - `{ jwt: session.access_token }` if the access token is a JWT, or
-   - `{ provider: 'mysocial', token: session.access_token }`
+1. Get token: `const token = await auth.getAccessTokenForApi()` (refreshes if expired)
+2. Fetch salt: `POST https://salt.testnet.mysocial.network/salt` with
+   `Authorization: Bearer <token>`
 3. Derive seed: `SHA256(sub + "_" + salt)[0:32]` (first 32 bytes of the hash)
 4. Derive Ed25519 keypair from the seed and verify `derivedAddress === session.user.address`
 
-**Example:**
+**Example (Bearer auth only):**
 
 ```typescript
-const session = await auth.getSession();
-if (!session) return;
+const token = await auth.getAccessTokenForApi();
+if (!token) return;
 
-// Fetch salt from salt service
 const saltRes = await fetch('https://salt.testnet.mysocial.network/salt', {
 	method: 'POST',
-	headers: { 'Content-Type': 'application/json' },
-	body: JSON.stringify({ jwt: session.access_token }),
+	headers: {
+		'Content-Type': 'application/json',
+		Authorization: `Bearer ${token}`,
+	},
 });
 const { salt } = await saltRes.json();
 
-// Derive keypair (sub + salt) and verify address matches session.user.address
-// Use your existing generateKeypairFromSalt(session.sub, salt) or equivalent
+const session = await auth.getSession();
+if (!session) return;
+// Derive keypair (session.sub + salt) and verify address matches session.user.address
 ```
+
+**Wallet-only sessions:**
+
+When `session.session_access_token` is absent and there is no `refresh_token`, the session is
+wallet-only (e.g. from Create/Import Wallet flow when the backend does not support wallet auth).
+`getAccessTokenForApi()` returns `undefined` for wallet-only sessions. `session.access_token` is
+the sentinel `"wallet-only"`—never use it as a Bearer token. **Wallet-only sessions cannot be used
+for API calls like `/salt`.** Use `isWalletOnlySession(session)` or check `session.session_access_token`
+before calling protected endpoints; redirect to full auth or show appropriate UI if wallet-only.
 
 ## Hosted UI Contract (auth.mysocial.network)
 
@@ -172,19 +199,43 @@ window.opener.postMessage(payload, validatedTargetOrigin); // targetOrigin, NOT 
 	"salt": "...",
 	"user": { "address": "0x...", "id": "...", "sub": "...", "email": "...", "name": "..." },
 	"access_token": "...",
+	"session_access_token": "...",
 	"refresh_token": "...",
-	"expires_at": 0
+	"expires_at": 0,
+	"expires_in": 1800
 }
 ```
 
 Use `user.address` for the wallet. Do not use `code` or `salt` as the address.
 
-`code` is the token. **Use `user.address` (0x...) for the wallet address**—do not use `code` or
-`salt` for that. Optional: `salt`, `user`, `access_token`, `refresh_token`, `expires_at`.
+`session_access_token` (JWT, 30 min) and `refresh_token` (opaque, 30 days) are used for the
+session flow. Store them and use `Authorization: Bearer <session_access_token>` for API calls.
+Optional: `salt`, `user`, `access_token`, `session_access_token`, `refresh_token`, `expires_at`,
+`expires_in`.
 
 The `user` object should include `sub` (stable OAuth/OIDC subject) when available for keypair
 derivation. If only `id` is returned, the SDK uses `id` as the derivation identifier
 (`session.sub = user.sub ?? user.id`).
+
+**Wallet-only payload (MYSOCIAL_WALLET_RESULT - fallback when backend does not support wallet auth):**
+
+```json
+{
+	"type": "MYSOCIAL_WALLET_RESULT",
+	"address": "0x...",
+	"source": "create",
+	"mnemonic": "...",
+	"privateKey": "..."
+}
+```
+
+When `MYSOCIAL_WALLET_RESULT` is received, the SDK resolves with a wallet-only session:
+`user.address` and `access_token: "wallet-only"` (sentinel; never use as Bearer). No
+`session_access_token` or `refresh_token`. **Wallet-only sessions cannot be used for API calls like
+`/salt`.** Check `session.session_access_token` or `isWalletOnlySession(session)` before calling
+protected endpoints. `mnemonic` and `privateKey` are **never persisted** in the Session. Use the
+opt-in `onWalletCredentials` callback in `signIn({ onWalletCredentials })` if you need them
+ephemerally—handle immediately and never store.
 
 **Error payload:**
 
@@ -209,8 +260,11 @@ does not call `/auth/exchange`. `MYSOCIAL_AUTH_RESULT` is the final result: `cod
 - `POST ${apiBaseUrl}/auth/request` (optional): `{ client_id, redirect_uri, return_origin }` →
   `{ request_id }`
 - `POST ${apiBaseUrl}/auth/refresh`: `{ refresh_token }` →
-  `{ access_token, refresh_token?, expires_in, user }`
-- `POST ${apiBaseUrl}/auth/logout`
+  `{ access_token, refresh_token?, expires_in, user? }`. 401 = revoked; 429 = rate limited (~10/min).
+- `POST ${apiBaseUrl}/auth/logout`: `{ refresh_token }` (send when available to revoke server-side)
+
+**Error handling:** 401 on refresh → clear tokens, redirect to login (`SessionRevokedError`). 429 →
+retry with backoff (`RateLimitError`).
 
 ## Troubleshooting
 

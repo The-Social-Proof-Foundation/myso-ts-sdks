@@ -65,3 +65,21 @@ export class InvalidStateError extends MySocialAuthError {
 		Object.setPrototypeOf(this, InvalidStateError.prototype);
 	}
 }
+
+/** Session invalid or revoked (401 on /auth/refresh). Clear tokens and redirect to login. */
+export class SessionRevokedError extends MySocialAuthError {
+	constructor() {
+		super('Session invalid or revoked. Please sign in again.');
+		this.name = 'SessionRevokedError';
+		Object.setPrototypeOf(this, SessionRevokedError.prototype);
+	}
+}
+
+/** Rate limited on /auth/refresh (429). Retry with backoff. */
+export class RateLimitError extends MySocialAuthError {
+	constructor() {
+		super('Too many refresh requests. Please try again later.');
+		this.name = 'RateLimitError';
+		Object.setPrototypeOf(this, RateLimitError.prototype);
+	}
+}
