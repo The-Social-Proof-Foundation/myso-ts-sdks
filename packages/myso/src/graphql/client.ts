@@ -249,9 +249,4 @@ export class MySoGraphQLClient<Queries extends Record<string, GraphQLDocument> =
 		return this.core.verifyZkLoginSignature(input);
 	}
 
-	defaultNameServiceName(
-		input: MySoClientTypes.DefaultNameServiceNameOptions,
-	): Promise<MySoClientTypes.DefaultNameServiceNameResponse> {
-		return this.core.defaultNameServiceName(input);
-	}
 }

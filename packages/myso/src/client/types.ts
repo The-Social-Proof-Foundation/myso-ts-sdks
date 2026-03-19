@@ -486,23 +486,6 @@ export namespace MySoClientTypes {
 		) => Promise<ZkLoginVerifyResponse>;
 	}
 
-	/** Name service methods */
-	export interface DefaultNameServiceNameOptions extends CoreClientMethodOptions {
-		address: string;
-	}
-
-	export interface DefaultNameServiceNameResponse {
-		data: {
-			name: string | null;
-		};
-	}
-
-	export interface TransportMethods {
-		defaultNameServiceName: (
-			options: DefaultNameServiceNameOptions,
-		) => Promise<DefaultNameServiceNameResponse>;
-	}
-
 	/** MVR methods */
 
 	export interface TransportMethods {

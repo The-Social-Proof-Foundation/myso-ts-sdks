@@ -1,5 +1,14 @@
 # @socialproof/enoki
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @socialproof/myso@0.0.4
+  - @socialproof/signers@0.0.4
+  - @socialproof/wallet-standard@0.0.2
+
 ## 0.0.3
 
 ### Patch Changes

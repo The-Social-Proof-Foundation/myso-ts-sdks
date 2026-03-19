@@ -294,12 +294,6 @@ export class MockMySoClient extends CoreClient {
 		throw new Error('executeTransaction not implemented in MockMySoClient');
 	}
 
-	async defaultNameServiceName(
-		_options: MySoClientTypes.DefaultNameServiceNameOptions,
-	): Promise<MySoClientTypes.DefaultNameServiceNameResponse> {
-		throw new Error('defaultNameServiceName not implemented in MockMySoClient');
-	}
-
 	async simulateTransaction<Include extends MySoClientTypes.SimulateTransactionInclude = object>(
 		_options: MySoClientTypes.SimulateTransactionOptions<Include>,
 	): Promise<MySoClientTypes.SimulateTransactionResult<Include>> {

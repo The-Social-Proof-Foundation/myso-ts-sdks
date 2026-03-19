@@ -14,7 +14,6 @@ import { SubscriptionServiceClient } from './proto/myso/rpc/v2/subscription_serv
 import { GrpcCoreClient } from './core.js';
 import type { MySoClientTypes } from '../client/index.js';
 import { BaseClient } from '../client/index.js';
-import { NameServiceClient } from './proto/myso/rpc/v2/name_service.client.js';
 import type { TransactionPlugin } from '../transactions/index.js';
 
 interface MySoGrpcTransportOptions extends GrpcWebOptions {
@@ -50,7 +49,6 @@ export class MySoGrpcClient extends BaseClient implements MySoClientTypes.Transp
 	subscriptionService: SubscriptionServiceClient;
 	movePackageService: MovePackageServiceClient;
 	signatureVerificationService: SignatureVerificationServiceClient;
-	nameService: NameServiceClient;
 
 	get [MYSO_CLIENT_BRAND]() {
 		return true;
@@ -67,7 +65,6 @@ export class MySoGrpcClient extends BaseClient implements MySoClientTypes.Transp
 		this.subscriptionService = new SubscriptionServiceClient(transport);
 		this.movePackageService = new MovePackageServiceClient(transport);
 		this.signatureVerificationService = new SignatureVerificationServiceClient(transport);
-		this.nameService = new NameServiceClient(transport);
 
 		this.core = new GrpcCoreClient({
 			client: this,
@@ -177,9 +174,4 @@ export class MySoGrpcClient extends BaseClient implements MySoClientTypes.Transp
 		return this.core.verifyZkLoginSignature(input);
 	}
 
-	defaultNameServiceName(
-		input: MySoClientTypes.DefaultNameServiceNameOptions,
-	): Promise<MySoClientTypes.DefaultNameServiceNameResponse> {
-		return this.core.defaultNameServiceName(input);
-	}
 }

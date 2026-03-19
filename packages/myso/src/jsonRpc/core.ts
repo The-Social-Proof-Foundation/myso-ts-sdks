@@ -539,17 +539,6 @@ export class JSONRpcCoreClient extends CoreClient {
 		};
 	}
 
-	async defaultNameServiceName(
-		options: MySoClientTypes.DefaultNameServiceNameOptions,
-	): Promise<MySoClientTypes.DefaultNameServiceNameResponse> {
-		const name = (await this.#jsonRpcClient.resolveNameServiceNames(options)).data[0];
-		return {
-			data: {
-				name,
-			},
-		};
-	}
-
 	resolveTransactionPlugin() {
 		return coreClientResolveTransactionPlugin;
 	}

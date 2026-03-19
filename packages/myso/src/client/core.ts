@@ -119,10 +119,6 @@ export abstract class CoreClient extends BaseClient implements MySoClientTypes.T
 		options: MySoClientTypes.GetMoveFunctionOptions,
 	): Promise<MySoClientTypes.GetMoveFunctionResponse>;
 
-	abstract defaultNameServiceName(
-		options: MySoClientTypes.DefaultNameServiceNameOptions,
-	): Promise<MySoClientTypes.DefaultNameServiceNameResponse>;
-
 	async getDynamicField(
 		options: MySoClientTypes.GetDynamicFieldOptions,
 	): Promise<MySoClientTypes.GetDynamicFieldResponse> {

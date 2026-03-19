@@ -627,22 +627,6 @@ export class GrpcCoreClient extends CoreClient {
 		};
 	}
 
-	async defaultNameServiceName(
-		options: MySoClientTypes.DefaultNameServiceNameOptions,
-	): Promise<MySoClientTypes.DefaultNameServiceNameResponse> {
-		const name =
-			(
-				await this.#client.nameService.reverseLookupName({
-					address: options.address,
-				})
-			).response.record?.name ?? null;
-		return {
-			data: {
-				name,
-			},
-		};
-	}
-
 	async getMoveFunction(
 		options: MySoClientTypes.GetMoveFunctionOptions,
 	): Promise<MySoClientTypes.GetMoveFunctionResponse> {

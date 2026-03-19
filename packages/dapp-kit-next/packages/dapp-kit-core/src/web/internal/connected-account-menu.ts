@@ -6,7 +6,6 @@ import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 
 import { html, LitElement } from 'lit';
 import { Button } from './button.js';
-import { formatAddress } from '@socialproof/myso/utils';
 import { property, query, state } from 'lit/decorators.js';
 import { unlinkIcon } from './icons/unlink-icon.js';
 import { styles } from './connected-account-menu.styles.js';
@@ -18,8 +17,6 @@ import type { WalletConnection } from '../../core/store.js';
 import { plusIcon } from './icons/plus-icon.js';
 import { SLUSH_WALLET_NAME } from '@socialproof/slush-wallet';
 import { when } from 'lit/directives/when.js';
-import { Task } from '@lit/task';
-import { resolveNameServiceName } from '../../utils/name.js';
 
 export class ConnectedAccountMenu extends ScopedRegistryHost(LitElement) {
 	static elementDefinitions = {
@@ -46,11 +43,6 @@ export class ConnectedAccountMenu extends ScopedRegistryHost(LitElement) {
 
 	#unsubscribeFromAutoUpdate?: () => void;
 
-	#resolveNameTask = new Task(this, {
-		args: () => [this.client, this.connection.account.address],
-		task: async ([client, address]) => resolveNameServiceName(client, address),
-	});
-
 	override connectedCallback() {
 		super.connectedCallback();
 		document.addEventListener('click', this.#onDocumentClick);
@@ -72,11 +64,7 @@ export class ConnectedAccountMenu extends ScopedRegistryHost(LitElement) {
 			>
 				<div class="trigger-content">
 					<img src=${this.connection.account.icon ?? this.connection.wallet.icon} alt="" />
-					${this.#resolveNameTask.render({
-						pending: this.#getAccountTitle,
-						complete: this.#getAccountTitle,
-						error: () => this.#getAccountTitle,
-					})}
+					<div class="account-title">${this.connection.account.label}</div>
 					<div class="chevron">${chevronDownIcon}</div>
 				</div>
 			</internal-button>
@@ -136,10 +124,6 @@ export class ConnectedAccountMenu extends ScopedRegistryHost(LitElement) {
 			}),
 		);
 	}
-
-	#getAccountTitle = (name?: string | null) => {
-		return name || this.connection.account.label || formatAddress(this.connection.account.address);
-	};
 
 	#onDocumentClick = (event: MouseEvent) => {
 		if (!this._open) return;

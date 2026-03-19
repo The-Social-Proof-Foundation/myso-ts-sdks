@@ -391,20 +391,6 @@ console.log(fn.parameters);
 console.log(fn.typeParameters);
 ```
 
-## Name Service Methods
-
-### defaultNameServiceName
-
-Resolve an address to its default MySoNS name.
-
-```typescript
-const { name } = await client.core.defaultNameServiceName({
-	address: '0xabc...',
-});
-
-console.log(name); // e.g., "example.myso"
-```
-
 ## MVR Methods
 
 The client also exposes MVR (Move Registry) methods through `client.core.mvr`:

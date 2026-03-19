@@ -1,5 +1,11 @@
 # @socialproof/myso.js
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated graphql schema's
+
 ## 0.0.3
 
 ### Patch Changes

@@ -15,7 +15,6 @@ type GraphQLExecutionError = NonNullable<
 	NonNullable<Transaction_FieldsFragment['effects']>['executionError']
 >;
 import {
-	DefaultMySonsNameDocument,
 	ExecuteTransactionDocument,
 	ExecutionStatus,
 	GetAllBalancesDocument,
@@ -624,25 +623,6 @@ export class GraphQLCoreClient extends CoreClient {
 		return {
 			success: result.success ?? false,
 			errors: result.error ? [result.error] : [],
-		};
-	}
-
-	async defaultNameServiceName(
-		options: MySoClientTypes.DefaultNameServiceNameOptions,
-	): Promise<MySoClientTypes.DefaultNameServiceNameResponse> {
-		const name = await this.#graphqlQuery(
-			{
-				query: DefaultMySonsNameDocument,
-				signal: options.signal,
-				variables: {
-					address: options.address,
-				},
-			},
-			(result) => result.address?.defaultNameRecord?.domain ?? null,
-		);
-
-		return {
-			data: { name: name },
 		};
 	}
 
