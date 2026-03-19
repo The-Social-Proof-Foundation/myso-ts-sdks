@@ -71,6 +71,8 @@ export type Scalars = {
    *     }
    */
   MoveTypeSignature: { input: MoveTypeSignature; output: MoveTypeSignature; }
+  /** String containing 32 byte hex-encoded address, with a leading '0x'. Leading zeroes can be omitted on input but will always appear in outputs (MySoAddress in output is guaranteed to be 66 characters long). */
+  MySoAddress: { input: string; output: string; }
   /**
    * The shape of an abstract Move Type (a type that can contain free type parameters, and can optionally be taken by reference), corresponding to the following recursive type:
    *
@@ -95,8 +97,6 @@ export type Scalars = {
    *   | { typeParameter: number }
    */
   OpenMoveTypeSignature: { input: OpenMoveTypeSignature; output: OpenMoveTypeSignature; }
-  /** String containing 32 byte hex-encoded address, with a leading '0x'. Leading zeroes can be omitted on input but will always appear in outputs (MySoAddress in output is guaranteed to be 66 characters long). */
-  MySoAddress: { input: string; output: string; }
   /** An unsigned integer that can hold values up to 2^53 - 1. This can be treated similarly to `Int`, but it is guaranteed to be non-negative, and it may be larger than 2^32 - 1. */
   UInt53: { input: number; output: number; }
 };
@@ -116,7 +116,7 @@ export type ActiveJwk = {
   e?: Maybe<Scalars['String']['output']>;
   /** The most recent epoch in which the JWK was validated. */
   epoch?: Maybe<Epoch>;
-  /** The string (Issuing Authority) that identifies the OIDC provider. */
+  /** The string (Ismysong Authority) that identifies the OIDC provider. */
   iss?: Maybe<Scalars['String']['output']>;
   /** The string (Key ID) that identifies the JWK among a set of JWKs, (RFC 7517, Section 4.5). */
   kid?: Maybe<Scalars['String']['output']>;
@@ -166,8 +166,6 @@ export type Address = IAddressable & Node & {
   balance?: Maybe<Balance>;
   /** Total balance across coins owned by this address, grouped by coin type. */
   balances?: Maybe<BalanceConnection>;
-  /** The domain explicitly configured as the default Name Service name for this address. */
-  defaultNameRecord?: Maybe<NameRecord>;
   /**
    * Access a dynamic field on an object using its type and BCS-encoded name.
    *
@@ -298,7 +296,7 @@ export type AddressAliasStateCreateTransaction = {
 /**
  * Identifies a specific version of an address.
  *
- * Exactly one of `address` or `name` must be specified. Additionally, at most one of `rootVersion` or `atCheckpoint` can be specified. If neither bound is provided, the address is fetched at the checkpoint being viewed.
+ * The `address` must be specified. Additionally, at most one of `rootVersion` or `atCheckpoint` can be specified. If neither bound is provided, the address is fetched at the checkpoint being viewed.
  *
  * See `Query.address` for more details.
  */
@@ -307,8 +305,6 @@ export type AddressKey = {
   address?: InputMaybe<Scalars['MySoAddress']['input']>;
   /** If specified, sets a checkpoint bound for this address. */
   atCheckpoint?: InputMaybe<Scalars['UInt53']['input']>;
-  /** A MySoNS name to resolve to an address. */
-  name?: InputMaybe<Scalars['String']['input']>;
   /** If specified, sets a root version bound for this address. */
   rootVersion?: InputMaybe<Scalars['UInt53']['input']>;
 };
@@ -444,6 +440,26 @@ export type BalanceWithdraw = {
   type?: Maybe<MoveType>;
   /** The account to withdraw funds from. */
   withdrawFrom?: Maybe<WithdrawFrom>;
+};
+
+export type BlockedPlatformSummary = {
+  __typename?: 'BlockedPlatformSummary';
+  blockedBy: Scalars['String']['output'];
+  /** Profile of the user who blocked the platform. */
+  blockedByProfile?: Maybe<ProfileSummary>;
+  createdAt: Scalars['String']['output'];
+  platformId: Scalars['String']['output'];
+  platformName: Scalars['String']['output'];
+};
+
+export type BlockedProfileSummary = {
+  __typename?: 'BlockedProfileSummary';
+  address: Scalars['MySoAddress']['output'];
+  displayName?: Maybe<Scalars['String']['output']>;
+  firstBlockedAt: Scalars['String']['output'];
+  lastBlockedAt: Scalars['String']['output'];
+  profilePhoto?: Maybe<Scalars['String']['output']>;
+  username: Scalars['String']['output'];
 };
 
 /** System transaction for initializing bridge committee. */
@@ -607,8 +623,6 @@ export type CoinMetadata = IAddressable & IMoveObject & IObject & {
   contents?: Maybe<MoveValue>;
   /** Number of decimal places the coin uses. */
   decimals?: Maybe<Scalars['Int']['output']>;
-  /** The domain explicitly configured as the default Name Service name for this address. */
-  defaultNameRecord?: Maybe<NameRecord>;
   /** If the currency is regulated, this object represents the capability to modify the deny list. If a capability is known but wrapped, its address can be fetched but other fields will not be accessible. */
   denyCap?: Maybe<MoveObject>;
   /** Description of the coin. */
@@ -853,6 +867,21 @@ export type CommandResult = {
   returnValues?: Maybe<Array<CommandOutput>>;
 };
 
+export type CommentSummary = {
+  __typename?: 'CommentSummary';
+  commentCount: Scalars['Int']['output'];
+  commentId: Scalars['String']['output'];
+  content: Scalars['String']['output'];
+  createdAt: Scalars['Int']['output'];
+  owner: Scalars['String']['output'];
+  /** Profile of the comment owner (username, display name, photo, etc.). */
+  ownerProfile?: Maybe<ProfileSummary>;
+  parentCommentId?: Maybe<Scalars['String']['output']>;
+  postId: Scalars['String']['output'];
+  profileId: Scalars['String']['output'];
+  reactionCount: Scalars['Int']['output'];
+};
+
 /** Object is exclusively owned by a single adderss and sequenced via consensus. */
 export type ConsensusAddressOwner = {
   __typename?: 'ConsensusAddressOwner';
@@ -932,6 +961,28 @@ export type ConsensusObjectRead = {
   object?: Maybe<Object>;
 };
 
+export type Delegate = {
+  __typename?: 'Delegate';
+  /** Delegate address. */
+  address: Scalars['MySoAddress']['output'];
+  /** Downvotes (delegate ratings). */
+  downvotes: Scalars['Int']['output'];
+  /** Whether the delegate is currently active. */
+  isActive: Scalars['Boolean']['output'];
+  /** Proposals reviewed. */
+  proposalsReviewed: Scalars['Int']['output'];
+  /** Proposals submitted. */
+  proposalsSubmitted: Scalars['Int']['output'];
+  /** Registry type (0=ecosystem, 1=proof of creativity, 3=platform). */
+  registryType: Scalars['Int']['output'];
+  /** Term end (epoch). */
+  termEnd: Scalars['Int']['output'];
+  /** Term start (epoch). */
+  termStart: Scalars['Int']['output'];
+  /** Upvotes (delegate ratings). */
+  upvotes: Scalars['Int']['output'];
+};
+
 /** A rendered JSON blob based on an on-chain template. */
 export type Display = {
   __typename?: 'Display';
@@ -976,8 +1027,6 @@ export type DynamicField = IAddressable & IMoveObject & IObject & Node & {
   balances?: Maybe<BalanceConnection>;
   /** The structured representation of the object's contents. */
   contents?: Maybe<MoveValue>;
-  /** The domain explicitly configured as the default Name Service name for this address. */
-  defaultNameRecord?: Maybe<NameRecord>;
   /** 32-byte hash that identifies the object's contents, encoded in Base58. */
   digest?: Maybe<Scalars['String']['output']>;
   /**
@@ -1288,7 +1337,7 @@ export type DynamicFieldName = {
   bcs?: InputMaybe<Scalars['Base64']['input']>;
   /** The name represented as a Display v2 literal expression. */
   literal?: InputMaybe<Scalars['String']['input']>;
-  /** The type of the dynamic field's name, like 'u64' or '0x2::kiosk::Listing'. */
+  /** The type of the dynamic field's name, like 'u64'. */
   type?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1384,6 +1433,8 @@ export type Epoch = Node & {
   startTimestamp?: Maybe<Scalars['DateTime']['output']>;
   /** The system packages used by all transactions in this epoch. */
   systemPackages?: Maybe<MovePackageConnection>;
+  /** Stake subsidy parameters at the start of this epoch (balance, APY, period, etc.). */
+  systemStakeSubsidy?: Maybe<StakeSubsidy>;
   /** The contents of the system state inner object at the start of this epoch. */
   systemState?: Maybe<MoveValue>;
   /**
@@ -1698,6 +1749,32 @@ export type GenesisTransactionObjectsArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type GovernanceRegistry = {
+  __typename?: 'GovernanceRegistry';
+  /** Voting configuration (term, costs, quorum, etc.). */
+  config: GovernanceRegistryConfig;
+  /** Number of delegates. */
+  delegateCount: Scalars['Int']['output'];
+  /** Registry object ID on-chain. */
+  registryId: Scalars['String']['output'];
+  /** Registry type (0=ecosystem, 1=proof of creativity, 3=platform). */
+  registryType: Scalars['Int']['output'];
+};
+
+export type GovernanceRegistryConfig = {
+  __typename?: 'GovernanceRegistryConfig';
+  /** Delegate term length in epochs. */
+  delegateTermEpochs: Scalars['Int']['output'];
+  /** Max votes per user in community voting. */
+  maxVotesPerUser: Scalars['Int']['output'];
+  /** Cost to submit a proposal. */
+  proposalSubmissionCost: Scalars['Int']['output'];
+  /** Quorum votes required. */
+  quorumVotes: Scalars['Int']['output'];
+  /** Voting period in milliseconds. */
+  votingPeriodMs: Scalars['Int']['output'];
+};
+
 /**
  * Interface implemented by GraphQL types representing entities that are identified by an address.
  *
@@ -1719,8 +1796,6 @@ export type IAddressable = {
   balance?: Maybe<Balance>;
   /** Total balance across coins owned by this address, grouped by coin type. */
   balances?: Maybe<BalanceConnection>;
-  /** The domain explicitly configured as the default Name Service name for this address. */
-  defaultNameRecord?: Maybe<NameRecord>;
   /**
    * Fetch the total balances keyed by coin types (e.g. `0x2::myso::MYSO`) owned by this address.
    *
@@ -1960,6 +2035,32 @@ export type Input = {
   __typename?: 'Input';
   /** The index of the input. */
   ix?: Maybe<Scalars['Int']['output']>;
+};
+
+export type InsurancePolicy = {
+  __typename?: 'InsurancePolicy';
+  /** Covered amount. */
+  coveredAmount: Scalars['Int']['output'];
+  /** Insured address. */
+  insured: Scalars['MySoAddress']['output'];
+  /** Market ID this policy covers. */
+  marketId: Scalars['String']['output'];
+  /** Unique policy identifier. */
+  policyId: Scalars['String']['output'];
+  /** Premium paid. */
+  premiumPaid: Scalars['Int']['output'];
+  /** Policy status (1=ACTIVE, 2=CANCELLED, 3=CLAIMED, 4=EXPIRED). */
+  status: Scalars['Int']['output'];
+};
+
+export type InsuranceVault = {
+  __typename?: 'InsuranceVault';
+  /** Capital balance. */
+  capitalBalance: Scalars['Int']['output'];
+  /** Underwriter address. */
+  underwriter: Scalars['MySoAddress']['output'];
+  /** Unique vault identifier. */
+  vaultId: Scalars['String']['output'];
 };
 
 /** Information used by a package to link to a specific version of its dependency. */
@@ -2373,8 +2474,6 @@ export type MoveObject = IAddressable & IMoveObject & IObject & Node & {
   balances?: Maybe<BalanceConnection>;
   /** The structured representation of the object's contents. */
   contents?: Maybe<MoveValue>;
-  /** The domain explicitly configured as the default Name Service name for this address. */
-  defaultNameRecord?: Maybe<NameRecord>;
   /** 32-byte hash that identifies the object's contents, encoded in Base58. */
   digest?: Maybe<Scalars['String']['output']>;
   /**
@@ -2596,8 +2695,6 @@ export type MovePackage = IAddressable & IObject & Node & {
   balance?: Maybe<Balance>;
   /** Total balance across coins owned by this address, grouped by coin type. */
   balances?: Maybe<BalanceConnection>;
-  /** The domain explicitly configured as the default Name Service name for this address. */
-  defaultNameRecord?: Maybe<NameRecord>;
   /** 32-byte hash that identifies the package's contents, encoded in Base58. */
   digest?: Maybe<Scalars['String']['output']>;
   /** The package's globally unique identifier, which can be passed to `Query.node` to refetch it. */
@@ -2959,32 +3056,40 @@ export type MutationExecuteTransactionArgs = {
   transactionDataBcs: Scalars['Base64']['input'];
 };
 
-/** A Name Service NameRecord representing a domain name registration. */
-export type NameRecord = {
-  __typename?: 'NameRecord';
-  /** On-chain representation of the underlying Name Service `NameRecord` Move value. */
-  contents: MoveValue;
-  /** The domain name this record is for. */
-  domain: Scalars['String']['output'];
-  /**
-   * The Name Service Name Record of the parent domain, if this is a subdomain.
-   *
-   * Returns `null` if this is not a subdomain.
-   */
-  parent?: Maybe<NameRecord>;
-  /**
-   * The address this domain points to.
-   *
-   * `rootVersion` and `atCheckpoint` control how the target `Address` is scoped. If neither is provided, the `Address` is scoped to the latest checkpoint known to the RPC.
-   */
-  target?: Maybe<Address>;
+export type MyDataPurchase = {
+  __typename?: 'MyDataPurchase';
+  /** Buyer address. */
+  buyer: Scalars['MySoAddress']['output'];
+  /** Profile of the buyer. */
+  buyerProfile?: Maybe<ProfileSummary>;
+  /** MyData record ID this purchase is for. */
+  mydataId: Scalars['String']['output'];
+  /** Price paid. */
+  price: Scalars['Int']['output'];
+  /** Epoch timestamp when the purchase was made. */
+  purchaseTime: Scalars['Int']['output'];
+  /** Purchase type ("one_time" or "subscription"). */
+  purchaseType: Scalars['String']['output'];
+  /** Transaction ID. */
+  transactionId: Scalars['String']['output'];
 };
 
-
-/** A Name Service NameRecord representing a domain name registration. */
-export type NameRecordTargetArgs = {
-  atCheckpoint?: InputMaybe<Scalars['UInt53']['input']>;
-  rootVersion?: InputMaybe<Scalars['UInt53']['input']>;
+export type MyDataRecord = {
+  __typename?: 'MyDataRecord';
+  /** Media type (e.g. "text", "audio", "image", "video"). */
+  mediaType: Scalars['String']['output'];
+  /** Unique MyData record identifier. */
+  mydataId: Scalars['String']['output'];
+  /** One-time purchase price (null if not for sale). */
+  oneTimePrice?: Maybe<Scalars['Int']['output']>;
+  /** Owner address. */
+  owner: Scalars['MySoAddress']['output'];
+  /** Profile of the MyData record owner. */
+  ownerProfile?: Maybe<ProfileSummary>;
+  /** Subscription price (null if not for sale). */
+  subscriptionPrice?: Maybe<Scalars['Int']['output']>;
+  /** Searchable tags. */
+  tags: Array<Scalars['String']['output']>;
 };
 
 /** An interface implemented by types that can be uniquely identified by a globally unique `ID`, following the GraphQL Global Object Identification specification. */
@@ -3020,8 +3125,6 @@ export type Object = IAddressable & IObject & Node & {
   balance?: Maybe<Balance>;
   /** Total balance across coins owned by this address, grouped by coin type. */
   balances?: Maybe<BalanceConnection>;
-  /** The domain explicitly configured as the default Name Service name for this address. */
-  defaultNameRecord?: Maybe<NameRecord>;
   /** 32-byte hash that identifies the object's contents, encoded in Base58. */
   digest?: Maybe<Scalars['String']['output']>;
   /**
@@ -3454,6 +3557,438 @@ export type PerEpochConfig = {
   object?: Maybe<Object>;
 };
 
+export type Platform = Node & {
+  __typename?: 'Platform';
+  /** Wallets blocked by this platform (paginated). */
+  blockedProfiles?: Maybe<Array<PlatformBlockedProfileSummary>>;
+  /** When the platform was created (ISO 8601). */
+  createdAt: Scalars['String']['output'];
+  /** Delegate count for governance. */
+  delegateCount?: Maybe<Scalars['Int']['output']>;
+  /** Delegate term epochs. */
+  delegateTermEpochs?: Maybe<Scalars['Int']['output']>;
+  /** The platform description. */
+  description?: Maybe<Scalars['String']['output']>;
+  /** The developer's wallet address. */
+  developerAddress: Scalars['String']['output'];
+  /** Profile of the platform developer. */
+  developerProfile?: Maybe<ProfileSummary>;
+  /** Governance registry ID. */
+  governanceRegistryId?: Maybe<Scalars['String']['output']>;
+  /** The platform's globally unique identifier. */
+  id: Scalars['ID']['output'];
+  /** Whether the platform is approved. */
+  isApproved: Scalars['Boolean']['output'];
+  /** Links (JSON). */
+  links?: Maybe<Scalars['JSON']['output']>;
+  /** URL to the platform logo. */
+  logo?: Maybe<Scalars['String']['output']>;
+  /** Max votes per user. */
+  maxVotesPerUser?: Maybe<Scalars['Int']['output']>;
+  /** Members of this platform (paginated). */
+  members?: Maybe<Array<PlatformMemberSummary>>;
+  /** Min on-chain age in days. */
+  minOnChainAgeDays?: Maybe<Scalars['Int']['output']>;
+  /** Moderators of this platform (paginated). */
+  moderators?: Maybe<Array<PlatformModeratorSummary>>;
+  /** The platform name. */
+  name: Scalars['String']['output'];
+  /** The platform ID. */
+  platformId: Scalars['String']['output'];
+  /** Platform names (e.g. Twitter, Instagram) as JSON array. */
+  platformNames?: Maybe<Scalars['JSON']['output']>;
+  /** Primary category. */
+  primaryCategory: Scalars['String']['output'];
+  /** Privacy policy. */
+  privacyPolicy?: Maybe<Scalars['String']['output']>;
+  /** Proposal submission cost. */
+  proposalSubmissionCost?: Maybe<Scalars['Int']['output']>;
+  /** Quadratic base cost. */
+  quadraticBaseCost?: Maybe<Scalars['Int']['output']>;
+  /** Quorum votes. */
+  quorumVotes?: Maybe<Scalars['Int']['output']>;
+  /** Release date. */
+  releaseDate?: Maybe<Scalars['String']['output']>;
+  /** Secondary category. */
+  secondaryCategory?: Maybe<Scalars['String']['output']>;
+  /** Shutdown date. */
+  shutdownDate?: Maybe<Scalars['String']['output']>;
+  /** Platform status as text (Development, Alpha, Beta, Live, etc.). */
+  statusText: Scalars['String']['output'];
+  /** The platform tagline. */
+  tagline: Scalars['String']['output'];
+  /** Terms of service. */
+  termsOfService?: Maybe<Scalars['String']['output']>;
+  /** Treasury balance. */
+  treasury?: Maybe<Scalars['Int']['output']>;
+  /** When the platform was last updated (ISO 8601). */
+  updatedAt: Scalars['String']['output'];
+  /** Voting period epochs. */
+  votingPeriodEpochs?: Maybe<Scalars['Int']['output']>;
+  /** Whether the platform wants DAO governance. */
+  wantsDaoGovernance?: Maybe<Scalars['Boolean']['output']>;
+};
+
+
+export type PlatformBlockedProfilesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type PlatformMembersArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type PlatformModeratorsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type PlatformBlockedProfileSummary = {
+  __typename?: 'PlatformBlockedProfileSummary';
+  blockedBy: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  /** Profile of the blocked user. */
+  profile?: Maybe<ProfileSummary>;
+  walletAddress: Scalars['MySoAddress']['output'];
+};
+
+export type PlatformMemberSummary = {
+  __typename?: 'PlatformMemberSummary';
+  joinedAt: Scalars['String']['output'];
+  /** Profile of the platform member. */
+  profile?: Maybe<ProfileSummary>;
+  walletAddress: Scalars['MySoAddress']['output'];
+};
+
+export type PlatformMembershipSummary = {
+  __typename?: 'PlatformMembershipSummary';
+  isApproved: Scalars['Boolean']['output'];
+  joinedAt: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  platformId: Scalars['String']['output'];
+};
+
+export type PlatformModeratorSummary = {
+  __typename?: 'PlatformModeratorSummary';
+  addedBy: Scalars['String']['output'];
+  /** Profile of the user who added the moderator. */
+  addedByProfile?: Maybe<ProfileSummary>;
+  createdAt: Scalars['String']['output'];
+  moderatorAddress: Scalars['MySoAddress']['output'];
+  /** Profile of the moderator. */
+  moderatorProfile?: Maybe<ProfileSummary>;
+};
+
+export type Post = Node & {
+  __typename?: 'Post';
+  /** Number of comments. */
+  commentCount: Scalars['Int']['output'];
+  /** Comments on this post (paginated). */
+  comments?: Maybe<Array<CommentSummary>>;
+  /** The post content. */
+  content: Scalars['String']['output'];
+  /** When the post was created (Unix timestamp in milliseconds). */
+  createdAt: Scalars['Int']['output'];
+  /** The post's globally unique identifier. */
+  id: Scalars['ID']['output'];
+  /** Media URLs (JSON array). */
+  mediaUrls?: Maybe<Scalars['JSON']['output']>;
+  /** Mentions (JSON). */
+  mentions?: Maybe<Scalars['JSON']['output']>;
+  /** The wallet address of the post owner. */
+  owner: Scalars['String']['output'];
+  /** Profile of the post owner (username, display name, photo, etc.). */
+  ownerProfile?: Maybe<ProfileSummary>;
+  /** Parent post ID (for quote reposts). */
+  parentPostId?: Maybe<Scalars['String']['output']>;
+  /** The post ID. */
+  postId: Scalars['String']['output'];
+  /** The post type. */
+  postType: Scalars['String']['output'];
+  /** The profile ID of the post owner. */
+  profileId: Scalars['String']['output'];
+  /** Promotion for this post (null if not promoted). */
+  promotion?: Maybe<Promotion>;
+  /** Number of reactions. */
+  reactionCount: Scalars['Int']['output'];
+  /** Reactions on this post (paginated). */
+  reactions?: Maybe<Array<ReactionSummary>>;
+  /** Number of reposts. */
+  repostCount: Scalars['Int']['output'];
+  /** Reposts of this post (paginated). */
+  reposts?: Maybe<Array<RepostSummary>>;
+  /** Spot bets for this post (paginated). */
+  spotBets?: Maybe<Array<SpotBet>>;
+  /** Spot record for this post (1:1, null if no record). */
+  spotRecord?: Maybe<SpotRecord>;
+  /** Tips received for this post (paginated). */
+  tips?: Maybe<Array<TipSummary>>;
+  /** Total tips received. */
+  tipsReceived: Scalars['Int']['output'];
+  /** Ownership transfers for this post (paginated). */
+  transfers?: Maybe<Array<PostTransferSummary>>;
+  /** When the post was last updated (Unix timestamp in milliseconds). */
+  updatedAt?: Maybe<Scalars['Int']['output']>;
+};
+
+
+export type PostCommentsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type PostReactionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type PostRepostsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type PostSpotBetsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type PostTipsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type PostTransfersArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type PostTransferSummary = {
+  __typename?: 'PostTransferSummary';
+  newOwner: Scalars['MySoAddress']['output'];
+  /** Profile of the new owner. */
+  newOwnerProfile?: Maybe<ProfileSummary>;
+  previousOwner: Scalars['MySoAddress']['output'];
+  /** Profile of the previous owner. */
+  previousOwnerProfile?: Maybe<ProfileSummary>;
+  transactionId: Scalars['String']['output'];
+  transferredAt: Scalars['Int']['output'];
+};
+
+export type Profile = Node & {
+  __typename?: 'Profile';
+  /** The wallet address that owns this profile. */
+  address: Scalars['MySoAddress']['output'];
+  /** Profile badges (paginated). */
+  badges?: Maybe<Array<ProfileBadge>>;
+  /** The profile's bio. */
+  bio?: Maybe<Scalars['String']['output']>;
+  /** Birthdate. */
+  birthdate?: Maybe<Scalars['String']['output']>;
+  /** Block list address. */
+  blockListAddress?: Maybe<Scalars['String']['output']>;
+  /** Platforms that have blocked this profile (paginated). */
+  blockedPlatforms?: Maybe<Array<BlockedPlatformSummary>>;
+  /** Profiles this user has blocked (paginated). */
+  blockedProfiles?: Maybe<Array<BlockedProfileSummary>>;
+  /** URL to the cover photo. */
+  coverPhoto?: Maybe<Scalars['String']['output']>;
+  /** When the profile was created (ISO 8601). */
+  createdAt?: Maybe<Scalars['String']['output']>;
+  /** Current location. */
+  currentLocation?: Maybe<Scalars['String']['output']>;
+  /** The profile's display name. */
+  displayName?: Maybe<Scalars['String']['output']>;
+  /** Education. */
+  education?: Maybe<Scalars['String']['output']>;
+  /** Email (encrypted). */
+  email?: Maybe<Scalars['String']['output']>;
+  /** Facebook username. */
+  facebookUsername?: Maybe<Scalars['String']['output']>;
+  /** Followers (paginated). */
+  followers?: Maybe<Array<ProfileSummary>>;
+  /** Number of followers. */
+  followersCount: Scalars['Int']['output'];
+  /** Following (paginated). */
+  following?: Maybe<Array<ProfileSummary>>;
+  /** Number of accounts this profile follows. */
+  followingCount: Scalars['Int']['output'];
+  /** Gender. */
+  gender?: Maybe<Scalars['String']['output']>;
+  /** GitHub username. */
+  githubUsername?: Maybe<Scalars['String']['output']>;
+  /** The profile's globally unique identifier. */
+  id: Scalars['ID']['output'];
+  /** Mastodon username. */
+  mastodonUsername?: Maybe<Scalars['String']['output']>;
+  /** Minimum offer amount for profile sales. */
+  minOfferAmount?: Maybe<Scalars['Int']['output']>;
+  /** MyData records owned by this profile (paginated). */
+  mydataRecords?: Maybe<Array<MyDataRecord>>;
+  /** Phone (encrypted). */
+  phone?: Maybe<Scalars['String']['output']>;
+  /** Platforms this profile has joined (paginated). */
+  platformMemberships?: Maybe<Array<PlatformMembershipSummary>>;
+  /** Political view. */
+  politicalView?: Maybe<Scalars['String']['output']>;
+  /** Number of posts. */
+  postCount: Scalars['Int']['output'];
+  /** Primary language. */
+  primaryLanguage?: Maybe<Scalars['String']['output']>;
+  /** The profile ID (object address). */
+  profileId?: Maybe<Scalars['String']['output']>;
+  /** URL to the profile photo. */
+  profilePhoto?: Maybe<Scalars['String']['output']>;
+  /** Raised location. */
+  raisedLocation?: Maybe<Scalars['String']['output']>;
+  /** Reddit username. */
+  redditUsername?: Maybe<Scalars['String']['output']>;
+  /** Relationship status. */
+  relationshipStatus?: Maybe<Scalars['String']['output']>;
+  /** Religion. */
+  religion?: Maybe<Scalars['String']['output']>;
+  /** Reservation pool address. */
+  reservationPoolAddress?: Maybe<Scalars['String']['output']>;
+  /** Selected badge info. */
+  selectedBadge?: Maybe<SelectedBadge>;
+  /** Selected badge ID. */
+  selectedBadgeId?: Maybe<Scalars['String']['output']>;
+  /** Selected ecosystem badge ID. */
+  selectedEcosystemBadgeId?: Maybe<Scalars['String']['output']>;
+  /** Social proof token info. */
+  socialProofToken?: Maybe<SocialProofToken>;
+  /** Social proof token address. */
+  socialProofTokenAddress?: Maybe<Scalars['String']['output']>;
+  /** SPT holdings for this profile (paginated). */
+  sptHoldings?: Maybe<Array<SptHolding>>;
+  /** When the profile was last updated (ISO 8601). */
+  updatedAt?: Maybe<Scalars['String']['output']>;
+  /** The profile's username. */
+  username: Scalars['String']['output'];
+  /** Vesting wallets owned by this profile (paginated). */
+  vestingWallets?: Maybe<Array<VestingWallet>>;
+  /** The profile's website. */
+  website?: Maybe<Scalars['String']['output']>;
+  /** X (Twitter) username. */
+  xUsername?: Maybe<Scalars['String']['output']>;
+};
+
+
+export type ProfileBadgesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type ProfileBlockedPlatformsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type ProfileBlockedProfilesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type ProfileFollowersArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type ProfileFollowingArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type ProfileMydataRecordsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type ProfilePlatformMembershipsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type ProfileSptHoldingsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type ProfileVestingWalletsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type ProfileBadge = {
+  __typename?: 'ProfileBadge';
+  /** When the badge was assigned (epoch ms). */
+  assignedAt: Scalars['Int']['output'];
+  /** Address that assigned the badge. */
+  assignedBy: Scalars['String']['output'];
+  /** Profile of the user who assigned the badge. */
+  assignedByProfile?: Maybe<ProfileSummary>;
+  /** Badge description. */
+  badgeDescription?: Maybe<Scalars['String']['output']>;
+  /** Badge icon URL. */
+  badgeIconUrl?: Maybe<Scalars['String']['output']>;
+  /** Badge ID. */
+  badgeId: Scalars['String']['output'];
+  /** Badge media URL. */
+  badgeMediaUrl?: Maybe<Scalars['String']['output']>;
+  /** Badge name. */
+  badgeName: Scalars['String']['output'];
+  /** Badge type. */
+  badgeType: Scalars['Int']['output'];
+  /** Platform ID. */
+  platformId: Scalars['String']['output'];
+};
+
+export type ProfileSummary = {
+  __typename?: 'ProfileSummary';
+  /** Wallet address. */
+  address: Scalars['MySoAddress']['output'];
+  /** Profile bio. */
+  bio?: Maybe<Scalars['String']['output']>;
+  /** Display name. */
+  displayName?: Maybe<Scalars['String']['output']>;
+  /** Number of followers. Present for both profile and wallet-only addresses. */
+  followersCount?: Maybe<Scalars['Int']['output']>;
+  /** Number of accounts this address follows. Present for both profile and wallet-only addresses. */
+  followingCount?: Maybe<Scalars['Int']['output']>;
+  /** Profile photo URL. */
+  profilePhoto?: Maybe<Scalars['String']['output']>;
+  /** Reservation percentage (when profile has SPT/reservation pool). */
+  reservationPercentage?: Maybe<Scalars['Float']['output']>;
+  /** Reservation pool address. */
+  reservationPoolAddress?: Maybe<Scalars['String']['output']>;
+  /** Selected badge info (when present). */
+  selectedBadge?: Maybe<SelectedBadge>;
+  /** Selected badge ID. */
+  selectedBadgeId?: Maybe<Scalars['String']['output']>;
+  /** Social proof token info (when present). */
+  socialProofToken?: Maybe<SocialProofToken>;
+  /** Social proof token address. */
+  socialProofTokenAddress?: Maybe<Scalars['String']['output']>;
+  /** Username. */
+  username?: Maybe<Scalars['String']['output']>;
+};
+
 /** ProgrammableSystemTransaction is identical to ProgrammableTransaction, but GraphQL does not allow multiple variants with the same type. */
 export type ProgrammableSystemTransaction = {
   __typename?: 'ProgrammableSystemTransaction';
@@ -3503,6 +4038,72 @@ export type ProgrammableTransactionInputsArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type Promotion = {
+  __typename?: 'Promotion';
+  /** Total budget (in MIST). */
+  budget: Scalars['Int']['output'];
+  /** The post ID this promotion is for. */
+  postId: Scalars['String']['output'];
+  /** The promotion ID. */
+  promotionId: Scalars['String']['output'];
+  /** Remaining budget (in MIST). */
+  remainingBudget: Scalars['Int']['output'];
+  /** Promotion status: "active" or "inactive". */
+  status: Scalars['String']['output'];
+  /** Number of views. */
+  views: Scalars['Int']['output'];
+};
+
+export type Proposal = {
+  __typename?: 'Proposal';
+  /** Anonymous voters count (when anonymous voting enabled). */
+  anonymousVotersCount?: Maybe<Scalars['Int']['output']>;
+  /** Proposal description. */
+  description: Scalars['String']['output'];
+  /** Implementation time (epoch ms). */
+  implementationTime?: Maybe<Scalars['Int']['output']>;
+  /** Implemented description (when status=implemented). */
+  implementedDescription?: Maybe<Scalars['String']['output']>;
+  /** Unique proposal identifier (object ID on-chain). */
+  proposalId: Scalars['String']['output'];
+  /** Reference ID (e.g. linked post or object). */
+  referenceId?: Maybe<Scalars['String']['output']>;
+  /** Registry type (0=ecosystem, 1=proof of creativity, 3=platform). */
+  registryType: Scalars['Int']['output'];
+  /** Rescind time (epoch ms, when rescinded). */
+  rescindTime?: Maybe<Scalars['Int']['output']>;
+  /** Reward pool amount. */
+  rewardPool: Scalars['Int']['output'];
+  /** Proposal status (0=submitted, 1=delegate_review, 2=community_voting, 3=approved, 4=rejected, 5=implemented, 6=rescinded). */
+  status: Scalars['Int']['output'];
+  /** Submission time (epoch ms). */
+  submissionTime: Scalars['Int']['output'];
+  /** Submitter address. */
+  submitter: Scalars['MySoAddress']['output'];
+  /** Profile of the proposal submitter. */
+  submitterProfile?: Maybe<ProfileSummary>;
+  /** Proposal title. */
+  title: Scalars['String']['output'];
+  /** Vote counts (delegate and community). */
+  votes: ProposalVotes;
+  /** Voting end time (epoch ms). */
+  votingEndTime?: Maybe<Scalars['Int']['output']>;
+  /** Voting start time (epoch ms, when in community voting). */
+  votingStartTime?: Maybe<Scalars['Int']['output']>;
+};
+
+export type ProposalVotes = {
+  __typename?: 'ProposalVotes';
+  /** Community votes against (reject). */
+  communityAgainst: Scalars['Int']['output'];
+  /** Community votes for (approve). */
+  communityFor: Scalars['Int']['output'];
+  /** Delegate votes against (reject). */
+  delegateAgainst: Scalars['Int']['output'];
+  /** Delegate votes for (approve). */
+  delegateFor: Scalars['Int']['output'];
 };
 
 /** A protocol configuration that can hold an arbitrary value (or no value at all). */
@@ -3585,11 +4186,15 @@ export type Query = {
    *
    * If none of the above are specified, the address is fetched at the checkpoint being viewed.
    *
-   * If the address is fetched by name and the name does not resolve to an address (e.g. the name does not exist or has expired), `null` is returned.
+   * Returns `null` if the address does not exist.
    */
   address?: Maybe<Address>;
   /** The network's genesis checkpoint digest (uniquely identifies the network), Base58-encoded. */
   chainIdentifier: Scalars['String']['output'];
+  /** Check if platform has blocked this profile. Returns null when social DB not configured. */
+  checkPlatformBlocked?: Maybe<Scalars['Boolean']['output']>;
+  /** Check if blocker has blocked blocked. Returns null when social DB not configured. */
+  checkProfileBlocked?: Maybe<Scalars['Boolean']['output']>;
   /**
    * Fetch a checkpoint by its sequence number, or the latest checkpoint if no sequence number is provided.
    *
@@ -3604,6 +4209,12 @@ export type Query = {
    * Returns `null` if no CoinMetadata object exists for the given coin type.
    */
   coinMetadata?: Maybe<CoinMetadata>;
+  /** Fetch a comment by ID. Returns null if social DB not configured or not found. */
+  comment?: Maybe<CommentSummary>;
+  /** Fetch a delegate by address. Returns null when social DB not configured or not found. */
+  delegate?: Maybe<Delegate>;
+  /** List delegates (paginated, optionally filtered by registry type). Returns empty when social DB not configured. */
+  delegates?: Maybe<Array<Delegate>>;
   /**
    * Fetch an epoch by its ID, or fetch the latest epoch if no ID is provided.
    *
@@ -3614,10 +4225,20 @@ export type Query = {
   epochs?: Maybe<EpochConnection>;
   /** Paginate events that are emitted in the network, optionally filtered by event filters. */
   events?: Maybe<EventConnection>;
+  /** List all governance registries. Returns empty when social DB not configured. */
+  governanceRegistries?: Maybe<Array<GovernanceRegistry>>;
+  /** Fetch governance registry for a platform (by platform ID). Returns null when social DB not configured or platform has no registry. */
+  governanceRegistry?: Maybe<GovernanceRegistry>;
+  /** Insurance policies by insured address. Returns empty when social DB not configured. */
+  insurancePolicies?: Maybe<Array<InsurancePolicy>>;
+  /** Insurance policy by ID. Returns null when social DB not configured or not found. */
+  insurancePolicy?: Maybe<InsurancePolicy>;
+  /** Insurance vaults. Returns empty when social DB not configured. */
+  insuranceVaults?: Maybe<Array<InsuranceVault>>;
   /**
    * Fetch addresses by their keys.
    *
-   * Returns a list of addresses that is guaranteed to be the same length as `keys`. If an address in `keys` is fetched by name and the name does not resolve to an address, its corresponding entry in the result will be `null`.
+   * Returns a list of addresses that is guaranteed to be the same length as `keys`. If an address in `keys` does not exist, its corresponding entry in the result will be `null`.
    */
   multiGetAddresses: Array<Maybe<Address>>;
   /**
@@ -3664,12 +4285,12 @@ export type Query = {
    * Returns a list of types that is guaranteed to be the same length as `keys`. If a type in `keys` could not be found, its corresponding entry in the result will be `null`.
    */
   multiGetTypes: Array<Maybe<MoveType>>;
-  /**
-   * Look-up a Name Service NameRecord by its domain name.
-   *
-   * Returns `null` if the record does not exist or has expired.
-   */
-  nameRecord?: Maybe<NameRecord>;
+  /** MyData purchases by buyer. Returns empty when social DB not configured. */
+  mydataPurchases?: Maybe<Array<MyDataPurchase>>;
+  /** MyData record by ID. Returns null when social DB not configured or not found. */
+  mydataRecord?: Maybe<MyDataRecord>;
+  /** MyData records by owner. Returns empty when social DB not configured. */
+  mydataRecords?: Maybe<Array<MyDataRecord>>;
   /** Fetch a `Node` by its globally unique `ID`. Returns `null` if the node cannot be found (e.g., the underlying data was pruned or never existed). */
   node?: Maybe<Node>;
   /**
@@ -3726,8 +4347,32 @@ export type Query = {
   packageVersions?: Maybe<MovePackageConnection>;
   /** Paginate all packages published on-chain, optionally bounded to packages published strictly after `filter.afterCheckpoint` and/or strictly before `filter.beforeCheckpoint`. */
   packages?: Maybe<MovePackageConnection>;
+  /** Fetch a platform by ID. Returns null if social DB not configured or not found. */
+  platform?: Maybe<Platform>;
+  /** List platforms with optional approved filter. Returns empty when social DB not configured. */
+  platforms?: Maybe<Array<Platform>>;
+  /** Fetch a post by ID. Returns null if social DB not configured or not found. */
+  post?: Maybe<Post>;
+  /** List posts with optional filters. Returns empty when social DB not configured. */
+  posts?: Maybe<Array<Post>>;
+  /** Fetch a social profile by owner address. Returns null if social DB not configured or not found. */
+  profile?: Maybe<Profile>;
+  /** List social profiles with pagination. Returns empty when social DB not configured. */
+  profiles?: Maybe<Array<Profile>>;
+  /** List promoted posts (paginated, optionally filtered by platform). Returns empty when social DB not configured. */
+  promotedPosts?: Maybe<Array<Promotion>>;
+  /** Fetch a promotion by ID. Returns null if social DB not configured or not found. */
+  promotion?: Maybe<Promotion>;
+  /** Fetch a proposal by ID. Returns null when social DB not configured or not found. */
+  proposal?: Maybe<Proposal>;
+  /** List governance proposals (paginated, optionally filtered by platform and status). Returns empty when social DB not configured. */
+  proposals?: Maybe<Array<Proposal>>;
   /** Fetch the protocol config by protocol version, or the latest protocol config used on chain if no version is provided. */
   protocolConfigs?: Maybe<ProtocolConfigs>;
+  /** Reactions for a post (paginated). Returns empty when social DB not configured. */
+  reactions?: Maybe<Array<ReactionSummary>>;
+  /** Reposts of a post (paginated). Returns empty when social DB not configured. */
+  reposts?: Maybe<Array<RepostSummary>>;
   /** Configuration for this RPC service. */
   serviceConfig: ServiceConfig;
   /**
@@ -3745,6 +4390,20 @@ export type Query = {
    * - `doGasSelection`: If true, enables automatic gas coin selection and budget estimation. Defaults to false.
    */
   simulateTransaction: SimulationResult;
+  /** Check if follower follows following. Returns null when social DB not configured. */
+  socialGraphFollowing?: Maybe<Scalars['Boolean']['output']>;
+  /** Spot bets for a post. Returns empty when social DB not configured. */
+  spotBets?: Maybe<Array<SpotBet>>;
+  /** Spot record for a post (1:1). Returns null when social DB not configured or no record. */
+  spotRecord?: Maybe<SpotRecord>;
+  /** SPT holdings for a profile (holder address). Returns empty when social DB not configured. */
+  sptHoldings?: Maybe<Array<SptHolding>>;
+  /** SPT pool by ID. Returns null if social DB not configured or not found. */
+  sptPool?: Maybe<SptPool>;
+  /** SPT price history. Provide profileAddress or poolId (at least one required). Returns empty when social DB not configured. */
+  sptPriceHistory?: Maybe<Array<SptPriceHistory>>;
+  /** Tips received for a post (paginated). Returns empty when social DB not configured. */
+  tips?: Maybe<Array<TipSummary>>;
   /**
    * Fetch a transaction by its digest.
    *
@@ -3778,14 +4437,31 @@ export type Query = {
    * - `author` is the signer's address.
    */
   verifyZkLoginSignature: ZkLoginVerifyResult;
+  /** Vesting leaderboard by total vested amount. Returns empty when social DB not configured. */
+  vestingLeaderboard?: Maybe<VestingLeaderboardResponse>;
+  /** Fetch a vesting wallet by ID. Returns null if social DB not configured or not found. */
+  vestingWallet?: Maybe<VestingWallet>;
+  /** List vesting wallets with optional owner and active-only filters. Returns empty when social DB not configured. */
+  vestingWallets?: Maybe<Array<VestingWallet>>;
 };
 
 
 export type QueryAddressArgs = {
   address?: InputMaybe<Scalars['MySoAddress']['input']>;
   atCheckpoint?: InputMaybe<Scalars['UInt53']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
   rootVersion?: InputMaybe<Scalars['UInt53']['input']>;
+};
+
+
+export type QueryCheckPlatformBlockedArgs = {
+  platform: Scalars['ID']['input'];
+  profile: Scalars['MySoAddress']['input'];
+};
+
+
+export type QueryCheckProfileBlockedArgs = {
+  blocked: Scalars['MySoAddress']['input'];
+  blocker: Scalars['MySoAddress']['input'];
 };
 
 
@@ -3808,6 +4484,23 @@ export type QueryCoinMetadataArgs = {
 };
 
 
+export type QueryCommentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryDelegateArgs = {
+  address: Scalars['MySoAddress']['input'];
+};
+
+
+export type QueryDelegatesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  registryType?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryEpochArgs = {
   epochId?: InputMaybe<Scalars['UInt53']['input']>;
 };
@@ -3827,6 +4520,29 @@ export type QueryEventsArgs = {
   filter?: InputMaybe<EventFilter>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryGovernanceRegistryArgs = {
+  platformId: Scalars['String']['input'];
+};
+
+
+export type QueryInsurancePoliciesArgs = {
+  insured: Scalars['MySoAddress']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryInsurancePolicyArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryInsuranceVaultsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -3870,8 +4586,22 @@ export type QueryMultiGetTypesArgs = {
 };
 
 
-export type QueryNameRecordArgs = {
-  name: Scalars['String']['input'];
+export type QueryMydataPurchasesArgs = {
+  buyer: Scalars['MySoAddress']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryMydataRecordArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryMydataRecordsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  owner: Scalars['MySoAddress']['input'];
 };
 
 
@@ -3933,8 +4663,83 @@ export type QueryPackagesArgs = {
 };
 
 
+export type QueryPlatformArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryPlatformsArgs = {
+  approvedOnly?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryPostArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryPostsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  owner?: InputMaybe<Scalars['String']['input']>;
+  postType?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryProfileArgs = {
+  address: Scalars['MySoAddress']['input'];
+};
+
+
+export type QueryProfilesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryPromotedPostsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  platformId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryPromotionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryProposalArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryProposalsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  platformId?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryProtocolConfigsArgs = {
   version?: InputMaybe<Scalars['UInt53']['input']>;
+};
+
+
+export type QueryReactionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  postId: Scalars['ID']['input'];
+};
+
+
+export type QueryRepostsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  postId: Scalars['ID']['input'];
 };
 
 
@@ -3942,6 +4747,50 @@ export type QuerySimulateTransactionArgs = {
   checksEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   doGasSelection?: InputMaybe<Scalars['Boolean']['input']>;
   transaction: Scalars['JSON']['input'];
+};
+
+
+export type QuerySocialGraphFollowingArgs = {
+  follower: Scalars['MySoAddress']['input'];
+  following: Scalars['MySoAddress']['input'];
+};
+
+
+export type QuerySpotBetsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  postId: Scalars['ID']['input'];
+};
+
+
+export type QuerySpotRecordArgs = {
+  postId: Scalars['ID']['input'];
+};
+
+
+export type QuerySptHoldingsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  profile: Scalars['MySoAddress']['input'];
+};
+
+
+export type QuerySptPoolArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QuerySptPriceHistoryArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  poolId?: InputMaybe<Scalars['ID']['input']>;
+  profileAddress?: InputMaybe<Scalars['MySoAddress']['input']>;
+};
+
+
+export type QueryTipsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  postId: Scalars['ID']['input'];
 };
 
 
@@ -3976,6 +4825,25 @@ export type QueryVerifyZkLoginSignatureArgs = {
   signature: Scalars['Base64']['input'];
 };
 
+
+export type QueryVestingLeaderboardArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryVestingWalletArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryVestingWalletsArgs = {
+  activeOnly?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  owner?: InputMaybe<Scalars['MySoAddress']['input']>;
+};
+
 /** System transaction for creating the on-chain randomness state. */
 export type RandomnessStateCreateTransaction = {
   __typename?: 'RandomnessStateCreateTransaction';
@@ -3994,6 +4862,15 @@ export type RandomnessStateUpdateTransaction = {
   randomnessObjInitialSharedVersion?: Maybe<Scalars['Int']['output']>;
   /** Randomness round of the update. */
   randomnessRound?: Maybe<Scalars['Int']['output']>;
+};
+
+export type ReactionSummary = {
+  __typename?: 'ReactionSummary';
+  createdAt: Scalars['Int']['output'];
+  reactionText: Scalars['String']['output'];
+  userAddress: Scalars['MySoAddress']['output'];
+  /** Profile of the user who reacted. */
+  userProfile?: Maybe<ProfileSummary>;
 };
 
 /** A transaction that wanted to read a consensus-managed object but couldn't because it became not-consensus-managed before the transaction executed (for example, it was deleted, turned into an owned object, or wrapped). */
@@ -4018,6 +4895,27 @@ export enum RegulatedState {
   /** The currency was created without a deny list. */
   Unregulated = 'UNREGULATED'
 }
+
+export type RepostSummary = {
+  __typename?: 'RepostSummary';
+  createdAt: Scalars['Int']['output'];
+  originalPostId: Scalars['String']['output'];
+  owner: Scalars['MySoAddress']['output'];
+  /** Profile of the repost owner. */
+  ownerProfile?: Maybe<ProfileSummary>;
+  profileId: Scalars['String']['output'];
+  repostId: Scalars['String']['output'];
+};
+
+export type SelectedBadge = {
+  __typename?: 'SelectedBadge';
+  badgeIconUrl?: Maybe<Scalars['String']['output']>;
+  badgeId: Scalars['String']['output'];
+  badgeMediaUrl?: Maybe<Scalars['String']['output']>;
+  badgeName: Scalars['String']['output'];
+  badgeType: Scalars['Int']['output'];
+  platformId: Scalars['String']['output'];
+};
 
 export type ServiceConfig = {
   __typename?: 'ServiceConfig';
@@ -4111,7 +5009,7 @@ export type ServiceConfig = {
   maxTypeArgumentWidth?: Maybe<Scalars['Int']['output']>;
   /** Maximum number of datatypes that need to be processed when calculating the layout of a single type. */
   maxTypeNodes?: Maybe<Scalars['Int']['output']>;
-  /** Maximum time in milliseconds spent waiting for a response from fullnode after issuing a transaction to execute. Note that the transaction may still succeed even in the case of a timeout. Transactions are idempotent, so a transaction that times out should be re-submitted until the network returns a definite response (success or failure, not timeout). */
+  /** Maximum time in milliseconds spent waiting for a response from fullnode after ismysong a transaction to execute. Note that the transaction may still succeed even in the case of a timeout. Transactions are idempotent, so a transaction that times out should be re-submitted until the network returns a definite response (success or failure, not timeout). */
   mutationTimeoutMs?: Maybe<Scalars['Int']['output']>;
   /** Maximum time in milliseconds that will be spent to serve one query request. */
   queryTimeoutMs?: Maybe<Scalars['Int']['output']>;
@@ -4177,6 +5075,18 @@ export type SimulationResult = {
   outputs?: Maybe<Array<CommandResult>>;
 };
 
+export type SocialProofToken = {
+  __typename?: 'SocialProofToken';
+  isActive: Scalars['Boolean']['output'];
+  poolId?: Maybe<Scalars['String']['output']>;
+  requiredThreshold: Scalars['Int']['output'];
+  reservationPercentage: Scalars['Float']['output'];
+  reservationPoolId?: Maybe<Scalars['String']['output']>;
+  reservationStatus: Scalars['String']['output'];
+  tokenAddress?: Maybe<Scalars['String']['output']>;
+  totalReserved: Scalars['Int']['output'];
+};
+
 /** Splits off coins with denominations in `amounts` from `coin`, returning multiple results (as many as there are amounts.) */
 export type SplitCoinsCommand = {
   __typename?: 'SplitCoinsCommand';
@@ -4184,6 +5094,163 @@ export type SplitCoinsCommand = {
   amounts: Array<TransactionArgument>;
   /** The coin to split. */
   coin?: Maybe<TransactionArgument>;
+};
+
+export type SpotBet = {
+  __typename?: 'SpotBet';
+  /** AMM amount. */
+  ammAmount: Scalars['Int']['output'];
+  /** Total amount staked (escrow + AMM). */
+  amount: Scalars['Int']['output'];
+  /** Unique bet identifier. */
+  betId: Scalars['String']['output'];
+  /** Address of the bettor. */
+  better: Scalars['MySoAddress']['output'];
+  /** Escrow amount. */
+  escrowAmount: Scalars['Int']['output'];
+  /** Human-readable option label (e.g. "Yes", "No"). */
+  optionLabel?: Maybe<Scalars['String']['output']>;
+  /** Option ID the bettor chose (outcome bet on). */
+  outcome: Scalars['Int']['output'];
+  /** Epoch timestamp when the bet was placed. */
+  placedAt: Scalars['Int']['output'];
+  /** Post ID this bet is for. */
+  postId: Scalars['String']['output'];
+  /** Profile of the bettor. */
+  profile?: Maybe<ProfileSummary>;
+  /** Transaction ID. */
+  transactionId: Scalars['String']['output'];
+};
+
+export type SpotOptionEscrow = {
+  __typename?: 'SpotOptionEscrow';
+  /** Escrow amount for this option. */
+  amount: Scalars['Int']['output'];
+  /** Option ID. */
+  optionId: Scalars['Int']['output'];
+};
+
+export type SpotRecord = {
+  __typename?: 'SpotRecord';
+  /** Betting option labels (e.g. ["Yes", "No"]). */
+  bettingOptions: Array<Scalars['String']['output']>;
+  /** Epoch when the record was created. */
+  createdEpoch: Scalars['Int']['output'];
+  /** Last resolution epoch. */
+  lastResolutionEpoch?: Maybe<Scalars['Int']['output']>;
+  /** Max resolution window in epochs. */
+  maxResolutionWindowEpochs?: Maybe<Scalars['Int']['output']>;
+  /** Escrow amount per option (option_id -> amount). */
+  optionEscrow: Array<SpotOptionEscrow>;
+  /** Post ID this record is for. */
+  postId: Scalars['String']['output'];
+  /** Unique record identifier. */
+  recordId: Scalars['String']['output'];
+  /** Resolved outcome (when resolved). */
+  resolution?: Maybe<Scalars['Int']['output']>;
+  /** Resolution window in epochs. */
+  resolutionWindowEpochs?: Maybe<Scalars['Int']['output']>;
+  /** Record status (1=open, 2=dao_required, 3=resolved, 4=refundable). */
+  status: Scalars['Int']['output'];
+  /** Total escrow across all options. */
+  totalEscrow: Scalars['Int']['output'];
+};
+
+export type SptHolding = {
+  __typename?: 'SptHolding';
+  /** Holder wallet address. */
+  address: Scalars['MySoAddress']['output'];
+  /** Token balance held. */
+  amount: Scalars['Int']['output'];
+  /** Profile whose token this holding represents. */
+  profile: ProfileSummary;
+};
+
+export type SptPool = {
+  __typename?: 'SptPool';
+  /** Token name. */
+  name: Scalars['String']['output'];
+  /** Pool owner address. */
+  owner: Scalars['MySoAddress']['output'];
+  /** Profile of the pool owner. */
+  ownerProfile?: Maybe<ProfileSummary>;
+  /** Pool ID. */
+  poolId: Scalars['String']['output'];
+  /** Current price (smallest units). */
+  price: Scalars['Int']['output'];
+  /** Price history for this pool. */
+  priceHistory?: Maybe<Array<SptPriceHistory>>;
+  /** Token symbol. */
+  symbol: Scalars['String']['output'];
+  /** Token type (1=profile, 2=post). */
+  tokenType: Scalars['Int']['output'];
+  /** Total circulating supply. */
+  totalSupply: Scalars['Int']['output'];
+  /** Recent transactions for this pool. */
+  transactions?: Maybe<Array<SptTransaction>>;
+};
+
+
+export type SptPoolPriceHistoryArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type SptPoolTransactionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type SptPriceHistory = {
+  __typename?: 'SptPriceHistory';
+  /** Circulating supply at this point. */
+  circulatingSupply: Scalars['Int']['output'];
+  /** Pool ID. */
+  poolId: Scalars['String']['output'];
+  /** Price at this point. */
+  price: Scalars['Int']['output'];
+  /** Timestamp (ISO 8601). */
+  timestamp: Scalars['String']['output'];
+  /** Transaction ID. */
+  transactionId: Scalars['String']['output'];
+};
+
+export type SptTransaction = {
+  __typename?: 'SptTransaction';
+  /** Token amount. */
+  amount: Scalars['Int']['output'];
+  /** Sender address. */
+  from: Scalars['MySoAddress']['output'];
+  /** Transaction timestamp (ISO 8601). */
+  timestamp: Scalars['String']['output'];
+  /** Counterparty (pool ID). */
+  to?: Maybe<Scalars['String']['output']>;
+  /** Transaction type (BUY or SELL). */
+  type: Scalars['String']['output'];
+};
+
+/** Parameters that control the distribution of the stake subsidy. */
+export type StakeSubsidy = {
+  __typename?: 'StakeSubsidy';
+  /** The annual percentage yield from the stake subsidy in basis points. Divide by 100 for percentage. */
+  apy?: Maybe<Scalars['Int']['output']>;
+  /** MYSO set aside for stake subsidies — reduces over time as stake subsidies are paid out. */
+  balance?: Maybe<Scalars['BigInt']['output']>;
+  /** Current stake subsidy APY in basis points — decays over time. */
+  currentApyBps?: Maybe<Scalars['BigInt']['output']>;
+  /** Percentage of the current APY to deduct at the end of the current subsidy period, in basis points. */
+  decreaseRate?: Maybe<Scalars['Int']['output']>;
+  /** Number of times stake subsidies have been distributed (with other staking rewards at end of epoch). */
+  distributionCounter?: Maybe<Scalars['Int']['output']>;
+  /** Target duration for subsidy pool in years (e.g., 10). Used for stake-aware APY reduction. */
+  intendedDurationYears?: Maybe<Scalars['BigInt']['output']>;
+  /** Maximum APY cap (in basis points). Effective APY will never exceed this. */
+  maxApyBps?: Maybe<Scalars['BigInt']['output']>;
+  /** Minimum APY floor (in basis points). Effective APY will never go below this. */
+  minApyBps?: Maybe<Scalars['BigInt']['output']>;
+  /** Maximum number of stake subsidy distributions that occur with the same APY (before the APY is reduced). */
+  periodLength?: Maybe<Scalars['Int']['output']>;
 };
 
 /** System transaction for storing execution time observations. */
@@ -4200,6 +5267,18 @@ export enum SupplyState {
   /** The supply can neither increase nor decrease. */
   Fixed = 'FIXED'
 }
+
+export type TipSummary = {
+  __typename?: 'TipSummary';
+  amount: Scalars['Int']['output'];
+  createdAt: Scalars['Int']['output'];
+  recipient: Scalars['MySoAddress']['output'];
+  /** Profile of the tip recipient. */
+  recipientProfile?: Maybe<ProfileSummary>;
+  tipper: Scalars['MySoAddress']['output'];
+  /** Profile of the tipper. */
+  tipperProfile?: Maybe<ProfileSummary>;
+};
 
 /** Description of a transaction, the unit of activity on MySo. */
 export type Transaction = Node & {
@@ -4480,6 +5559,8 @@ export type UserSignature = {
 
 export type Validator = {
   __typename?: 'Validator';
+  /** The APY of this validator in basis points (network-wide stake subsidy APY). Divide by 100 for percentage. */
+  apy?: Maybe<Scalars['UInt53']['output']>;
   /** The number of epochs for which this validator has been below the low stake threshold. */
   atRisk?: Maybe<Scalars['UInt53']['output']>;
   /** On-chain representation of the underlying `0x3::validator::Validator` value. */
@@ -4549,6 +5630,66 @@ export type VersionFilter = {
   afterVersion?: InputMaybe<Scalars['UInt53']['input']>;
   /** Filter to versions that are strictly older than this one, defaults to fetching up to the latest version (inclusive). */
   beforeVersion?: InputMaybe<Scalars['UInt53']['input']>;
+};
+
+export type VestingLeaderboardEntry = {
+  __typename?: 'VestingLeaderboardEntry';
+  /** Number of active vesting wallets. */
+  activeWallets: Scalars['Int']['output'];
+  /** Number of completed vesting wallets. */
+  completedWallets: Scalars['Int']['output'];
+  /** Owner address. */
+  ownerAddress: Scalars['MySoAddress']['output'];
+  /** Total amount claimed across all wallets. */
+  totalClaimed: Scalars['Int']['output'];
+  /** Total amount vested across all wallets. */
+  totalVested: Scalars['Int']['output'];
+  /** User profile summary. */
+  user: ProfileSummary;
+};
+
+export type VestingLeaderboardResponse = {
+  __typename?: 'VestingLeaderboardResponse';
+  /** Leaderboard entries. */
+  entries: Array<VestingLeaderboardEntry>;
+  /** Total number of unique owners. */
+  total: Scalars['Int']['output'];
+};
+
+export type VestingWallet = {
+  __typename?: 'VestingWallet';
+  /** Amount already claimed. */
+  claimedAmount: Scalars['Int']['output'];
+  /** Claimed percentage (0-100). */
+  claimedPercentage: Scalars['Float']['output'];
+  /** When the wallet was created (ISO 8601). */
+  createdAt: Scalars['String']['output'];
+  /** Curve factor (1000 = linear). */
+  curveFactor: Scalars['Int']['output'];
+  /** Vesting duration (ms). */
+  duration: Scalars['Int']['output'];
+  /** End time (ms since epoch). */
+  endTime: Scalars['Int']['output'];
+  /** Whether vesting has ended. */
+  hasEnded: Scalars['Boolean']['output'];
+  /** Whether vesting has started. */
+  hasStarted: Scalars['Boolean']['output'];
+  /** Owner address. */
+  ownerAddress: Scalars['MySoAddress']['output'];
+  /** Profile of the vesting wallet owner. */
+  ownerProfile?: Maybe<ProfileSummary>;
+  /** Remaining balance. */
+  remainingBalance: Scalars['Int']['output'];
+  /** Vesting start time (ms since epoch). */
+  startTime: Scalars['Int']['output'];
+  /** Total amount vested. */
+  totalAmount: Scalars['Int']['output'];
+  /** Transaction ID that created the wallet. */
+  transactionId: Scalars['String']['output'];
+  /** Vesting progress (0.0-1.0). */
+  vestingProgress: Scalars['Float']['output'];
+  /** Vesting wallet ID (object address). */
+  walletId: Scalars['String']['output'];
 };
 
 /** The account to withdraw funds from. */
@@ -4666,13 +5807,6 @@ export type GetReferenceGasPriceQueryVariables = Exact<{ [key: string]: never; }
 
 
 export type GetReferenceGasPriceQuery = { __typename?: 'Query', epoch?: { __typename?: 'Epoch', referenceGasPrice?: string | null } | null };
-
-export type DefaultMySonsNameQueryVariables = Exact<{
-  address: Scalars['MySoAddress']['input'];
-}>;
-
-
-export type DefaultMySonsNameQuery = { __typename?: 'Query', address?: { __typename?: 'Address', defaultNameRecord?: { __typename?: 'NameRecord', domain: string } | null } | null };
 
 export type GetOwnedObjectsQueryVariables = Exact<{
   owner: Scalars['MySoAddress']['input'];
@@ -5189,15 +6323,6 @@ export const GetReferenceGasPriceDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<GetReferenceGasPriceQuery, GetReferenceGasPriceQueryVariables>;
-export const DefaultMySonsNameDocument = new TypedDocumentString(`
-    query defaultMySonsName($address: MySoAddress!) {
-  address(address: $address) {
-    defaultNameRecord {
-      domain
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<DefaultMySonsNameQuery, DefaultMySonsNameQueryVariables>;
 export const GetOwnedObjectsDocument = new TypedDocumentString(`
     query getOwnedObjects($owner: MySoAddress!, $limit: Int, $cursor: String, $filter: ObjectFilter, $includeContent: Boolean = false, $includePreviousTransaction: Boolean = false, $includeObjectBcs: Boolean = false, $includeJson: Boolean = false) {
   address(address: $owner) {

@@ -22,7 +22,7 @@ type ActiveJwk {
 	"""
 	epoch: Epoch
 	"""
-	The string (Issuing Authority) that identifies the OIDC provider.
+	The string (Ismysong Authority) that identifies the OIDC provider.
 	"""
 	iss: String
 	"""
@@ -95,10 +95,6 @@ type Address implements Node & IAddressable {
 	"""
 	balances(first: Int, after: String, last: Int, before: String): BalanceConnection
 	"""
-	The domain explicitly configured as the default Name Service name for this address.
-	"""
-	defaultNameRecord: NameRecord
-	"""
 	Access a dynamic field on an object using its type and BCS-encoded name.
 	
 	Returns `null` if a dynamic field with that name could not be found attached to the object with this address.
@@ -164,7 +160,7 @@ type AddressAliasStateCreateTransaction {
 """
 Identifies a specific version of an address.
 
-Exactly one of `address` or `name` must be specified. Additionally, at most one of `rootVersion` or `atCheckpoint` can be specified. If neither bound is provided, the address is fetched at the checkpoint being viewed.
+The `address` must be specified. Additionally, at most one of `rootVersion` or `atCheckpoint` can be specified. If neither bound is provided, the address is fetched at the checkpoint being viewed.
 
 See `Query.address` for more details.
 """
@@ -177,10 +173,6 @@ input AddressKey {
 	If specified, sets a checkpoint bound for this address.
 	"""
 	atCheckpoint: UInt53
-	"""
-	A MySoNS name to resolve to an address.
-	"""
-	name: String
 	"""
 	If specified, sets a root version bound for this address.
 	"""
@@ -393,6 +385,26 @@ scalar Base64
 String representation of an arbitrary width, possibly signed integer
 """
 scalar BigInt
+
+type BlockedPlatformSummary {
+	blockedBy: String!
+	"""
+	Profile of the user who blocked the platform.
+	"""
+	blockedByProfile: ProfileSummary
+	createdAt: String!
+	platformId: String!
+	platformName: String!
+}
+
+type BlockedProfileSummary {
+	address: MySoAddress!
+	displayName: String
+	firstBlockedAt: String!
+	lastBlockedAt: String!
+	profilePhoto: String
+	username: String!
+}
 
 
 """
@@ -614,10 +626,6 @@ type CoinMetadata implements IAddressable & IMoveObject & IObject {
 	"""
 	decimals: Int
 	"""
-	The domain explicitly configured as the default Name Service name for this address.
-	"""
-	defaultNameRecord: NameRecord
-	"""
 	If the currency is regulated, this object represents the capability to modify the deny list. If a capability is known but wrapped, its address can be fetched but other fields will not be accessible.
 	"""
 	denyCap: MoveObject
@@ -815,6 +823,22 @@ type CommandResult {
 	returnValues: [CommandOutput!]
 }
 
+type CommentSummary {
+	commentCount: Int!
+	commentId: String!
+	content: String!
+	createdAt: Int!
+	owner: String!
+	"""
+	Profile of the comment owner (username, display name, photo, etc.).
+	"""
+	ownerProfile: ProfileSummary
+	parentCommentId: String
+	postId: String!
+	profileId: String!
+	reactionCount: Int!
+}
+
 """
 Object is exclusively owned by a single adderss and sequenced via consensus.
 """
@@ -921,6 +945,45 @@ ISO-8601 Date and Time: RFC3339 in UTC with format: YYYY-MM-DDTHH:MM:SS.mmmZ. No
 """
 scalar DateTime
 
+type Delegate {
+	"""
+	Delegate address.
+	"""
+	address: MySoAddress!
+	"""
+	Downvotes (delegate ratings).
+	"""
+	downvotes: Int!
+	"""
+	Whether the delegate is currently active.
+	"""
+	isActive: Boolean!
+	"""
+	Proposals reviewed.
+	"""
+	proposalsReviewed: Int!
+	"""
+	Proposals submitted.
+	"""
+	proposalsSubmitted: Int!
+	"""
+	Registry type (0=ecosystem, 1=proof of creativity, 3=platform).
+	"""
+	registryType: Int!
+	"""
+	Term end (epoch).
+	"""
+	termEnd: Int!
+	"""
+	Term start (epoch).
+	"""
+	termStart: Int!
+	"""
+	Upvotes (delegate ratings).
+	"""
+	upvotes: Int!
+}
+
 """
 A rendered JSON blob based on an on-chain template.
 """
@@ -978,10 +1041,6 @@ type DynamicField implements Node & IAddressable & IMoveObject & IObject {
 	The structured representation of the object's contents.
 	"""
 	contents: MoveValue
-	"""
-	The domain explicitly configured as the default Name Service name for this address.
-	"""
-	defaultNameRecord: NameRecord
 	"""
 	32-byte hash that identifies the object's contents, encoded in Base58.
 	"""
@@ -1130,7 +1189,7 @@ input DynamicFieldName {
 	"""
 	literal: String
 	"""
-	The type of the dynamic field's name, like 'u64' or '0x2::kiosk::Listing'.
+	The type of the dynamic field's name, like 'u64'.
 	"""
 	type: String
 }
@@ -1254,6 +1313,10 @@ type Epoch implements Node {
 	The system packages used by all transactions in this epoch.
 	"""
 	systemPackages(first: Int, after: String, last: Int, before: String): MovePackageConnection
+	"""
+	Stake subsidy parameters at the start of this epoch (balance, APY, period, etc.).
+	"""
+	systemStakeSubsidy: StakeSubsidy
 	"""
 	The contents of the system state inner object at the start of this epoch.
 	"""
@@ -1587,6 +1650,48 @@ type GenesisTransaction {
 	objects(first: Int, after: String, last: Int, before: String): ObjectConnection
 }
 
+type GovernanceRegistry {
+	"""
+	Voting configuration (term, costs, quorum, etc.).
+	"""
+	config: GovernanceRegistryConfig!
+	"""
+	Number of delegates.
+	"""
+	delegateCount: Int!
+	"""
+	Registry object ID on-chain.
+	"""
+	registryId: String!
+	"""
+	Registry type (0=ecosystem, 1=proof of creativity, 3=platform).
+	"""
+	registryType: Int!
+}
+
+type GovernanceRegistryConfig {
+	"""
+	Delegate term length in epochs.
+	"""
+	delegateTermEpochs: Int!
+	"""
+	Max votes per user in community voting.
+	"""
+	maxVotesPerUser: Int!
+	"""
+	Cost to submit a proposal.
+	"""
+	proposalSubmissionCost: Int!
+	"""
+	Quorum votes required.
+	"""
+	quorumVotes: Int!
+	"""
+	Voting period in milliseconds.
+	"""
+	votingPeriodMs: Int!
+}
+
 """
 Interface implemented by GraphQL types representing entities that are identified by an address.
 
@@ -1610,10 +1715,6 @@ interface IAddressable {
 	Total balance across coins owned by this address, grouped by coin type.
 	"""
 	balances(first: Int, after: String, last: Int, before: String): BalanceConnection
-	"""
-	The domain explicitly configured as the default Name Service name for this address.
-	"""
-	defaultNameRecord: NameRecord
 	"""
 	Fetch the total balances keyed by coin types (e.g. `0x2::myso::MYSO`) owned by this address.
 	
@@ -1765,6 +1866,48 @@ type Input {
 	The index of the input.
 	"""
 	ix: Int
+}
+
+type InsurancePolicy {
+	"""
+	Covered amount.
+	"""
+	coveredAmount: Int!
+	"""
+	Insured address.
+	"""
+	insured: MySoAddress!
+	"""
+	Market ID this policy covers.
+	"""
+	marketId: String!
+	"""
+	Unique policy identifier.
+	"""
+	policyId: String!
+	"""
+	Premium paid.
+	"""
+	premiumPaid: Int!
+	"""
+	Policy status (1=ACTIVE, 2=CANCELLED, 3=CLAIMED, 4=EXPIRED).
+	"""
+	status: Int!
+}
+
+type InsuranceVault {
+	"""
+	Capital balance.
+	"""
+	capitalBalance: Int!
+	"""
+	Underwriter address.
+	"""
+	underwriter: MySoAddress!
+	"""
+	Unique vault identifier.
+	"""
+	vaultId: String!
 }
 
 
@@ -2235,10 +2378,6 @@ type MoveObject implements Node & IAddressable & IMoveObject & IObject {
 	"""
 	contents: MoveValue
 	"""
-	The domain explicitly configured as the default Name Service name for this address.
-	"""
-	defaultNameRecord: NameRecord
-	"""
 	32-byte hash that identifies the object's contents, encoded in Base58.
 	"""
 	digest: String
@@ -2389,10 +2528,6 @@ type MovePackage implements Node & IAddressable & IObject {
 	Total balance across coins owned by this address, grouped by coin type.
 	"""
 	balances(first: Int, after: String, last: Int, before: String): BalanceConnection
-	"""
-	The domain explicitly configured as the default Name Service name for this address.
-	"""
-	defaultNameRecord: NameRecord
 	"""
 	32-byte hash that identifies the package's contents, encoded in Base58.
 	"""
@@ -2752,31 +2887,72 @@ type Mutation {
 	executeTransaction(transactionDataBcs: Base64!, signatures: [Base64!]!): ExecutionResult!
 }
 
-"""
-A Name Service NameRecord representing a domain name registration.
-"""
-type NameRecord {
+type MyDataPurchase {
 	"""
-	On-chain representation of the underlying Name Service `NameRecord` Move value.
+	Buyer address.
 	"""
-	contents: MoveValue!
+	buyer: MySoAddress!
 	"""
-	The domain name this record is for.
+	Profile of the buyer.
 	"""
-	domain: String!
+	buyerProfile: ProfileSummary
 	"""
-	The Name Service Name Record of the parent domain, if this is a subdomain.
-	
-	Returns `null` if this is not a subdomain.
+	MyData record ID this purchase is for.
 	"""
-	parent: NameRecord
+	mydataId: String!
 	"""
-	The address this domain points to.
-	
-	`rootVersion` and `atCheckpoint` control how the target `Address` is scoped. If neither is provided, the `Address` is scoped to the latest checkpoint known to the RPC.
+	Price paid.
 	"""
-	target(rootVersion: UInt53, atCheckpoint: UInt53): Address
+	price: Int!
+	"""
+	Epoch timestamp when the purchase was made.
+	"""
+	purchaseTime: Int!
+	"""
+	Purchase type ("one_time" or "subscription").
+	"""
+	purchaseType: String!
+	"""
+	Transaction ID.
+	"""
+	transactionId: String!
 }
+
+type MyDataRecord {
+	"""
+	Media type (e.g. "text", "audio", "image", "video").
+	"""
+	mediaType: String!
+	"""
+	Unique MyData record identifier.
+	"""
+	mydataId: String!
+	"""
+	One-time purchase price (null if not for sale).
+	"""
+	oneTimePrice: Int
+	"""
+	Owner address.
+	"""
+	owner: MySoAddress!
+	"""
+	Profile of the MyData record owner.
+	"""
+	ownerProfile: ProfileSummary
+	"""
+	Subscription price (null if not for sale).
+	"""
+	subscriptionPrice: Int
+	"""
+	Searchable tags.
+	"""
+	tags: [String!]!
+}
+
+"""
+String containing 32 byte hex-encoded address, with a leading '0x'. Leading zeroes can be omitted on input but will always appear in outputs (MySoAddress in output is guaranteed to be 66 characters long).
+"""
+scalar MySoAddress
 
 """
 An interface implemented by types that can be uniquely identified by a globally unique `ID`, following the GraphQL Global Object Identification specification.
@@ -2822,10 +2998,6 @@ type Object implements Node & IAddressable & IObject {
 	Total balance across coins owned by this address, grouped by coin type.
 	"""
 	balances(first: Int, after: String, last: Int, before: String): BalanceConnection
-	"""
-	The domain explicitly configured as the default Name Service name for this address.
-	"""
-	defaultNameRecord: NameRecord
 	"""
 	32-byte hash that identifies the object's contents, encoded in Base58.
 	"""
@@ -3221,6 +3393,588 @@ type PerEpochConfig {
 	object: Object
 }
 
+type Platform implements Node {
+	"""
+	Wallets blocked by this platform (paginated).
+	"""
+	blockedProfiles(limit: Int, offset: Int): [PlatformBlockedProfileSummary!]
+	"""
+	When the platform was created (ISO 8601).
+	"""
+	createdAt: String!
+	"""
+	Delegate count for governance.
+	"""
+	delegateCount: Int
+	"""
+	Delegate term epochs.
+	"""
+	delegateTermEpochs: Int
+	"""
+	The platform description.
+	"""
+	description: String
+	"""
+	The developer's wallet address.
+	"""
+	developerAddress: String!
+	"""
+	Profile of the platform developer.
+	"""
+	developerProfile: ProfileSummary
+	"""
+	Governance registry ID.
+	"""
+	governanceRegistryId: String
+	"""
+	The platform's globally unique identifier.
+	"""
+	id: ID!
+	"""
+	Whether the platform is approved.
+	"""
+	isApproved: Boolean!
+	"""
+	Links (JSON).
+	"""
+	links: JSON
+	"""
+	URL to the platform logo.
+	"""
+	logo: String
+	"""
+	Max votes per user.
+	"""
+	maxVotesPerUser: Int
+	"""
+	Members of this platform (paginated).
+	"""
+	members(limit: Int, offset: Int): [PlatformMemberSummary!]
+	"""
+	Min on-chain age in days.
+	"""
+	minOnChainAgeDays: Int
+	"""
+	Moderators of this platform (paginated).
+	"""
+	moderators(limit: Int, offset: Int): [PlatformModeratorSummary!]
+	"""
+	The platform name.
+	"""
+	name: String!
+	"""
+	The platform ID.
+	"""
+	platformId: String!
+	"""
+	Platform names (e.g. Twitter, Instagram) as JSON array.
+	"""
+	platformNames: JSON
+	"""
+	Primary category.
+	"""
+	primaryCategory: String!
+	"""
+	Privacy policy.
+	"""
+	privacyPolicy: String
+	"""
+	Proposal submission cost.
+	"""
+	proposalSubmissionCost: Int
+	"""
+	Quadratic base cost.
+	"""
+	quadraticBaseCost: Int
+	"""
+	Quorum votes.
+	"""
+	quorumVotes: Int
+	"""
+	Release date.
+	"""
+	releaseDate: String
+	"""
+	Secondary category.
+	"""
+	secondaryCategory: String
+	"""
+	Shutdown date.
+	"""
+	shutdownDate: String
+	"""
+	Platform status as text (Development, Alpha, Beta, Live, etc.).
+	"""
+	statusText: String!
+	"""
+	The platform tagline.
+	"""
+	tagline: String!
+	"""
+	Terms of service.
+	"""
+	termsOfService: String
+	"""
+	Treasury balance.
+	"""
+	treasury: Int
+	"""
+	When the platform was last updated (ISO 8601).
+	"""
+	updatedAt: String!
+	"""
+	Voting period epochs.
+	"""
+	votingPeriodEpochs: Int
+	"""
+	Whether the platform wants DAO governance.
+	"""
+	wantsDaoGovernance: Boolean
+}
+
+type PlatformBlockedProfileSummary {
+	blockedBy: String!
+	createdAt: String!
+	"""
+	Profile of the blocked user.
+	"""
+	profile: ProfileSummary
+	walletAddress: MySoAddress!
+}
+
+type PlatformMemberSummary {
+	joinedAt: String!
+	"""
+	Profile of the platform member.
+	"""
+	profile: ProfileSummary
+	walletAddress: MySoAddress!
+}
+
+type PlatformMembershipSummary {
+	isApproved: Boolean!
+	joinedAt: String!
+	name: String!
+	platformId: String!
+}
+
+type PlatformModeratorSummary {
+	addedBy: String!
+	"""
+	Profile of the user who added the moderator.
+	"""
+	addedByProfile: ProfileSummary
+	createdAt: String!
+	moderatorAddress: MySoAddress!
+	"""
+	Profile of the moderator.
+	"""
+	moderatorProfile: ProfileSummary
+}
+
+type Post implements Node {
+	"""
+	Number of comments.
+	"""
+	commentCount: Int!
+	"""
+	Comments on this post (paginated).
+	"""
+	comments(limit: Int, offset: Int): [CommentSummary!]
+	"""
+	The post content.
+	"""
+	content: String!
+	"""
+	When the post was created (Unix timestamp in milliseconds).
+	"""
+	createdAt: Int!
+	"""
+	The post's globally unique identifier.
+	"""
+	id: ID!
+	"""
+	Media URLs (JSON array).
+	"""
+	mediaUrls: JSON
+	"""
+	Mentions (JSON).
+	"""
+	mentions: JSON
+	"""
+	The wallet address of the post owner.
+	"""
+	owner: String!
+	"""
+	Profile of the post owner (username, display name, photo, etc.).
+	"""
+	ownerProfile: ProfileSummary
+	"""
+	Parent post ID (for quote reposts).
+	"""
+	parentPostId: String
+	"""
+	The post ID.
+	"""
+	postId: String!
+	"""
+	The post type.
+	"""
+	postType: String!
+	"""
+	The profile ID of the post owner.
+	"""
+	profileId: String!
+	"""
+	Promotion for this post (null if not promoted).
+	"""
+	promotion: Promotion
+	"""
+	Number of reactions.
+	"""
+	reactionCount: Int!
+	"""
+	Reactions on this post (paginated).
+	"""
+	reactions(limit: Int, offset: Int): [ReactionSummary!]
+	"""
+	Number of reposts.
+	"""
+	repostCount: Int!
+	"""
+	Reposts of this post (paginated).
+	"""
+	reposts(limit: Int, offset: Int): [RepostSummary!]
+	"""
+	Spot bets for this post (paginated).
+	"""
+	spotBets(limit: Int, offset: Int): [SpotBet!]
+	"""
+	Spot record for this post (1:1, null if no record).
+	"""
+	spotRecord: SpotRecord
+	"""
+	Tips received for this post (paginated).
+	"""
+	tips(limit: Int, offset: Int): [TipSummary!]
+	"""
+	Total tips received.
+	"""
+	tipsReceived: Int!
+	"""
+	Ownership transfers for this post (paginated).
+	"""
+	transfers(limit: Int, offset: Int): [PostTransferSummary!]
+	"""
+	When the post was last updated (Unix timestamp in milliseconds).
+	"""
+	updatedAt: Int
+}
+
+type PostTransferSummary {
+	newOwner: MySoAddress!
+	"""
+	Profile of the new owner.
+	"""
+	newOwnerProfile: ProfileSummary
+	previousOwner: MySoAddress!
+	"""
+	Profile of the previous owner.
+	"""
+	previousOwnerProfile: ProfileSummary
+	transactionId: String!
+	transferredAt: Int!
+}
+
+type Profile implements Node {
+	"""
+	The wallet address that owns this profile.
+	"""
+	address: MySoAddress!
+	"""
+	Profile badges (paginated).
+	"""
+	badges(limit: Int, offset: Int): [ProfileBadge!]
+	"""
+	The profile's bio.
+	"""
+	bio: String
+	"""
+	Birthdate.
+	"""
+	birthdate: String
+	"""
+	Block list address.
+	"""
+	blockListAddress: String
+	"""
+	Platforms that have blocked this profile (paginated).
+	"""
+	blockedPlatforms(limit: Int, offset: Int): [BlockedPlatformSummary!]
+	"""
+	Profiles this user has blocked (paginated).
+	"""
+	blockedProfiles(limit: Int, offset: Int): [BlockedProfileSummary!]
+	"""
+	URL to the cover photo.
+	"""
+	coverPhoto: String
+	"""
+	When the profile was created (ISO 8601).
+	"""
+	createdAt: String
+	"""
+	Current location.
+	"""
+	currentLocation: String
+	"""
+	The profile's display name.
+	"""
+	displayName: String
+	"""
+	Education.
+	"""
+	education: String
+	"""
+	Email (encrypted).
+	"""
+	email: String
+	"""
+	Facebook username.
+	"""
+	facebookUsername: String
+	"""
+	Followers (paginated).
+	"""
+	followers(limit: Int, offset: Int): [ProfileSummary!]
+	"""
+	Number of followers.
+	"""
+	followersCount: Int!
+	"""
+	Following (paginated).
+	"""
+	following(limit: Int, offset: Int): [ProfileSummary!]
+	"""
+	Number of accounts this profile follows.
+	"""
+	followingCount: Int!
+	"""
+	Gender.
+	"""
+	gender: String
+	"""
+	GitHub username.
+	"""
+	githubUsername: String
+	"""
+	The profile's globally unique identifier.
+	"""
+	id: ID!
+	"""
+	Mastodon username.
+	"""
+	mastodonUsername: String
+	"""
+	Minimum offer amount for profile sales.
+	"""
+	minOfferAmount: Int
+	"""
+	MyData records owned by this profile (paginated).
+	"""
+	mydataRecords(limit: Int, offset: Int): [MyDataRecord!]
+	"""
+	Phone (encrypted).
+	"""
+	phone: String
+	"""
+	Platforms this profile has joined (paginated).
+	"""
+	platformMemberships(limit: Int, offset: Int): [PlatformMembershipSummary!]
+	"""
+	Political view.
+	"""
+	politicalView: String
+	"""
+	Number of posts.
+	"""
+	postCount: Int!
+	"""
+	Primary language.
+	"""
+	primaryLanguage: String
+	"""
+	The profile ID (object address).
+	"""
+	profileId: String
+	"""
+	URL to the profile photo.
+	"""
+	profilePhoto: String
+	"""
+	Raised location.
+	"""
+	raisedLocation: String
+	"""
+	Reddit username.
+	"""
+	redditUsername: String
+	"""
+	Relationship status.
+	"""
+	relationshipStatus: String
+	"""
+	Religion.
+	"""
+	religion: String
+	"""
+	Reservation pool address.
+	"""
+	reservationPoolAddress: String
+	"""
+	Selected badge info.
+	"""
+	selectedBadge: SelectedBadge
+	"""
+	Selected badge ID.
+	"""
+	selectedBadgeId: String
+	"""
+	Selected ecosystem badge ID.
+	"""
+	selectedEcosystemBadgeId: String
+	"""
+	Social proof token info.
+	"""
+	socialProofToken: SocialProofToken
+	"""
+	Social proof token address.
+	"""
+	socialProofTokenAddress: String
+	"""
+	SPT holdings for this profile (paginated).
+	"""
+	sptHoldings(limit: Int, offset: Int): [SptHolding!]
+	"""
+	When the profile was last updated (ISO 8601).
+	"""
+	updatedAt: String
+	"""
+	The profile's username.
+	"""
+	username: String!
+	"""
+	Vesting wallets owned by this profile (paginated).
+	"""
+	vestingWallets(limit: Int, offset: Int): [VestingWallet!]
+	"""
+	The profile's website.
+	"""
+	website: String
+	"""
+	X (Twitter) username.
+	"""
+	xUsername: String
+}
+
+type ProfileBadge {
+	"""
+	When the badge was assigned (epoch ms).
+	"""
+	assignedAt: Int!
+	"""
+	Address that assigned the badge.
+	"""
+	assignedBy: String!
+	"""
+	Profile of the user who assigned the badge.
+	"""
+	assignedByProfile: ProfileSummary
+	"""
+	Badge description.
+	"""
+	badgeDescription: String
+	"""
+	Badge icon URL.
+	"""
+	badgeIconUrl: String
+	"""
+	Badge ID.
+	"""
+	badgeId: String!
+	"""
+	Badge media URL.
+	"""
+	badgeMediaUrl: String
+	"""
+	Badge name.
+	"""
+	badgeName: String!
+	"""
+	Badge type.
+	"""
+	badgeType: Int!
+	"""
+	Platform ID.
+	"""
+	platformId: String!
+}
+
+type ProfileSummary {
+	"""
+	Wallet address.
+	"""
+	address: MySoAddress!
+	"""
+	Profile bio.
+	"""
+	bio: String
+	"""
+	Display name.
+	"""
+	displayName: String
+	"""
+	Number of followers. Present for both profile and wallet-only addresses.
+	"""
+	followersCount: Int
+	"""
+	Number of accounts this address follows. Present for both profile and wallet-only addresses.
+	"""
+	followingCount: Int
+	"""
+	Profile photo URL.
+	"""
+	profilePhoto: String
+	"""
+	Reservation percentage (when profile has SPT/reservation pool).
+	"""
+	reservationPercentage: Float
+	"""
+	Reservation pool address.
+	"""
+	reservationPoolAddress: String
+	"""
+	Selected badge info (when present).
+	"""
+	selectedBadge: SelectedBadge
+	"""
+	Selected badge ID.
+	"""
+	selectedBadgeId: String
+	"""
+	Social proof token info (when present).
+	"""
+	socialProofToken: SocialProofToken
+	"""
+	Social proof token address.
+	"""
+	socialProofTokenAddress: String
+	"""
+	Username.
+	"""
+	username: String
+}
+
 """
 ProgrammableSystemTransaction is identical to ProgrammableTransaction, but GraphQL does not allow multiple variants with the same type.
 """
@@ -3244,6 +3998,123 @@ type ProgrammableTransaction {
 	Input objects or primitive values.
 	"""
 	inputs(first: Int, after: String, last: Int, before: String): TransactionInputConnection
+}
+
+type Promotion {
+	"""
+	Total budget (in MIST).
+	"""
+	budget: Int!
+	"""
+	The post ID this promotion is for.
+	"""
+	postId: String!
+	"""
+	The promotion ID.
+	"""
+	promotionId: String!
+	"""
+	Remaining budget (in MIST).
+	"""
+	remainingBudget: Int!
+	"""
+	Promotion status: "active" or "inactive".
+	"""
+	status: String!
+	"""
+	Number of views.
+	"""
+	views: Int!
+}
+
+type Proposal {
+	"""
+	Anonymous voters count (when anonymous voting enabled).
+	"""
+	anonymousVotersCount: Int
+	"""
+	Proposal description.
+	"""
+	description: String!
+	"""
+	Implementation time (epoch ms).
+	"""
+	implementationTime: Int
+	"""
+	Implemented description (when status=implemented).
+	"""
+	implementedDescription: String
+	"""
+	Unique proposal identifier (object ID on-chain).
+	"""
+	proposalId: String!
+	"""
+	Reference ID (e.g. linked post or object).
+	"""
+	referenceId: String
+	"""
+	Registry type (0=ecosystem, 1=proof of creativity, 3=platform).
+	"""
+	registryType: Int!
+	"""
+	Rescind time (epoch ms, when rescinded).
+	"""
+	rescindTime: Int
+	"""
+	Reward pool amount.
+	"""
+	rewardPool: Int!
+	"""
+	Proposal status (0=submitted, 1=delegate_review, 2=community_voting, 3=approved, 4=rejected, 5=implemented, 6=rescinded).
+	"""
+	status: Int!
+	"""
+	Submission time (epoch ms).
+	"""
+	submissionTime: Int!
+	"""
+	Submitter address.
+	"""
+	submitter: MySoAddress!
+	"""
+	Profile of the proposal submitter.
+	"""
+	submitterProfile: ProfileSummary
+	"""
+	Proposal title.
+	"""
+	title: String!
+	"""
+	Vote counts (delegate and community).
+	"""
+	votes: ProposalVotes!
+	"""
+	Voting end time (epoch ms).
+	"""
+	votingEndTime: Int
+	"""
+	Voting start time (epoch ms, when in community voting).
+	"""
+	votingStartTime: Int
+}
+
+type ProposalVotes {
+	"""
+	Community votes against (reject).
+	"""
+	communityAgainst: Int!
+	"""
+	Community votes for (approve).
+	"""
+	communityFor: Int!
+	"""
+	Delegate votes against (reject).
+	"""
+	delegateAgainst: Int!
+	"""
+	Delegate votes for (approve).
+	"""
+	delegateFor: Int!
 }
 
 """
@@ -3325,13 +4196,21 @@ type Query {
 	
 	If none of the above are specified, the address is fetched at the checkpoint being viewed.
 	
-	If the address is fetched by name and the name does not resolve to an address (e.g. the name does not exist or has expired), `null` is returned.
+	Returns `null` if the address does not exist.
 	"""
-	address(address: MySoAddress, name: String, rootVersion: UInt53, atCheckpoint: UInt53): Address
+	address(address: MySoAddress, rootVersion: UInt53, atCheckpoint: UInt53): Address
 	"""
-	First four bytes of the network's genesis checkpoint digest (uniquely identifies the network), hex-encoded.
+	The network's genesis checkpoint digest (uniquely identifies the network), Base58-encoded.
 	"""
 	chainIdentifier: String!
+	"""
+	Check if platform has blocked this profile. Returns null when social DB not configured.
+	"""
+	checkPlatformBlocked(profile: MySoAddress!, platform: ID!): Boolean
+	"""
+	Check if blocker has blocked blocked. Returns null when social DB not configured.
+	"""
+	checkProfileBlocked(blocker: MySoAddress!, blocked: MySoAddress!): Boolean
 	"""
 	Fetch a checkpoint by its sequence number, or the latest checkpoint if no sequence number is provided.
 	
@@ -3349,6 +4228,18 @@ type Query {
 	"""
 	coinMetadata(coinType: String!): CoinMetadata
 	"""
+	Fetch a comment by ID. Returns null if social DB not configured or not found.
+	"""
+	comment(id: ID!): CommentSummary
+	"""
+	Fetch a delegate by address. Returns null when social DB not configured or not found.
+	"""
+	delegate(address: MySoAddress!): Delegate
+	"""
+	List delegates (paginated, optionally filtered by registry type). Returns empty when social DB not configured.
+	"""
+	delegates(registryType: Int, limit: Int, offset: Int): [Delegate!]
+	"""
 	Fetch an epoch by its ID, or fetch the latest epoch if no ID is provided.
 	
 	Returns `null` if the epoch does not exist yet, or was pruned.
@@ -3363,9 +4254,29 @@ type Query {
 	"""
 	events(first: Int, after: String, last: Int, before: String, filter: EventFilter): EventConnection
 	"""
+	List all governance registries. Returns empty when social DB not configured.
+	"""
+	governanceRegistries: [GovernanceRegistry!]
+	"""
+	Fetch governance registry for a platform (by platform ID). Returns null when social DB not configured or platform has no registry.
+	"""
+	governanceRegistry(platformId: String!): GovernanceRegistry
+	"""
+	Insurance policies by insured address. Returns empty when social DB not configured.
+	"""
+	insurancePolicies(insured: MySoAddress!, limit: Int, offset: Int): [InsurancePolicy!]
+	"""
+	Insurance policy by ID. Returns null when social DB not configured or not found.
+	"""
+	insurancePolicy(id: ID!): InsurancePolicy
+	"""
+	Insurance vaults. Returns empty when social DB not configured.
+	"""
+	insuranceVaults(limit: Int, offset: Int): [InsuranceVault!]
+	"""
 	Fetch addresses by their keys.
 	
-	Returns a list of addresses that is guaranteed to be the same length as `keys`. If an address in `keys` is fetched by name and the name does not resolve to an address, its corresponding entry in the result will be `null`.
+	Returns a list of addresses that is guaranteed to be the same length as `keys`. If an address in `keys` does not exist, its corresponding entry in the result will be `null`.
 	"""
 	multiGetAddresses(keys: [AddressKey!]!): [Address]!
 	"""
@@ -3413,11 +4324,17 @@ type Query {
 	"""
 	multiGetTypes(keys: [String!]!): [MoveType]!
 	"""
-	Look-up a Name Service NameRecord by its domain name.
-	
-	Returns `null` if the record does not exist or has expired.
+	MyData purchases by buyer. Returns empty when social DB not configured.
 	"""
-	nameRecord(name: String!): NameRecord
+	mydataPurchases(buyer: MySoAddress!, limit: Int, offset: Int): [MyDataPurchase!]
+	"""
+	MyData record by ID. Returns null when social DB not configured or not found.
+	"""
+	mydataRecord(id: ID!): MyDataRecord
+	"""
+	MyData records by owner. Returns empty when social DB not configured.
+	"""
+	mydataRecords(owner: MySoAddress!, limit: Int, offset: Int): [MyDataRecord!]
 	"""
 	Fetch a `Node` by its globally unique `ID`. Returns `null` if the node cannot be found (e.g., the underlying data was pruned or never existed).
 	"""
@@ -3481,9 +4398,57 @@ type Query {
 	"""
 	packages(first: Int, after: String, last: Int, before: String, filter: PackageCheckpointFilter): MovePackageConnection
 	"""
+	Fetch a platform by ID. Returns null if social DB not configured or not found.
+	"""
+	platform(id: ID!): Platform
+	"""
+	List platforms with optional approved filter. Returns empty when social DB not configured.
+	"""
+	platforms(approvedOnly: Boolean, limit: Int, offset: Int): [Platform!]
+	"""
+	Fetch a post by ID. Returns null if social DB not configured or not found.
+	"""
+	post(id: ID!): Post
+	"""
+	List posts with optional filters. Returns empty when social DB not configured.
+	"""
+	posts(owner: String, postType: String, limit: Int, offset: Int): [Post!]
+	"""
+	Fetch a social profile by owner address. Returns null if social DB not configured or not found.
+	"""
+	profile(address: MySoAddress!): Profile
+	"""
+	List social profiles with pagination. Returns empty when social DB not configured.
+	"""
+	profiles(limit: Int, offset: Int): [Profile!]
+	"""
+	List promoted posts (paginated, optionally filtered by platform). Returns empty when social DB not configured.
+	"""
+	promotedPosts(platformId: String, limit: Int, offset: Int): [Promotion!]
+	"""
+	Fetch a promotion by ID. Returns null if social DB not configured or not found.
+	"""
+	promotion(id: ID!): Promotion
+	"""
+	Fetch a proposal by ID. Returns null when social DB not configured or not found.
+	"""
+	proposal(id: ID!): Proposal
+	"""
+	List governance proposals (paginated, optionally filtered by platform and status). Returns empty when social DB not configured.
+	"""
+	proposals(platformId: String, status: Int, limit: Int, offset: Int): [Proposal!]
+	"""
 	Fetch the protocol config by protocol version, or the latest protocol config used on chain if no version is provided.
 	"""
 	protocolConfigs(version: UInt53): ProtocolConfigs
+	"""
+	Reactions for a post (paginated). Returns empty when social DB not configured.
+	"""
+	reactions(postId: ID!, limit: Int, offset: Int): [ReactionSummary!]
+	"""
+	Reposts of a post (paginated). Returns empty when social DB not configured.
+	"""
+	reposts(postId: ID!, limit: Int, offset: Int): [RepostSummary!]
 	"""
 	Configuration for this RPC service.
 	"""
@@ -3503,6 +4468,34 @@ type Query {
 	- `doGasSelection`: If true, enables automatic gas coin selection and budget estimation. Defaults to false.
 	"""
 	simulateTransaction(transaction: JSON!, checksEnabled: Boolean, doGasSelection: Boolean): SimulationResult!
+	"""
+	Check if follower follows following. Returns null when social DB not configured.
+	"""
+	socialGraphFollowing(follower: MySoAddress!, following: MySoAddress!): Boolean
+	"""
+	Spot bets for a post. Returns empty when social DB not configured.
+	"""
+	spotBets(postId: ID!, limit: Int, offset: Int): [SpotBet!]
+	"""
+	Spot record for a post (1:1). Returns null when social DB not configured or no record.
+	"""
+	spotRecord(postId: ID!): SpotRecord
+	"""
+	SPT holdings for a profile (holder address). Returns empty when social DB not configured.
+	"""
+	sptHoldings(profile: MySoAddress!, limit: Int, offset: Int): [SptHolding!]
+	"""
+	SPT pool by ID. Returns null if social DB not configured or not found.
+	"""
+	sptPool(id: ID!): SptPool
+	"""
+	SPT price history. Provide profileAddress or poolId (at least one required). Returns empty when social DB not configured.
+	"""
+	sptPriceHistory(profileAddress: MySoAddress, poolId: ID, limit: Int): [SptPriceHistory!]
+	"""
+	Tips received for a post (paginated). Returns empty when social DB not configured.
+	"""
+	tips(postId: ID!, limit: Int, offset: Int): [TipSummary!]
 	"""
 	Fetch a transaction by its digest.
 	
@@ -3538,6 +4531,18 @@ type Query {
 	- `author` is the signer's address.
 	"""
 	verifyZkLoginSignature(bytes: Base64!, signature: Base64!, intentScope: ZkLoginIntentScope!, author: MySoAddress!): ZkLoginVerifyResult!
+	"""
+	Vesting leaderboard by total vested amount. Returns empty when social DB not configured.
+	"""
+	vestingLeaderboard(limit: Int, offset: Int): VestingLeaderboardResponse
+	"""
+	Fetch a vesting wallet by ID. Returns null if social DB not configured or not found.
+	"""
+	vestingWallet(id: ID!): VestingWallet
+	"""
+	List vesting wallets with optional owner and active-only filters. Returns empty when social DB not configured.
+	"""
+	vestingWallets(owner: MySoAddress, activeOnly: Boolean, limit: Int, offset: Int): [VestingWallet!]
 }
 
 """
@@ -3570,6 +4575,16 @@ type RandomnessStateUpdateTransaction {
 	Randomness round of the update.
 	"""
 	randomnessRound: Int
+}
+
+type ReactionSummary {
+	createdAt: Int!
+	reactionText: String!
+	userAddress: MySoAddress!
+	"""
+	Profile of the user who reacted.
+	"""
+	userProfile: ProfileSummary
 }
 
 """
@@ -3605,6 +4620,27 @@ enum RegulatedState {
 	The currency was created without a deny list.
 	"""
 	UNREGULATED
+}
+
+type RepostSummary {
+	createdAt: Int!
+	originalPostId: String!
+	owner: MySoAddress!
+	"""
+	Profile of the repost owner.
+	"""
+	ownerProfile: ProfileSummary
+	profileId: String!
+	repostId: String!
+}
+
+type SelectedBadge {
+	badgeIconUrl: String
+	badgeId: String!
+	badgeMediaUrl: String
+	badgeName: String!
+	badgeType: Int!
+	platformId: String!
 }
 
 type ServiceConfig {
@@ -3731,7 +4767,7 @@ type ServiceConfig {
 	"""
 	maxTypeNodes: Int
 	"""
-	Maximum time in milliseconds spent waiting for a response from fullnode after issuing a transaction to execute. Note that the transaction may still succeed even in the case of a timeout. Transactions are idempotent, so a transaction that times out should be re-submitted until the network returns a definite response (success or failure, not timeout).
+	Maximum time in milliseconds spent waiting for a response from fullnode after ismysong a transaction to execute. Note that the transaction may still succeed even in the case of a timeout. Transactions are idempotent, so a transaction that times out should be re-submitted until the network returns a definite response (success or failure, not timeout).
 	"""
 	mutationTimeoutMs: Int
 	"""
@@ -3792,6 +4828,17 @@ type SimulationResult {
 	outputs: [CommandResult!]
 }
 
+type SocialProofToken {
+	isActive: Boolean!
+	poolId: String
+	requiredThreshold: Int!
+	reservationPercentage: Float!
+	reservationPoolId: String
+	reservationStatus: String!
+	tokenAddress: String
+	totalReserved: Int!
+}
+
 """
 Splits off coins with denominations in `amounts` from `coin`, returning multiple results (as many as there are amounts.)
 """
@@ -3806,6 +4853,257 @@ type SplitCoinsCommand {
 	coin: TransactionArgument
 }
 
+type SpotBet {
+	"""
+	AMM amount.
+	"""
+	ammAmount: Int!
+	"""
+	Total amount staked (escrow + AMM).
+	"""
+	amount: Int!
+	"""
+	Unique bet identifier.
+	"""
+	betId: String!
+	"""
+	Address of the bettor.
+	"""
+	better: MySoAddress!
+	"""
+	Escrow amount.
+	"""
+	escrowAmount: Int!
+	"""
+	Human-readable option label (e.g. "Yes", "No").
+	"""
+	optionLabel: String
+	"""
+	Option ID the bettor chose (outcome bet on).
+	"""
+	outcome: Int!
+	"""
+	Epoch timestamp when the bet was placed.
+	"""
+	placedAt: Int!
+	"""
+	Post ID this bet is for.
+	"""
+	postId: String!
+	"""
+	Profile of the bettor.
+	"""
+	profile: ProfileSummary
+	"""
+	Transaction ID.
+	"""
+	transactionId: String!
+}
+
+type SpotOptionEscrow {
+	"""
+	Escrow amount for this option.
+	"""
+	amount: Int!
+	"""
+	Option ID.
+	"""
+	optionId: Int!
+}
+
+type SpotRecord {
+	"""
+	Betting option labels (e.g. ["Yes", "No"]).
+	"""
+	bettingOptions: [String!]!
+	"""
+	Epoch when the record was created.
+	"""
+	createdEpoch: Int!
+	"""
+	Last resolution epoch.
+	"""
+	lastResolutionEpoch: Int
+	"""
+	Max resolution window in epochs.
+	"""
+	maxResolutionWindowEpochs: Int
+	"""
+	Escrow amount per option (option_id -> amount).
+	"""
+	optionEscrow: [SpotOptionEscrow!]!
+	"""
+	Post ID this record is for.
+	"""
+	postId: String!
+	"""
+	Unique record identifier.
+	"""
+	recordId: String!
+	"""
+	Resolved outcome (when resolved).
+	"""
+	resolution: Int
+	"""
+	Resolution window in epochs.
+	"""
+	resolutionWindowEpochs: Int
+	"""
+	Record status (1=open, 2=dao_required, 3=resolved, 4=refundable).
+	"""
+	status: Int!
+	"""
+	Total escrow across all options.
+	"""
+	totalEscrow: Int!
+}
+
+type SptHolding {
+	"""
+	Holder wallet address.
+	"""
+	address: MySoAddress!
+	"""
+	Token balance held.
+	"""
+	amount: Int!
+	"""
+	Profile whose token this holding represents.
+	"""
+	profile: ProfileSummary!
+}
+
+type SptPool {
+	"""
+	Token name.
+	"""
+	name: String!
+	"""
+	Pool owner address.
+	"""
+	owner: MySoAddress!
+	"""
+	Profile of the pool owner.
+	"""
+	ownerProfile: ProfileSummary
+	"""
+	Pool ID.
+	"""
+	poolId: String!
+	"""
+	Current price (smallest units).
+	"""
+	price: Int!
+	"""
+	Price history for this pool.
+	"""
+	priceHistory(limit: Int, offset: Int): [SptPriceHistory!]
+	"""
+	Token symbol.
+	"""
+	symbol: String!
+	"""
+	Token type (1=profile, 2=post).
+	"""
+	tokenType: Int!
+	"""
+	Total circulating supply.
+	"""
+	totalSupply: Int!
+	"""
+	Recent transactions for this pool.
+	"""
+	transactions(limit: Int, offset: Int): [SptTransaction!]
+}
+
+type SptPriceHistory {
+	"""
+	Circulating supply at this point.
+	"""
+	circulatingSupply: Int!
+	"""
+	Pool ID.
+	"""
+	poolId: String!
+	"""
+	Price at this point.
+	"""
+	price: Int!
+	"""
+	Timestamp (ISO 8601).
+	"""
+	timestamp: String!
+	"""
+	Transaction ID.
+	"""
+	transactionId: String!
+}
+
+type SptTransaction {
+	"""
+	Token amount.
+	"""
+	amount: Int!
+	"""
+	Sender address.
+	"""
+	from: MySoAddress!
+	"""
+	Transaction timestamp (ISO 8601).
+	"""
+	timestamp: String!
+	"""
+	Counterparty (pool ID).
+	"""
+	to: String
+	"""
+	Transaction type (BUY or SELL).
+	"""
+	type: String!
+}
+
+"""
+Parameters that control the distribution of the stake subsidy.
+"""
+type StakeSubsidy {
+	"""
+	The annual percentage yield from the stake subsidy in basis points. Divide by 100 for percentage.
+	"""
+	apy: Int
+	"""
+	MYSO set aside for stake subsidies — reduces over time as stake subsidies are paid out.
+	"""
+	balance: BigInt
+	"""
+	Current stake subsidy APY in basis points — decays over time.
+	"""
+	currentApyBps: BigInt
+	"""
+	Percentage of the current APY to deduct at the end of the current subsidy period, in basis points.
+	"""
+	decreaseRate: Int
+	"""
+	Number of times stake subsidies have been distributed (with other staking rewards at end of epoch).
+	"""
+	distributionCounter: Int
+	"""
+	Target duration for subsidy pool in years (e.g., 10). Used for stake-aware APY reduction.
+	"""
+	intendedDurationYears: BigInt
+	"""
+	Maximum APY cap (in basis points). Effective APY will never exceed this.
+	"""
+	maxApyBps: BigInt
+	"""
+	Minimum APY floor (in basis points). Effective APY will never go below this.
+	"""
+	minApyBps: BigInt
+	"""
+	Maximum number of stake subsidy distributions that occur with the same APY (before the APY is reduced).
+	"""
+	periodLength: Int
+}
+
 """
 System transaction for storing execution time observations.
 """
@@ -3816,11 +5114,6 @@ type StoreExecutionTimeObservationsTransaction {
 	_: Boolean
 }
 
-
-"""
-String containing 32 byte hex-encoded address, with a leading '0x'. Leading zeroes can be omitted on input but will always appear in outputs (MySoAddress in output is guaranteed to be 66 characters long).
-"""
-scalar MySoAddress
 
 """
 Future behavior of a currency's supply.
@@ -3834,6 +5127,21 @@ enum SupplyState {
 	The supply can neither increase nor decrease.
 	"""
 	FIXED
+}
+
+type TipSummary {
+	amount: Int!
+	createdAt: Int!
+	recipient: MySoAddress!
+	"""
+	Profile of the tip recipient.
+	"""
+	recipientProfile: ProfileSummary
+	tipper: MySoAddress!
+	"""
+	Profile of the tipper.
+	"""
+	tipperProfile: ProfileSummary
 }
 
 """
@@ -4208,6 +5516,10 @@ type UserSignature {
 
 type Validator {
 	"""
+	The APY of this validator in basis points (network-wide stake subsidy APY). Divide by 100 for percentage.
+	"""
+	apy: UInt53
+	"""
 	The number of epochs for which this validator has been below the low stake threshold.
 	"""
 	atRisk: UInt53
@@ -4291,6 +5603,111 @@ input VersionFilter {
 	Filter to versions that are strictly older than this one, defaults to fetching up to the latest version (inclusive).
 	"""
 	beforeVersion: UInt53
+}
+
+type VestingLeaderboardEntry {
+	"""
+	Number of active vesting wallets.
+	"""
+	activeWallets: Int!
+	"""
+	Number of completed vesting wallets.
+	"""
+	completedWallets: Int!
+	"""
+	Owner address.
+	"""
+	ownerAddress: MySoAddress!
+	"""
+	Total amount claimed across all wallets.
+	"""
+	totalClaimed: Int!
+	"""
+	Total amount vested across all wallets.
+	"""
+	totalVested: Int!
+	"""
+	User profile summary.
+	"""
+	user: ProfileSummary!
+}
+
+type VestingLeaderboardResponse {
+	"""
+	Leaderboard entries.
+	"""
+	entries: [VestingLeaderboardEntry!]!
+	"""
+	Total number of unique owners.
+	"""
+	total: Int!
+}
+
+type VestingWallet {
+	"""
+	Amount already claimed.
+	"""
+	claimedAmount: Int!
+	"""
+	Claimed percentage (0-100).
+	"""
+	claimedPercentage: Float!
+	"""
+	When the wallet was created (ISO 8601).
+	"""
+	createdAt: String!
+	"""
+	Curve factor (1000 = linear).
+	"""
+	curveFactor: Int!
+	"""
+	Vesting duration (ms).
+	"""
+	duration: Int!
+	"""
+	End time (ms since epoch).
+	"""
+	endTime: Int!
+	"""
+	Whether vesting has ended.
+	"""
+	hasEnded: Boolean!
+	"""
+	Whether vesting has started.
+	"""
+	hasStarted: Boolean!
+	"""
+	Owner address.
+	"""
+	ownerAddress: MySoAddress!
+	"""
+	Profile of the vesting wallet owner.
+	"""
+	ownerProfile: ProfileSummary
+	"""
+	Remaining balance.
+	"""
+	remainingBalance: Int!
+	"""
+	Vesting start time (ms since epoch).
+	"""
+	startTime: Int!
+	"""
+	Total amount vested.
+	"""
+	totalAmount: Int!
+	"""
+	Transaction ID that created the wallet.
+	"""
+	transactionId: String!
+	"""
+	Vesting progress (0.0-1.0).
+	"""
+	vestingProgress: Float!
+	"""
+	Vesting wallet ID (object address).
+	"""
+	walletId: String!
 }
 
 """
