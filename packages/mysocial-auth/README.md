@@ -58,21 +58,24 @@ await auth.signOut();
 
 ### createMySocialAuth(config)
 
-| Option       | Type                                    | Default  | Description                                                                                                    |
-| ------------ | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| apiBaseUrl   | string                                  | -        | Backend API base URL (e.g. https://api.mysocial.network)                                                       |
-| authOrigin   | string                                  | -        | Auth popup host (e.g. https://auth.mysocial.network)                                                           |
-| clientId     | string                                  | -        | Platform ID (for backend rate limiting/whitelist)                                                              |
-| redirectUri  | string                                  | -        | Callback URL; must be allowlisted per clientId                                                                 |
-| storage      | 'memory' \| 'session' \| StorageAdapter | 'memory' | Session storage. `memory` is most secure (no XSS exposure). `session` persists across reloads in the same tab. |
-| popupTimeout | number                                  | 120000   | Popup timeout in ms                                                                                            |
-| useRequestId | boolean                                 | false    | Use request_id flow (requires backend POST /auth/request)                                                      |
+| Option           | Type                                    | Default  | Description                                                                                                                                                                                              |
+| ---------------- | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| apiBaseUrl       | string                                  | -        | Backend API base URL (e.g. https://api.mysocial.network)                                                                                                                                                 |
+| authOrigin       | string                                  | -        | Auth popup host (e.g. https://auth.mysocial.network)                                                                                                                                                     |
+| clientId         | string                                  | -        | Platform ID (for backend rate limiting/whitelist)                                                                                                                                                        |
+| redirectUri      | string                                  | -        | Callback URL; must be allowlisted per clientId                                                                                                                                                           |
+| storage          | 'memory' \| 'session' \| StorageAdapter | 'memory' | Session storage. `memory` is most secure (no XSS exposure). `session` persists across reloads in the same tab.                                                                                           |
+| popupTimeout     | number                                  | 120000   | Popup timeout in ms                                                                                                                                                                                      |
+| useRequestId     | boolean                                 | false    | Use request_id flow (requires backend POST /auth/request)                                                                                                                                                |
+| proactiveRefresh | boolean                                 | false    | Schedules refresh before effective JWT/session expiry and re-checks session when the tab becomes visible again. Uses timers and one `visibilitychange` listener; prefer a single auth instance per page. |
 
 ### auth.signIn(options?)
 
 - `provider?`: 'google' | 'apple' | 'facebook' | 'twitch' | 'none' (default 'none' = home screen)
 - `mode?`: 'popup' | 'redirect' (default: 'popup')
-- `onWalletCredentials?`: Opt-in callback for Create/Import Wallet flow. Receives `{ address, mnemonic?, privateKey? }` ephemerally. **SECURITY: Never persist.** Handle immediately (e.g. derive keypair, show backup UI) and discard.
+- `onWalletCredentials?`: Opt-in callback for Create/Import Wallet flow. Receives
+  `{ address, mnemonic?, privateKey? }` ephemerally. **SECURITY: Never persist.** Handle immediately
+  (e.g. derive keypair, show backup UI) and discard.
 - Returns: `Promise<Session>` (popup) or never (redirect; page navigates)
 
 ### auth.signOut()
@@ -81,7 +84,10 @@ await auth.signOut();
 
 ### auth.getSession()
 
-- Returns current session, or null. Auto-refreshes if expired and refresh_token exists.
+- Returns current session, or null. Auto-refreshes if expired and refresh_token exists. Refresh
+  timing uses the **earlier** of stored `expires_at` and the `exp` claim on `session_access_token`
+  (when the JWT payload can be decoded), so API Bearer tokens are renewed even when the server sends
+  a longer `expires_in` than the JWT lifetime.
 
 ### auth.refresh()
 
@@ -107,7 +113,8 @@ await auth.signOut();
 ### isWalletOnlySession(session)
 
 - Returns `true` when the session has no API token (`session_access_token` or `refresh_token`).
-- Use before calling protected endpoints: `if (isWalletOnlySession(session)) { /* redirect to full auth */ }`
+- Use before calling protected endpoints:
+  `if (isWalletOnlySession(session)) { /* redirect to full auth */ }`
 
 ### Wallet address
 
@@ -128,9 +135,9 @@ profile creation) can use the session's token and stable `sub` with the salt ser
 | Field                          | Description                                                                 |
 | ------------------------------ | --------------------------------------------------------------------------- |
 | `session.session_access_token` | JWT (30 min) for Bearer auth. Use for `Authorization: Bearer`.              |
-| `session.access_token`        | OAuth token or `"wallet-only"` sentinel. **Never use directly for Bearer.** |
-| `session.sub`                 | Stable user ID for keypair derivation (`user.sub ?? user.id`)                |
-| `session.user.address`        | MySocial address (0x...); verify derived keypair matches                     |
+| `session.access_token`         | OAuth token or `"wallet-only"` sentinel. **Never use directly for Bearer.** |
+| `session.sub`                  | Stable user ID for keypair derivation (`user.sub ?? user.id`)               |
+| `session.user.address`         | MySocial address (0x...); verify derived keypair matches                    |
 
 Use `isWalletOnlySession(session)` to check if the session has API access.
 
@@ -166,9 +173,9 @@ if (!session) return;
 
 When `session.session_access_token` is absent and there is no `refresh_token`, the session is
 wallet-only (e.g. from Create/Import Wallet flow when the backend does not support wallet auth).
-`getAccessTokenForApi()` returns `undefined` for wallet-only sessions. `session.access_token` is
-the sentinel `"wallet-only"`—never use it as a Bearer token. **Wallet-only sessions cannot be used
-for API calls like `/salt`.** Use `isWalletOnlySession(session)` or check `session.session_access_token`
+`getAccessTokenForApi()` returns `undefined` for wallet-only sessions. `session.access_token` is the
+sentinel `"wallet-only"`—never use it as a Bearer token. **Wallet-only sessions cannot be used for
+API calls like `/salt`.** Use `isWalletOnlySession(session)` or check `session.session_access_token`
 before calling protected endpoints; redirect to full auth or show appropriate UI if wallet-only.
 
 ## Hosted UI Contract (auth.mysocial.network)
@@ -208,16 +215,16 @@ window.opener.postMessage(payload, validatedTargetOrigin); // targetOrigin, NOT 
 
 Use `user.address` for the wallet. Do not use `code` or `salt` as the address.
 
-`session_access_token` (JWT, 30 min) and `refresh_token` (opaque, 30 days) are used for the
-session flow. Store them and use `Authorization: Bearer <session_access_token>` for API calls.
-Optional: `salt`, `user`, `access_token`, `session_access_token`, `refresh_token`, `expires_at`,
-`expires_in`.
+`session_access_token` (JWT, 30 min) and `refresh_token` (opaque, 30 days) are used for the session
+flow. Store them and use `Authorization: Bearer <session_access_token>` for API calls. Optional:
+`salt`, `user`, `access_token`, `session_access_token`, `refresh_token`, `expires_at`, `expires_in`.
 
 The `user` object should include `sub` (stable OAuth/OIDC subject) when available for keypair
 derivation. If only `id` is returned, the SDK uses `id` as the derivation identifier
 (`session.sub = user.sub ?? user.id`).
 
-**Wallet-only payload (MYSOCIAL_WALLET_RESULT - fallback when backend does not support wallet auth):**
+**Wallet-only payload (MYSOCIAL_WALLET_RESULT - fallback when backend does not support wallet
+auth):**
 
 ```json
 {
@@ -260,7 +267,8 @@ does not call `/auth/exchange`. `MYSOCIAL_AUTH_RESULT` is the final result: `cod
 - `POST ${apiBaseUrl}/auth/request` (optional): `{ client_id, redirect_uri, return_origin }` →
   `{ request_id }`
 - `POST ${apiBaseUrl}/auth/refresh`: `{ refresh_token }` →
-  `{ access_token, refresh_token?, expires_in, user? }`. 401 = revoked; 429 = rate limited (~10/min).
+  `{ access_token, refresh_token?, expires_in, user? }`. 401 = revoked; 429 = rate limited
+  (~10/min).
 - `POST ${apiBaseUrl}/auth/logout`: `{ refresh_token }` (send when available to revoke server-side)
 
 **Error handling:** 401 on refresh → clear tokens, redirect to login (`SessionRevokedError`). 429 →

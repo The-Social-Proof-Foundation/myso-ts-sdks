@@ -3,7 +3,16 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createMySocialAuth } from '../src/createMySocialAuth.js';
-import { redirectStorage, REDIRECT_STATE_PREFIX } from '../src/storage.js';
+import { redirectStorage, REDIRECT_STATE_PREFIX, SESSION_KEY } from '../src/storage.js';
+
+/** Minimal JWT-shaped string with given exp (Unix seconds). */
+function jwtPayloadExp(expUnixSec: number): string {
+	const payload = btoa(JSON.stringify({ exp: expUnixSec }))
+		.replace(/\+/g, '-')
+		.replace(/\//g, '_')
+		.replace(/=+$/, '');
+	return `hdr.${payload}.sig`;
+}
 
 describe('createMySocialAuth', () => {
 	beforeEach(() => {
@@ -213,7 +222,7 @@ describe('createMySocialAuth', () => {
 			id_token: idToken,
 		};
 		const customStorage = {
-			get: (k: string) => (k === 'mysocial_auth_session' ? JSON.stringify(storedSession) : null),
+			get: (k: string) => (k === SESSION_KEY ? JSON.stringify(storedSession) : null),
 			set: vi.fn(),
 			remove: vi.fn(),
 		};
@@ -299,6 +308,88 @@ describe('createMySocialAuth', () => {
 		expect(token).toBe('jwt-for-api');
 	});
 
+	it('getSession refreshes when session JWT expires soon even if expires_at is long', async () => {
+		const expSec = Math.floor(Date.now() / 1000) + 30;
+		const sessionJwt = jwtPayloadExp(expSec);
+		const storedSession = {
+			access_token: 'oauth',
+			session_access_token: sessionJwt,
+			refresh_token: 'rt1',
+			expires_at: Date.now() + 3600_000,
+			sub: 'u1',
+			user: { id: 'u1' },
+		};
+		const customStorage = {
+			get: (k: string) => (k === SESSION_KEY ? JSON.stringify(storedSession) : null),
+			set: vi.fn(),
+			remove: vi.fn(),
+		};
+
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				access_token: 'at-new',
+				refresh_token: 'rt2',
+				expires_in: 1800,
+				user: { id: 'u1' },
+			}),
+		} as Response);
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+			storage: customStorage,
+		});
+
+		const session = await auth.getSession();
+		expect(fetch).toHaveBeenCalledWith(
+			'https://api.test/auth/refresh',
+			expect.objectContaining({
+				method: 'POST',
+				body: JSON.stringify({ refresh_token: 'rt1' }),
+			}),
+		);
+		expect(session).not.toBeNull();
+		expect(session!.access_token).toBe('at-new');
+	});
+
+	it('handleRedirectCallback ignores expires_at=0 and uses expires_in', async () => {
+		const state = 'state-exp0';
+		const nonce = 'nonce-exp0';
+		redirectStorage.set(`${REDIRECT_STATE_PREFIX}${state}`, JSON.stringify({ state, nonce }));
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+		});
+
+		const url = `https://app.test/cb?code=c&state=${state}&nonce=${nonce}&expires_at=0&expires_in=1800`;
+		const session = await auth.handleRedirectCallback(url);
+
+		expect(session.expires_at).toBeGreaterThan(Date.now() + 1799_000);
+		expect(session.expires_at).toBeLessThanOrEqual(Date.now() + 1801_000);
+	});
+
+	it('proactiveRefresh registers visibilitychange listener', () => {
+		const addEventListener = vi.fn();
+		vi.stubGlobal('document', {
+			addEventListener,
+			visibilityState: 'hidden',
+		});
+		createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+			proactiveRefresh: true,
+		});
+		expect(addEventListener).toHaveBeenCalledWith('visibilitychange', expect.any(Function));
+	});
+
 	it('getAccessTokenForApi returns undefined when no session', async () => {
 		const auth = createMySocialAuth({
 			apiBaseUrl: 'https://api.test',
@@ -319,8 +410,7 @@ describe('createMySocialAuth', () => {
 			expires_at: Date.now() + 3600_000,
 		};
 		const customStorage = {
-			get: (k: string) =>
-				k === 'mysocial_auth_session' ? JSON.stringify(walletOnlySession) : null,
+			get: (k: string) => (k === SESSION_KEY ? JSON.stringify(walletOnlySession) : null),
 			set: vi.fn(),
 			remove: vi.fn(),
 		};
@@ -346,7 +436,7 @@ describe('createMySocialAuth', () => {
 			user: { id: 'u1' },
 		};
 		const customStorage = {
-			get: (k: string) => (k === 'mysocial_auth_session' ? JSON.stringify(storedSession) : null),
+			get: (k: string) => (k === SESSION_KEY ? JSON.stringify(storedSession) : null),
 			set: vi.fn(),
 			remove: vi.fn(),
 		};
@@ -379,7 +469,7 @@ describe('createMySocialAuth', () => {
 			user: { id: 'u1', address: '0xabc' },
 		};
 		const customStorage = {
-			get: (k: string) => (k === 'mysocial_auth_session' ? JSON.stringify(storedSession) : null),
+			get: (k: string) => (k === SESSION_KEY ? JSON.stringify(storedSession) : null),
 			set: vi.fn(),
 			remove: vi.fn(),
 		};
@@ -420,7 +510,7 @@ describe('createMySocialAuth', () => {
 			user: { id: 'u1' },
 		};
 		const customStorage = {
-			get: (k: string) => (k === 'mysocial_auth_session' ? JSON.stringify(storedSession) : null),
+			get: (k: string) => (k === SESSION_KEY ? JSON.stringify(storedSession) : null),
 			set: vi.fn(),
 			remove: vi.fn(),
 		};

@@ -106,6 +106,44 @@ describe('openAuthPopup', () => {
 		expect(session.sub).toBe('u2');
 	});
 
+	it('ignores expires_at 0 and uses expires_in from auth result', async () => {
+		const sessionPromise = openAuthPopup({
+			apiBaseUrl: 'https://api.test',
+			authOrigin,
+			clientId,
+			redirectUri: 'https://app.test/cb',
+		});
+
+		await new Promise((r) => setTimeout(r, 0));
+
+		const addListenerCalls = vi.mocked(window.addEventListener).mock.calls;
+		const messageHandler = addListenerCalls.find((c) => c[0] === 'message')?.[1] as (
+			e: MessageEvent,
+		) => void;
+
+		const before = Date.now();
+		messageHandler({
+			origin: authOrigin,
+			source: mockPopup,
+			data: {
+				type: 'MYSOCIAL_AUTH_RESULT',
+				code: 'code-exp0',
+				state,
+				nonce,
+				clientId,
+				user: { id: 'u0' },
+				session_access_token: 'jwt',
+				refresh_token: 'rt',
+				expires_at: 0,
+				expires_in: 1800,
+			},
+		} as unknown as MessageEvent);
+
+		const session = await sessionPromise;
+		expect(session.expires_at).toBeGreaterThanOrEqual(before + 1799_000);
+		expect(session.expires_at).toBeLessThanOrEqual(before + 1801_000);
+	});
+
 	it('stores session_access_token, refresh_token, expires_in when present', async () => {
 		const sessionPromise = openAuthPopup({
 			apiBaseUrl: 'https://api.test',

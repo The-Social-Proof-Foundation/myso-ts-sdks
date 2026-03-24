@@ -75,9 +75,10 @@ export async function refreshTokens(apiBaseUrl: string, refreshToken: string): P
 	const data = (await res.json()) as RefreshResponse;
 	const expires_at = Date.now() + data.expires_in * 1000;
 	const user = data.user ?? {};
+	const sessionAccess = data.session_access_token ?? data.access_token;
 	return {
 		access_token: data.access_token,
-		session_access_token: data.access_token,
+		session_access_token: sessionAccess,
 		refresh_token: data.refresh_token ?? refreshToken,
 		...(data.id_token != null && { id_token: data.id_token }),
 		expires_at,

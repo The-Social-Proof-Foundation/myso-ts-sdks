@@ -58,6 +58,11 @@ export interface MySocialAuthConfig {
 	popupTimeout?: number;
 	/** Use request_id flow: call /auth/request before opening popup (requires backend support) */
 	useRequestId?: boolean;
+	/**
+	 * When true, schedules background refresh before effective session/JWT expiry and refreshes when the
+	 * tab becomes visible again. Adds timers and a visibility listener; use one auth instance per page.
+	 */
+	proactiveRefresh?: boolean;
 }
 
 /** Ephemeral wallet credentials; never persisted. Handle immediately and do not store. */
@@ -156,6 +161,8 @@ export interface ExchangeResponse {
 /** Refresh response - user optional; preserve from existing session when omitted */
 export interface RefreshResponse {
 	access_token: string;
+	/** API Bearer JWT when distinct from access_token; otherwise clients use access_token. */
+	session_access_token?: string;
 	refresh_token?: string;
 	id_token?: string;
 	expires_in: number;

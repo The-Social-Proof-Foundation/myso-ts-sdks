@@ -77,7 +77,26 @@ describe('exchange', () => {
 			}),
 		);
 		expect(session.access_token).toBe('at2');
+		expect(session.session_access_token).toBe('at2');
 		expect(session.sub).toBe('u1');
+	});
+
+	it('refreshTokens uses session_access_token when distinct from access_token', async () => {
+		vi.mocked(fetch).mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				access_token: 'oauth-at',
+				session_access_token: 'jwt-at',
+				refresh_token: 'rt2',
+				expires_in: 3600,
+				user: { id: 'u1' },
+			}),
+		} as Response);
+
+		const session = await refreshTokens('https://api.test', 'rt1');
+
+		expect(session.access_token).toBe('oauth-at');
+		expect(session.session_access_token).toBe('jwt-at');
 	});
 
 	it('refreshTokens returns id_token when backend includes it', async () => {

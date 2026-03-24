@@ -40,8 +40,8 @@ function getReturnOrigin(redirectUri: string): string {
 	}
 }
 
-/** Extract sub claim from JWT payload. No signature verification (auth server already validated). */
-function extractSubFromJwt(jwt: string): string | undefined {
+/** Decode JWT payload (no signature verification). */
+function parseJwtPayload(jwt: string): { sub?: string; exp?: number } | undefined {
 	try {
 		const parts = jwt.split('.');
 		if (parts.length !== 3) return undefined;
@@ -50,11 +50,37 @@ function extractSubFromJwt(jwt: string): string | undefined {
 		const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
 		const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
 		const decoded = atob(padded);
-		const parsed = JSON.parse(decoded) as { sub?: string };
-		return parsed.sub;
+		const parsed = JSON.parse(decoded) as { sub?: string; exp?: number };
+		return parsed;
 	} catch {
 		return undefined;
 	}
+}
+
+/** Extract sub claim from JWT payload. No signature verification (auth server already validated). */
+function extractSubFromJwt(jwt: string): string | undefined {
+	return parseJwtPayload(jwt)?.sub;
+}
+
+/** Expiry time (ms) for API Bearer JWT from session_access_token `exp` claim, if decodable. */
+function getSessionJwtExpiryMs(session: Session): number | undefined {
+	const jwt = session.session_access_token;
+	if (!jwt) return undefined;
+	const exp = parseJwtPayload(jwt)?.exp;
+	if (typeof exp !== 'number' || !Number.isFinite(exp)) return undefined;
+	return exp * 1000;
+}
+
+/**
+ * Earliest of session.expires_at and session JWT exp, when JWT exp is present.
+ * Aligns refresh with actual Bearer validity when the server sends a longer expires_in than the JWT.
+ */
+function getEffectiveExpiryMs(session: Session): number {
+	const jwtMs = getSessionJwtExpiryMs(session);
+	if (jwtMs != null) {
+		return Math.min(session.expires_at, jwtMs);
+	}
+	return session.expires_at;
 }
 
 export function createAuth(config: MySocialAuthConfig): MySocialAuth {
@@ -63,6 +89,39 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 
 	let cachedSession: Session | null = null;
 	let refreshPromise: Promise<Session | null> | null = null;
+	let proactiveRefreshTimer: number | null = null;
+
+	function clearProactiveRefreshTimer() {
+		if (proactiveRefreshTimer != null) {
+			clearTimeout(proactiveRefreshTimer);
+			proactiveRefreshTimer = null;
+		}
+	}
+
+	function scheduleProactiveRefresh() {
+		clearProactiveRefreshTimer();
+		if (!config.proactiveRefresh || typeof window === 'undefined') return;
+		const raw = storage.get(SESSION_KEY);
+		if (!raw) return;
+		let session: Session;
+		try {
+			session = JSON.parse(raw) as Session;
+		} catch {
+			return;
+		}
+		if (!session.refresh_token) return;
+		const effective = getEffectiveExpiryMs(session);
+		const delay = effective - Date.now() - REFRESH_BUFFER_MS;
+		const run = () => {
+			proactiveRefreshTimer = null;
+			void loadSession().then((s) => {
+				if (s && config.proactiveRefresh) {
+					scheduleProactiveRefresh();
+				}
+			});
+		};
+		proactiveRefreshTimer = window.setTimeout(run, Math.max(0, delay));
+	}
 
 	async function doRefresh(session: Session): Promise<Session | null> {
 		try {
@@ -73,6 +132,7 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			return merged;
 		} catch (err) {
 			if (err instanceof SessionRevokedError) {
+				clearProactiveRefreshTimer();
 				storage.remove(SESSION_KEY);
 				cachedSession = null;
 				emitter.emit('change', null);
@@ -102,8 +162,12 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 				}
 			}
 			const now = Date.now();
-			const expiresWithinBuffer = session.expires_at - now < REFRESH_BUFFER_MS;
-			if (session.expires_at > now && !expiresWithinBuffer) {
+			const effective = getEffectiveExpiryMs(session);
+			const expiresWithinBuffer = effective - now < REFRESH_BUFFER_MS;
+			if (effective > now && !expiresWithinBuffer) {
+				if (config.proactiveRefresh) {
+					scheduleProactiveRefresh();
+				}
 				return session;
 			}
 			if (session.refresh_token) {
@@ -113,11 +177,13 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 				refreshPromise = doRefresh(session);
 				return refreshPromise;
 			}
+			clearProactiveRefreshTimer();
 			storage.remove(SESSION_KEY);
 			cachedSession = null;
 			emitter.emit('change', null);
 			return null;
 		} catch {
+			clearProactiveRefreshTimer();
 			storage.remove(SESSION_KEY);
 			cachedSession = null;
 			refreshPromise = null;
@@ -125,7 +191,7 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 		}
 	}
 
-	/** Preserve id_token, salt, user, sub from existing session when refresh response omits them. */
+	/** Preserve id_token, salt, user, sub, session_access_token when refresh response omits them. */
 	function mergeRefreshedSession(refreshed: Session, existing: Session): Session {
 		return {
 			...refreshed,
@@ -134,17 +200,32 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			user:
 				refreshed.user && Object.keys(refreshed.user).length > 0 ? refreshed.user : existing.user,
 			sub: refreshed.sub || existing.sub,
+			session_access_token: refreshed.session_access_token ?? existing.session_access_token,
 		};
 	}
 
 	async function saveSession(session: Session): Promise<void> {
 		cachedSession = session;
 		storage.set(SESSION_KEY, JSON.stringify(session));
+		if (config.proactiveRefresh) {
+			scheduleProactiveRefresh();
+		}
 	}
 
 	async function clearSession(): Promise<void> {
 		cachedSession = null;
 		storage.remove(SESSION_KEY);
+	}
+
+	if (config.proactiveRefresh && typeof document !== 'undefined') {
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState !== 'visible') return;
+			void loadSession().then((s) => {
+				if (s && config.proactiveRefresh) {
+					scheduleProactiveRefresh();
+				}
+			});
+		});
 	}
 
 	return {
@@ -224,6 +305,7 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			} catch {
 				// Best-effort; clear local state regardless
 			}
+			clearProactiveRefreshTimer();
 			await clearSession();
 			refreshPromise = null;
 			emitter.emit('change', null);
@@ -231,12 +313,11 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 
 		async getSession() {
 			const now = Date.now();
-			if (
-				cachedSession &&
-				cachedSession.expires_at > now &&
-				cachedSession.expires_at - now >= REFRESH_BUFFER_MS
-			) {
-				return cachedSession;
+			if (cachedSession) {
+				const effective = getEffectiveExpiryMs(cachedSession);
+				if (effective > now && effective - now >= REFRESH_BUFFER_MS) {
+					return cachedSession;
+				}
 			}
 			return loadSession();
 		},
@@ -254,7 +335,9 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			if (!session) return undefined;
 			// Never return wallet-only sentinel or address as Bearer token
 			if (session.access_token === WALLET_ONLY_ACCESS_TOKEN) return undefined;
-			return session.session_access_token ?? (session.refresh_token ? session.access_token : undefined);
+			return (
+				session.session_access_token ?? (session.refresh_token ? session.access_token : undefined)
+			);
 		},
 
 		async handleRedirectCallback(url?: string) {
@@ -333,11 +416,13 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			}
 
 			const effectiveToken = sessionAccessToken ?? accessToken ?? code;
-			const expiresAt = expiresAtParam
-				? Number(expiresAtParam)
-				: expiresInParam
-					? Date.now() + Number(expiresInParam) * 1000
-					: Date.now() + 3600_000;
+			const expiresAtNum = expiresAtParam != null ? Number(expiresAtParam) : NaN;
+			const expiresAt =
+				Number.isFinite(expiresAtNum) && expiresAtNum > 0
+					? expiresAtNum
+					: expiresInParam
+						? Date.now() + Number(expiresInParam) * 1000
+						: Date.now() + 3600_000;
 
 			const session: Session = {
 				access_token: effectiveToken,

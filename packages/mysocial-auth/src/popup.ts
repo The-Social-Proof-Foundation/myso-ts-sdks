@@ -150,12 +150,11 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 
 				const user = msg.user ?? {};
 				const effectiveToken = msg.session_access_token ?? msg.access_token ?? msg.code;
+				const expiresAtFromMsg =
+					msg.expires_at != null && msg.expires_at > 0 ? msg.expires_at : undefined;
 				const expiresAt =
-					msg.expires_at != null
-						? msg.expires_at
-						: msg.expires_in != null
-							? Date.now() + msg.expires_in * 1000
-							: Date.now() + 3600_000;
+					expiresAtFromMsg ??
+					(msg.expires_in != null ? Date.now() + msg.expires_in * 1000 : Date.now() + 3600_000);
 				const session: Session = {
 					access_token: effectiveToken,
 					...(msg.session_access_token && { session_access_token: msg.session_access_token }),
