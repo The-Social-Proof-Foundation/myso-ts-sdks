@@ -1,5 +1,11 @@
 # @socialproof/mysocial-auth
 
+## 0.12.1
+
+### Patch Changes
+
+- Added session jwt
+
 ## 0.12.0
 
 ### Minor Changes
