@@ -4,7 +4,7 @@
 	"private": false,
 	"description": "MySocial Auth SDK for Login with MySocial via popup or redirect",
 	"license": "Apache-2.0",
-	"author": "The Social Proof Foundation, LLC. <build@socialprooflabs.com>",
+	"author": "The Social Proof Foundation, LLC. <brandon@socialproof.foundation>",
 	"type": "module",
 	"main": "./dist/index.mjs",
 	"types": "./dist/index.d.mts",
@@ -32,7 +32,8 @@
 		"oxlint:check": "oxlint .",
 		"oxlint:fix": "oxlint --fix .",
 		"lint": "pnpm run oxlint:check && pnpm run prettier:check",
-		"lint:fix": "pnpm run oxlint:fix && pnpm run prettier:fix"
+		"lint:fix": "pnpm run oxlint:fix && pnpm run prettier:fix",
+		"release": "pnpm -w run release"
 	},
 	"repository": {
 		"type": "git",

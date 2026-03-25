@@ -16,7 +16,7 @@ importers:
         version: 0.18.2
       '@changesets/cli':
         specifier: ^2.29.8
-        version: 2.29.8(@types/node@25.2.3)
+        version: 2.29.8(patch_hash=f3478295f4625d66d68dd1de650bc621bdc78d3d15842285e37ac7e079e7bc3a)(@types/node@25.2.3)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.7.1
         version: 4.7.1(@vue/compiler-sfc@3.5.26)(prettier@3.8.1)
@@ -10941,7 +10941,7 @@ snapshots:
     dependencies:
       '@changesets/types': 6.1.0
 
-  '@changesets/cli@2.29.8(@types/node@25.2.3)':
+  '@changesets/cli@2.29.8(patch_hash=f3478295f4625d66d68dd1de650bc621bdc78d3d15842285e37ac7e079e7bc3a)(@types/node@25.2.3)':
     dependencies:
       '@changesets/apply-release-plan': 7.0.14
       '@changesets/assemble-release-plan': 6.0.9
