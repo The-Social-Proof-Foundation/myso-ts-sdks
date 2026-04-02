@@ -7,7 +7,7 @@
 import { MoveStruct, normalizeMoveArguments, type RawTransactionArgument } from '../utils/index.js';
 import { bcs } from '@socialproof/myso/bcs';
 import { type Transaction } from '@socialproof/myso/transactions';
-import * as deep_price from './deep_price.js';
+import * as deep_price from './myso_price.js';
 const $moduleName = '@orderbook/core::fill';
 export const Fill = new MoveStruct({
 	name: `${$moduleName}::Fill`,

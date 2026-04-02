@@ -12,7 +12,7 @@ import * as vec_set from './deps/myso/vec_set.js';
 import * as book from './book.js';
 import * as state from './state.js';
 import * as vault from './vault.js';
-import * as deep_price from './deep_price.js';
+import * as deep_price from './myso_price.js';
 import * as balance from './deps/myso/balance.js';
 const $moduleName = '@orderbook/core::pool';
 export const Pool = new MoveStruct({

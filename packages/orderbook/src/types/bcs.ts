@@ -4,6 +4,6 @@
 
 export { Account } from '../contracts/orderbook/account.js';
 export { Balances } from '../contracts/orderbook/balances.js';
-export { OrderDeepPrice } from '../contracts/orderbook/deep_price.js';
+export { OrderDeepPrice } from '../contracts/orderbook/myso_price.js';
 export { Order } from '../contracts/orderbook/order.js';
 export { VecSet } from '../contracts/orderbook/deps/myso/vec_set.js';
