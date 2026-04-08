@@ -41,7 +41,7 @@ export class PoolProxyContract {
 			expiration = MAX_TIMESTAMP,
 			orderType = OrderType.NO_RESTRICTION,
 			selfMatchingOption = SelfMatchingOptions.SELF_MATCHING_ALLOWED,
-			payWithDeep = true,
+			payWithMySo = true,
 		} = params;
 		const pool = this.#config.getPool(poolKey);
 		const manager = this.#config.getMarginManager(marginManagerKey);
@@ -61,7 +61,7 @@ export class PoolProxyContract {
 				tx.pure.u64(inputPrice),
 				tx.pure.u64(inputQuantity),
 				tx.pure.bool(isBid),
-				tx.pure.bool(payWithDeep),
+				tx.pure.bool(payWithMySo),
 				tx.pure.u64(expiration),
 				tx.object.clock(),
 			],
@@ -82,7 +82,7 @@ export class PoolProxyContract {
 			quantity,
 			isBid,
 			selfMatchingOption = SelfMatchingOptions.SELF_MATCHING_ALLOWED,
-			payWithDeep = true,
+			payWithMySo = true,
 		} = params;
 		const pool = this.#config.getPool(poolKey);
 		const manager = this.#config.getMarginManager(marginManagerKey);
@@ -99,7 +99,7 @@ export class PoolProxyContract {
 				tx.pure.u8(selfMatchingOption),
 				tx.pure.u64(inputQuantity),
 				tx.pure.bool(isBid),
-				tx.pure.bool(payWithDeep),
+				tx.pure.bool(payWithMySo),
 				tx.object.clock(),
 			],
 			typeArguments: [baseCoin.type, quoteCoin.type],
@@ -122,7 +122,7 @@ export class PoolProxyContract {
 			expiration = MAX_TIMESTAMP,
 			orderType = OrderType.NO_RESTRICTION,
 			selfMatchingOption = SelfMatchingOptions.SELF_MATCHING_ALLOWED,
-			payWithDeep = true,
+			payWithMySo = true,
 		} = params;
 		const pool = this.#config.getPool(poolKey);
 		const manager = this.#config.getMarginManager(marginManagerKey);
@@ -147,7 +147,7 @@ export class PoolProxyContract {
 				tx.pure.u64(inputPrice),
 				tx.pure.u64(inputQuantity),
 				tx.pure.bool(isBid),
-				tx.pure.bool(payWithDeep),
+				tx.pure.bool(payWithMySo),
 				tx.pure.u64(expiration),
 				tx.object.clock(),
 			],
@@ -168,7 +168,7 @@ export class PoolProxyContract {
 			quantity,
 			isBid,
 			selfMatchingOption = SelfMatchingOptions.SELF_MATCHING_ALLOWED,
-			payWithDeep = true,
+			payWithMySo = true,
 		} = params;
 		const pool = this.#config.getPool(poolKey);
 		const manager = this.#config.getMarginManager(marginManagerKey);
@@ -190,7 +190,7 @@ export class PoolProxyContract {
 				tx.pure.u8(selfMatchingOption),
 				tx.pure.u64(inputQuantity),
 				tx.pure.bool(isBid),
-				tx.pure.bool(payWithDeep),
+				tx.pure.bool(payWithMySo),
 				tx.object.clock(),
 			],
 			typeArguments: [baseCoin.type, quoteCoin.type, debtType],
@@ -328,8 +328,8 @@ export class PoolProxyContract {
 		const pool = this.#config.getPool(marginManager.poolKey);
 		const baseCoin = this.#config.getCoin(pool.baseCoin);
 		const quoteCoin = this.#config.getCoin(pool.quoteCoin);
-		const deepCoin = this.#config.getCoin('DEEP');
-		const stakeInput = Math.round(stakeAmount * deepCoin.scalar);
+		const mysoCoin = this.#config.getCoin('MYSO');
+		const stakeInput = Math.round(stakeAmount * mysoCoin.scalar);
 		tx.moveCall({
 			target: `${this.#config.MARGIN_PACKAGE_ID}::pool_proxy::stake`,
 			arguments: [

@@ -967,7 +967,7 @@
 
 ### Patch Changes
 
-- 6a571f1: Deep conversion
+- 6a571f1: MySo conversion
 - Updated dependencies [e7bc63e]
   - @socialproof/myso@1.14.2
 

@@ -65,45 +65,45 @@ export class OrderbookMarketMaker {
 	}
 
 	// Example of a flash loan transaction
-	// Borrow 1 DEEP from DEEP_MYSO pool
-	// Swap 0.5 DBUSDC for MYSO in MYSO_DBUSDC pool, pay with deep borrowed
-	// Swap MYSO back to DEEP
-	// Return 1 DEEP to DEEP_MYSO pool
+	// Borrow 1 MYUSD from MYUSD_MYSO pool
+	// Swap 0.5 DBUSDC for MYSO in MYSO_DBUSDC pool, pay with MYUSD borrowed
+	// Swap MYSO back to MYUSD
+	// Return 1 MYUSD to MYUSD_MYSO pool
 	flashLoanExample = async (tx: Transaction) => {
 		const borrowAmount = 1;
-		const [deepCoin, flashLoan] = tx.add(
-			this.client.orderbook.flashLoans.borrowBaseAsset('DEEP_MYSO', borrowAmount),
+		const [mysoCoin, flashLoan] = tx.add(
+			this.client.orderbook.flashLoans.borrowBaseAsset('MYUSD_MYSO', borrowAmount),
 		);
 
-		// Execute trade using borrowed DEEP
-		const [baseOut, quoteOut, deepOut] = tx.add(
+		// Execute trade using borrowed MYUSD
+		const [baseOut, quoteOut, mysoOut] = tx.add(
 			this.client.orderbook.orderbook.swapExactQuoteForBase({
 				poolKey: 'MYSO_DBUSDC',
 				amount: 0.5,
-				deepAmount: 1,
+				mysoAmount: 1,
 				minOut: 0,
-				deepCoin: deepCoin,
+				mysoCoin: mysoCoin,
 			}),
 		);
 
-		tx.transferObjects([baseOut, quoteOut, deepOut], this.getActiveAddress());
+		tx.transferObjects([baseOut, quoteOut, mysoOut], this.getActiveAddress());
 
-		// Execute second trade to get back DEEP for repayment
-		const [baseOut2, quoteOut2, deepOut2] = tx.add(
+		// Execute second trade to get back MYUSD for repayment
+		const [baseOut2, quoteOut2, mysoOut2] = tx.add(
 			this.client.orderbook.orderbook.swapExactQuoteForBase({
-				poolKey: 'DEEP_MYSO',
+				poolKey: 'MYUSD_MYSO',
 				amount: 10,
-				deepAmount: 0,
+				mysoAmount: 0,
 				minOut: 0,
 			}),
 		);
 
-		tx.transferObjects([quoteOut2, deepOut2], this.getActiveAddress());
+		tx.transferObjects([quoteOut2, mysoOut2], this.getActiveAddress());
 
-		// Return borrowed DEEP
+		// Return borrowed MYUSD
 		const loanRemain = tx.add(
 			this.client.orderbook.flashLoans.returnBaseAsset(
-				'DEEP_MYSO',
+				'MYUSD_MYSO',
 				borrowAmount,
 				baseOut2,
 				flashLoan,
@@ -123,7 +123,7 @@ export class OrderbookMarketMaker {
 				isBid: true,
 				// orderType default: no restriction
 				// selfMatchingOption default: allow self matching
-				// payWithDeep default: true
+				// payWithMySo default: true
 			}),
 		);
 	};

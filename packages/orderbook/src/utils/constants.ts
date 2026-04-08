@@ -10,7 +10,7 @@ export type MarginPoolMap = Record<string, MarginPool>;
 export interface OrderbookPackageIds {
 	ORDERBOOK_PACKAGE_ID: string;
 	REGISTRY_ID: string;
-	DEEP_TREASURY_ID: string;
+	MYUSD_TREASURY_ID: string;
 	MARGIN_PACKAGE_ID: string;
 	MARGIN_REGISTRY_ID: string;
 	LIQUIDATION_PACKAGE_ID: string;
@@ -19,7 +19,7 @@ export interface OrderbookPackageIds {
 export const testnetPackageIds = {
 	ORDERBOOK_PACKAGE_ID: '0x22be4cade64bf2d02412c7e8d0e8beea2f78828b948118d46735315409371a3c',
 	REGISTRY_ID: '0x7c256edbda983a2cd6f946655f4bf3f00a41043993781f8674a7046e8c0e11d1',
-	DEEP_TREASURY_ID: '0x69fffdae0075f8f71f4fa793549c11079266910e8905169845af1f5d00e09dcb',
+	MYUSD_TREASURY_ID: '0x69fffdae0075f8f71f4fa793549c11079266910e8905169845af1f5d00e09dcb',
 	MARGIN_PACKAGE_ID: '0xd6a42f4df4db73d68cbeb52be66698d2fe6a9464f45ad113ca52b0c6ebd918b6',
 	MARGIN_REGISTRY_ID: '0x48d7640dfae2c6e9ceeada197a7a1643984b5a24c55a0c6c023dac77e0339f75',
 	LIQUIDATION_PACKAGE_ID: '0x8d69c3ef3ef580e5bf87b933ce28de19a5d0323588d1a44b9c60b4001741aa24',
@@ -28,21 +28,13 @@ export const testnetPackageIds = {
 export const mainnetPackageIds = {
 	ORDERBOOK_PACKAGE_ID: '0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497',
 	REGISTRY_ID: '0xaf16199a2dff736e9f07a845f23c5da6df6f756eddb631aed9d24a93efc4549d',
-	DEEP_TREASURY_ID: '0x032abf8948dda67a271bcc18e776dbbcfb0d58c8d288a700ff0d5521e57a1ffe',
+	MYUSD_TREASURY_ID: '0x032abf8948dda67a271bcc18e776dbbcfb0d58c8d288a700ff0d5521e57a1ffe',
 	MARGIN_PACKAGE_ID: '0xfbd322126f1452fd4c89aedbaeb9fd0c44df9b5cedbe70d76bf80dc086031377',
 	MARGIN_REGISTRY_ID: '0x0e40998b359a9ccbab22a98ed21bd4346abf19158bc7980c8291908086b3a742',
 	LIQUIDATION_PACKAGE_ID: '0x73c593882cdb557703e903603f20bd373261fe6ba6e1a40515f4b62f10553e6a',
 } satisfies OrderbookPackageIds;
 
 export const testnetCoins: CoinMap = {
-	DEEP: {
-		address: `0x36dbef866a1d62bf7328989a10fb2f07d769f4ee587c0de4a0a256e57e0a58a8`,
-		type: `0x36dbef866a1d62bf7328989a10fb2f07d769f4ee587c0de4a0a256e57e0a58a8::deep::DEEP`,
-		scalar: 1000000,
-		feed: '0x99137a18354efa7fb6840889d059fdb04c46a6ce21be97ab60d9ad93e91ac758', // DEEP uses HFT feed on testnet
-		currencyId: '0xbf1b77e244f649c736a44898585cc8ac939fbb0bbdf1d8d2a183978cc312e613',
-		priceInfoObjectId: '0x3d52fffa2cd9e54b39bb36d282bdda560b15b8b4fdf4766a3c58499ef172bafc',
-	},
 	MYSO: {
 		address: `0x0000000000000000000000000000000000000000000000000000000000000002`,
 		type: `0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO`,
@@ -50,6 +42,14 @@ export const testnetCoins: CoinMap = {
 		feed: '0x50c67b3fd225db8912a424dd4baed60ffdde625ed2feaaf283724f9608fea266',
 		currencyId: '0xf256d3fb6a50eaa748d94335b34f2982fbc3b63ceec78cafaa29ebc9ebaf2bbc',
 		priceInfoObjectId: '0x1ebb295c789cc42b3b2a1606482cd1c7124076a0f5676718501fda8c7fd075a0',
+	},
+	MYUSD: {
+		address: `0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402`,
+		type: `0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402::myso_usde::MYSO_USDE`,
+		scalar: 1000000,
+		feed: '0x8cead549d0e770dea8fdf5e018a85d59585265cf8bff16ba83962fc7996dbb7f',
+		currencyId: '0x44f0959110bd9e5e91af0483364c42075ac19f173b28f708989f419ef3560576',
+		priceInfoObjectId: '0x9b2028bfc829127d2e5ead1691dc3002de9e9b8d8076b4915e5ecc7d9b99d63f',
 	},
 	DBUSDC: {
 		address: `0xf7152c05930480cd740d7311b5b8b45c6f488e3a53a11c3f74a6fac36a52e0d7`,
@@ -80,14 +80,6 @@ export const testnetCoins: CoinMap = {
 };
 
 export const mainnetCoins: CoinMap = {
-	DEEP: {
-		address: `0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270`,
-		type: `0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP`,
-		scalar: 1000000,
-		feed: '0x29bdd5248234e33bd93d3b81100b5fa32eaa5997843847e2c2cb16d7c6d9f7ff',
-		currencyId: '0x3f2afb7c5f245870a8b8a3808e6dd7042446a0e7504e9d2795372da053858cd9',
-		priceInfoObjectId: '0x8c7f3a322b94cc69db2a2ac575cbd94bf5766113324c3a3eceac91e3e88a51ed',
-	},
 	MYSO: {
 		address: `0x0000000000000000000000000000000000000000000000000000000000000002`,
 		type: `0x0000000000000000000000000000000000000000000000000000000000000002::myso::MYSO`,
@@ -204,9 +196,9 @@ export const mainnetCoins: CoinMap = {
 };
 
 export const testnetPools: PoolMap = {
-	DEEP_MYSO: {
+	MYUSD_MYSO: {
 		address: `0x48c95963e9eac37a316b7ae04a0deb761bcdcc2b67912374d6036e7f0e9bae9f`,
-		baseCoin: 'DEEP',
+		baseCoin: 'MYUSD',
 		quoteCoin: 'MYSO',
 	},
 	MYSO_DBUSDC: {
@@ -214,9 +206,9 @@ export const testnetPools: PoolMap = {
 		baseCoin: 'MYSO',
 		quoteCoin: 'DBUSDC',
 	},
-	DEEP_DBUSDC: {
+	MYUSD_DBUSDC: {
 		address: `0xe86b991f8632217505fd859445f9803967ac84a9d4a1219065bf191fcb74b622`,
-		baseCoin: 'DEEP',
+		baseCoin: 'MYUSD',
 		quoteCoin: 'DBUSDC',
 	},
 	DBUSDT_DBUSDC: {
@@ -242,9 +234,9 @@ export const testnetPools: PoolMap = {
 };
 
 export const mainnetPools: PoolMap = {
-	DEEP_MYSO: {
+	MYUSD_MYSO: {
 		address: `0xb663828d6217467c8a1838a03793da896cbe745b150ebd57d82f814ca579fc22`,
-		baseCoin: 'DEEP',
+		baseCoin: 'MYUSD',
 		quoteCoin: 'MYSO',
 	},
 	MYSO_USDC: {
@@ -252,9 +244,9 @@ export const mainnetPools: PoolMap = {
 		baseCoin: 'MYSO',
 		quoteCoin: 'USDC',
 	},
-	DEEP_USDC: {
+	MYUSD_USDC: {
 		address: `0xf948981b806057580f91622417534f491da5f61aeaf33d0ed8e69fd5691c95ce`,
-		baseCoin: 'DEEP',
+		baseCoin: 'MYUSD',
 		quoteCoin: 'USDC',
 	},
 	WUSDT_USDC: {
@@ -342,7 +334,7 @@ export const mainnetPools: PoolMap = {
 		baseCoin: 'USDT',
 		quoteCoin: 'USDC',
 	},
-	MYUSD_USDC: {
+	USDE_USDC: {
 		address: '0x0fac1cebf35bde899cd9ecdd4371e0e33f44ba83b8a2902d69186646afa3a94b',
 		baseCoin: 'MYUSD',
 		quoteCoin: 'USDC',
@@ -363,9 +355,9 @@ export const testnetMarginPools = {
 		address: '0xf08568da93834e1ee04f09902ac7b1e78d3fdf113ab4d2106c7265e95318b14d',
 		type: '0xf7152c05930480cd740d7311b5b8b45c6f488e3a53a11c3f74a6fac36a52e0d7::DBUSDC::DBUSDC',
 	},
-	DEEP: {
+	MYUSD: {
 		address: '0x610640613f21d9e688d6f8103d17df22315c32e0c80590ce64951a1991378b55',
-		type: '0x36dbef866a1d62bf7328989a10fb2f07d769f4ee587c0de4a0a256e57e0a58a8::deep::DEEP',
+		type: '0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402::myso_usde::MYSO_USDE',
 	},
 	DBTC: {
 		address: '0xf3440b4aafcc8b12fc4b242e9590c52873b8238a0d0e52fbf9dae61d2970796a',
@@ -382,9 +374,9 @@ export const mainnetMarginPools = {
 		address: '0xba473d9ae278f10af75c50a8fa341e9c6a1c087dc91a3f23e8048baf67d0754f',
 		type: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
 	},
-	DEEP: {
+	MYUSD: {
 		address: '0x1d723c5cd113296868b55208f2ab5a905184950dd59c48eb7345607d6b5e6af7',
-		type: '0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP',
+		type: '0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402::myso_usde::MYSO_USDE',
 	},
 	WAL: {
 		address: '0x38decd3dbb62bd4723144349bf57bc403b393aee86a51596846a824a1e0c2c01',

@@ -314,30 +314,31 @@ export function half(options: HalfOptions = {}) {
 			function: 'half',
 		});
 }
-export interface FeeIsDeepOptions {
+export interface FeeIsMySoOptions {
 	package?: string;
 	arguments?: [];
 }
-export function feeIsDeep(options: FeeIsDeepOptions = {}) {
+export function feeIsMySo(options: FeeIsMySoOptions = {}) {
 	const packageAddress = options.package ?? '@orderbook/core';
+	// Fees are settled in MYSO; Move entry name remains `fee_is_myso` until the package is upgraded.
 	return (tx: Transaction) =>
 		tx.moveCall({
 			package: packageAddress,
 			module: 'constants',
-			function: 'fee_is_deep',
+			function: 'fee_is_myso',
 		});
 }
-export interface DeepUnitOptions {
+export interface MySoUnitOptions {
 	package?: string;
 	arguments?: [];
 }
-export function deepUnit(options: DeepUnitOptions = {}) {
+export function mysoUnit(options: MySoUnitOptions = {}) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	return (tx: Transaction) =>
 		tx.moveCall({
 			package: packageAddress,
 			module: 'constants',
-			function: 'deep_unit',
+			function: 'myso_unit',
 		});
 }
 export interface MaxFillsOptions {

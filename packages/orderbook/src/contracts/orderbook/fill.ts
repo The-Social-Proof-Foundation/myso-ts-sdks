@@ -7,7 +7,7 @@
 import { MoveStruct, normalizeMoveArguments, type RawTransactionArgument } from '../utils/index.js';
 import { bcs } from '@socialproof/myso/bcs';
 import { type Transaction } from '@socialproof/myso/transactions';
-import * as deep_price from './myso_price.js';
+import * as myso_price from './myso_price.js';
 const $moduleName = '@orderbook/core::fill';
 export const Fill = new MoveStruct({
 	name: `${$moduleName}::Fill`,
@@ -23,11 +23,11 @@ export const Fill = new MoveStruct({
 		quote_quantity: bcs.u64(),
 		taker_is_bid: bcs.bool(),
 		maker_epoch: bcs.u64(),
-		maker_deep_price: deep_price.OrderDeepPrice,
+		maker_myso_price: myso_price.OrderMySoPrice,
 		taker_fee: bcs.u64(),
-		taker_fee_is_deep: bcs.bool(),
+		taker_fee_is_myusd: bcs.bool(),
 		maker_fee: bcs.u64(),
-		maker_fee_is_deep: bcs.bool(),
+		maker_fee_is_myusd: bcs.bool(),
 	},
 });
 export interface MakerOrderIdArguments {
@@ -239,14 +239,14 @@ export function makerEpoch(options: MakerEpochOptions) {
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 		});
 }
-export interface MakerDeepPriceArguments {
+export interface MakerMySoPriceArguments {
 	self: RawTransactionArgument<string>;
 }
-export interface MakerDeepPriceOptions {
+export interface MakerMySoPriceOptions {
 	package?: string;
-	arguments: MakerDeepPriceArguments | [self: RawTransactionArgument<string>];
+	arguments: MakerMySoPriceArguments | [self: RawTransactionArgument<string>];
 }
-export function makerDeepPrice(options: MakerDeepPriceOptions) {
+export function makerMySoPrice(options: MakerMySoPriceOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null] satisfies (string | null)[];
 	const parameterNames = ['self'];
@@ -254,7 +254,7 @@ export function makerDeepPrice(options: MakerDeepPriceOptions) {
 		tx.moveCall({
 			package: packageAddress,
 			module: 'fill',
-			function: 'maker_deep_price',
+			function: 'maker_myso_price',
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 		});
 }
@@ -277,14 +277,14 @@ export function takerFee(options: TakerFeeOptions) {
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 		});
 }
-export interface TakerFeeIsDeepArguments {
+export interface TakerFeeIsMySoArguments {
 	self: RawTransactionArgument<string>;
 }
-export interface TakerFeeIsDeepOptions {
+export interface TakerFeeIsMySoOptions {
 	package?: string;
-	arguments: TakerFeeIsDeepArguments | [self: RawTransactionArgument<string>];
+	arguments: TakerFeeIsMySoArguments | [self: RawTransactionArgument<string>];
 }
-export function takerFeeIsDeep(options: TakerFeeIsDeepOptions) {
+export function takerFeeIsMySo(options: TakerFeeIsMySoOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null] satisfies (string | null)[];
 	const parameterNames = ['self'];
@@ -292,7 +292,7 @@ export function takerFeeIsDeep(options: TakerFeeIsDeepOptions) {
 		tx.moveCall({
 			package: packageAddress,
 			module: 'fill',
-			function: 'taker_fee_is_deep',
+			function: 'taker_fee_is_myso',
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 		});
 }
@@ -315,14 +315,14 @@ export function makerFee(options: MakerFeeOptions) {
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 		});
 }
-export interface MakerFeeIsDeepArguments {
+export interface MakerFeeIsMySoArguments {
 	self: RawTransactionArgument<string>;
 }
-export interface MakerFeeIsDeepOptions {
+export interface MakerFeeIsMySoOptions {
 	package?: string;
-	arguments: MakerFeeIsDeepArguments | [self: RawTransactionArgument<string>];
+	arguments: MakerFeeIsMySoArguments | [self: RawTransactionArgument<string>];
 }
-export function makerFeeIsDeep(options: MakerFeeIsDeepOptions) {
+export function makerFeeIsMySo(options: MakerFeeIsMySoOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null] satisfies (string | null)[];
 	const parameterNames = ['self'];
@@ -330,7 +330,7 @@ export function makerFeeIsDeep(options: MakerFeeIsDeepOptions) {
 		tx.moveCall({
 			package: packageAddress,
 			module: 'fill',
-			function: 'maker_fee_is_deep',
+			function: 'maker_fee_is_myso',
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 		});
 }

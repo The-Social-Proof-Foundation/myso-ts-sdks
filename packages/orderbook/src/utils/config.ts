@@ -23,7 +23,8 @@ import {
 
 // Constants for numerical precision and scaling
 export const FLOAT_SCALAR = 1_000_000_000; // 10^9 - Used for floating point representation
-export const DEEP_SCALAR = 1_000_000; // 10^6 - DEEP token decimal places
+export const MYSO_SCALAR = 1_000_000_000; // 10^9 - MYSO token decimal places
+export const MYUSD_SCALAR = 1_000_000; // 10^6 - MYUSD (MYSO_USDE) decimal places
 
 // Time-related constants
 export const MAX_TIMESTAMP = 1_844_674_407_370_955_161n; // Maximum Unix timestamp (approximately year 2554)
@@ -31,7 +32,7 @@ export const PRICE_INFO_OBJECT_MAX_AGE_MS = 30_000; // 30 seconds in millisecond
 
 // Transaction and fee constants
 export const GAS_BUDGET = 250_000_000; // 0.25 MYSO (0.5 * 500M MIST)
-export const POOL_CREATION_FEE_DEEP = 500_000_000; // 500 DEEP tokens (500 * 10^6)
+export const POOL_CREATION_FEE_MYUSD = 500_000_000; // 500 MYUSD (500 * 10^6)
 
 export class OrderbookConfig {
 	#coins: CoinMap;
@@ -48,7 +49,7 @@ export class OrderbookConfig {
 
 	ORDERBOOK_PACKAGE_ID: string;
 	REGISTRY_ID: string;
-	DEEP_TREASURY_ID: string;
+	MYUSD_TREASURY_ID: string;
 	MARGIN_PACKAGE_ID: string;
 	MARGIN_REGISTRY_ID: string;
 	LIQUIDATION_PACKAGE_ID: string;
@@ -99,7 +100,7 @@ export class OrderbookConfig {
 			this.#marginPools = marginPools || mainnetMarginPools;
 			this.ORDERBOOK_PACKAGE_ID = mainnetPackageIds.ORDERBOOK_PACKAGE_ID;
 			this.REGISTRY_ID = mainnetPackageIds.REGISTRY_ID;
-			this.DEEP_TREASURY_ID = mainnetPackageIds.DEEP_TREASURY_ID;
+			this.MYUSD_TREASURY_ID = mainnetPackageIds.MYUSD_TREASURY_ID;
 			this.MARGIN_PACKAGE_ID = mainnetPackageIds.MARGIN_PACKAGE_ID;
 			this.MARGIN_REGISTRY_ID = mainnetPackageIds.MARGIN_REGISTRY_ID;
 			this.LIQUIDATION_PACKAGE_ID = mainnetPackageIds.LIQUIDATION_PACKAGE_ID;
@@ -110,7 +111,7 @@ export class OrderbookConfig {
 			this.#marginPools = marginPools || testnetMarginPools;
 			this.ORDERBOOK_PACKAGE_ID = testnetPackageIds.ORDERBOOK_PACKAGE_ID;
 			this.REGISTRY_ID = testnetPackageIds.REGISTRY_ID;
-			this.DEEP_TREASURY_ID = testnetPackageIds.DEEP_TREASURY_ID;
+			this.MYUSD_TREASURY_ID = testnetPackageIds.MYUSD_TREASURY_ID;
 			this.MARGIN_PACKAGE_ID = testnetPackageIds.MARGIN_PACKAGE_ID;
 			this.MARGIN_REGISTRY_ID = testnetPackageIds.MARGIN_REGISTRY_ID;
 			this.LIQUIDATION_PACKAGE_ID = testnetPackageIds.LIQUIDATION_PACKAGE_ID;

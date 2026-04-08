@@ -11,18 +11,19 @@
  */
 
 import { OrderbookClient } from '../src/client.js';
-import { MySoClient, getFullnodeUrl } from '@socialproof/myso/client';
+import { MySoGrpcClient } from '@socialproof/myso/grpc';
 import { Transaction } from '@socialproof/myso/transactions';
 
 async function main() {
-	const mysoClient = new MySoClient({
-		url: getFullnodeUrl('testnet'),
+	const mysoClient = new MySoGrpcClient({
+		network: 'testnet',
+		baseUrl: 'http://fullnode.testnet.mysocial.network:443',
 	});
 
 	const dbClient = new OrderbookClient({
 		client: mysoClient,
 		address: '0xYOUR_ADDRESS_HERE', // Replace with your address
-		env: 'testnet',
+		network: 'testnet',
 	});
 
 	const poolKey = 'MYSO_DBUSDC';
@@ -39,7 +40,7 @@ async function main() {
 		dbClient.marginManager.newMarginManagerWithInitializer(poolKey)(tx1);
 
 	// 1a. Deposit during initialization using AMOUNT
-	// coinType should be the actual coin key (e.g., 'MYSO', 'DBUSDC', 'DEEP')
+	// coinType should be the actual coin key (e.g., 'MYSO', 'DBUSDC', 'MYUSD')
 	dbClient.marginManager.depositDuringInitialization({
 		manager,
 		poolKey,
@@ -59,10 +60,10 @@ async function main() {
 	dbClient.marginManager.depositDuringInitialization({
 		manager,
 		poolKey,
-		coinType: 'DEEP',
-		amount: 10.0, // 10 DEEP
+		coinType: 'MYUSD',
+		amount: 10.0, // 10 MYUSD
 	})(tx1);
-	console.log('1c. Deposit DEEP during init with amount: 10.0');
+	console.log('1c. Deposit MYUSD during init with amount: 10.0');
 
 	// 1d. Deposit during initialization using COIN TransactionArgument
 	// Useful when you have a coin from a previous operation (e.g., splitCoins)
@@ -103,11 +104,11 @@ async function main() {
 	})(tx2);
 	console.log('2b. depositQuote with amount: 100.0');
 
-	dbClient.marginManager.depositDeep({
+	dbClient.marginManager.depositMyUsd({
 		managerKey,
-		amount: 10.0, // 10 DEEP
+		amount: 10.0, // 10 MYUSD
 	})(tx2);
-	console.log('2c. depositDeep with amount: 10.0');
+	console.log('2c. depositMyUsd with amount: 10.0');
 
 	// 2d. Deposit using COIN TransactionArgument
 	// Useful when you have coins from previous operations
@@ -125,18 +126,18 @@ async function main() {
 	// })(tx2);
 	// console.log('2e. depositQuote with coin TransactionArgument');
 
-	// const [splitDeepCoin] = tx2.splitCoins(someDeepCoinObject, [tx2.pure.u64(5000000)]); // 5 DEEP
-	// dbClient.marginManager.depositDeep({
+	// const [splitMySoCoin] = tx2.splitCoins(someMySoCoinObject, [tx2.pure.u64(5000000)]); // 5 MYUSD
+	// dbClient.marginManager.depositMyUsd({
 	// 	managerKey,
-	// 	coin: splitDeepCoin,
+	// 	coin: splitMySoCoin,
 	// })(tx2);
-	// console.log('2f. depositDeep with coin TransactionArgument');
+	// console.log('2f. depositMyUsd with coin TransactionArgument');
 
 	console.log('\n=== Summary ===');
 	console.log('Deposit methods:');
 	console.log('  - depositDuringInitialization: Use before sharing a new margin manager');
-	console.log('    - coinType: Use actual coin key (e.g., "MYSO", "DBUSDC", "DEEP")');
-	console.log('  - depositBase/Quote/Deep: Use for existing shared margin managers');
+	console.log('    - coinType: Use actual coin key (e.g., "MYSO", "DBUSDC", "MYUSD")');
+	console.log('  - depositBase/Quote/MySo: Use for existing shared margin managers');
 	console.log('');
 	console.log('Input options:');
 	console.log('  - amount (number): SDK creates coinWithBalance internally');

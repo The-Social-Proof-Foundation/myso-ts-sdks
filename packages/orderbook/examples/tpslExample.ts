@@ -131,7 +131,7 @@ const GRPC_URLS = {
 			price: 3.4, // Sell at 3.4 or better
 			quantity: 10, // Sell 10 units
 			isBid: false, // This is a sell order
-			payWithDeep: true,
+			payWithMySo: true,
 			expireTimestamp: Date.now() + 7 * 24 * 60 * 60 * 1000, // Expires in 7 days
 		},
 	})(tx);
@@ -148,7 +148,7 @@ const GRPC_URLS = {
 			selfMatchingOption: SelfMatchingOptions.SELF_MATCHING_ALLOWED,
 			quantity: 5,
 			isBid: false, // Sell order
-			payWithDeep: true,
+			payWithMySo: true,
 		},
 	})(tx);
 
@@ -171,7 +171,7 @@ const GRPC_URLS = {
 			price: 4.9, // Sell at 4.9 or better
 			quantity: 10,
 			isBid: false, // Sell order to take profits
-			payWithDeep: true,
+			payWithMySo: true,
 			expireTimestamp: Date.now() + 30 * 24 * 60 * 60 * 1000, // Expires in 30 days
 		},
 	})(tx);
@@ -187,7 +187,7 @@ const GRPC_URLS = {
 			selfMatchingOption: SelfMatchingOptions.SELF_MATCHING_ALLOWED,
 			quantity: 5,
 			isBid: false,
-			payWithDeep: true,
+			payWithMySo: true,
 		},
 	})(tx);
 
@@ -243,7 +243,7 @@ const GRPC_URLS = {
 		price: 3.9,
 		quantity: 5,
 		isBid: false,
-		payWithDeep: true,
+		payWithMySo: true,
 		expireTimestamp: Date.now() + 7 * 24 * 60 * 60 * 1000,
 	})(tx2);
 
@@ -253,7 +253,7 @@ const GRPC_URLS = {
 		selfMatchingOption: SelfMatchingOptions.SELF_MATCHING_ALLOWED,
 		quantity: 2,
 		isBid: true, // Buy order
-		payWithDeep: true,
+		payWithMySo: true,
 	})(tx2);
 
 	console.log('Created condition and pending orders (for demonstration)');

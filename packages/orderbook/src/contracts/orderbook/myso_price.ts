@@ -28,7 +28,7 @@ export const PriceAdded = new MoveStruct({
 		target_pool: bcs.Address,
 	},
 });
-export const DeepPrice = new MoveStruct({
+export const MySoPrice = new MoveStruct({
 	name: `${$moduleName}::MySoPrice`,
 	fields: {
 		base_prices: bcs.vector(Price),
@@ -58,7 +58,7 @@ export function assetIsBase(options: AssetIsBaseOptions) {
 	return (tx: Transaction) =>
 		tx.moveCall({
 			package: packageAddress,
-			module: 'deep_price',
+			module: 'myso_price',
 			function: 'asset_is_base',
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 		});

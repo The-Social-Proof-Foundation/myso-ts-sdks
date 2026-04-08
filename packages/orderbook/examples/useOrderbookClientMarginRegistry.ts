@@ -5,8 +5,8 @@ import { orderbook } from '../src/client.js';
 import { MySoGrpcClient } from '@socialproof/myso/grpc';
 
 const GRPC_URLS = {
-	mainnet: 'https://fullnode.mainnet.mysocial.network:443',
-	testnet: 'https://fullnode.testnet.mysocial.network:443',
+	mainnet: 'http://fullnode.mainnet.mysocial.network:443',
+	testnet: 'http://fullnode.testnet.mysocial.network:443',
 } as const;
 
 (async () => {
@@ -19,7 +19,7 @@ const GRPC_URLS = {
 
 	console.log('=== Testing Margin Registry Functions ===\n');
 
-	const poolKey = 'MYSO_DBUSDC'; // Test pool key
+	const poolKey = 'MYSO_MYUSD'; // Test pool key
 	const testOwner = '0x0000000000000000000000000000000000000000000000000000000000000000'; // Test owner address
 
 	try {

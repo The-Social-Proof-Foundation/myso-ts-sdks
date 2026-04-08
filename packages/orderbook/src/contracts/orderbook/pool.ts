@@ -12,7 +12,7 @@ import * as vec_set from './deps/myso/vec_set.js';
 import * as book from './book.js';
 import * as state from './state.js';
 import * as vault from './vault.js';
-import * as deep_price from './myso_price.js';
+import * as myso_price from './myso_price.js';
 import * as balance from './deps/myso/balance.js';
 const $moduleName = '@orderbook/core::pool';
 export const Pool = new MoveStruct({
@@ -30,7 +30,7 @@ export const PoolInner = new MoveStruct({
 		book: book.Book,
 		state: state.State,
 		vault: vault.Vault,
-		deep_price: deep_price.DeepPrice,
+		myso_price: myso_price.MySoPrice,
 		registered_pool: bcs.bool(),
 	},
 });
@@ -57,11 +57,11 @@ export const BookParamsUpdated = new MoveStruct({
 		timestamp: bcs.u64(),
 	},
 });
-export const DeepBurned = new MoveStruct({
-	name: `${$moduleName}::DeepBurned<phantom BaseAsset, phantom QuoteAsset>`,
+export const MySoBurned = new MoveStruct({
+	name: `${$moduleName}::MySoBurned<phantom BaseAsset, phantom QuoteAsset>`,
 	fields: {
 		pool_id: bcs.Address,
-		deep_burned: bcs.u64(),
+		myso_burned: bcs.u64(),
 	},
 });
 export const ReferralRewards = new MoveStruct({
@@ -70,7 +70,7 @@ export const ReferralRewards = new MoveStruct({
 		multiplier: bcs.u64(),
 		base: balance.Balance,
 		quote: balance.Balance,
-		deep: balance.Balance,
+		myusd: balance.Balance,
 	},
 });
 export const ReferralClaimedEvent = new MoveStruct({
@@ -80,7 +80,7 @@ export const ReferralClaimedEvent = new MoveStruct({
 		owner: bcs.Address,
 		base_amount: bcs.u64(),
 		quote_amount: bcs.u64(),
-		deep_amount: bcs.u64(),
+		myso_amount: bcs.u64(),
 	},
 });
 export const ReferralClaimed = new MoveStruct({
@@ -91,7 +91,7 @@ export const ReferralClaimed = new MoveStruct({
 		owner: bcs.Address,
 		base_amount: bcs.u64(),
 		quote_amount: bcs.u64(),
-		deep_amount: bcs.u64(),
+		myso_amount: bcs.u64(),
 	},
 });
 export const ReferralFeeEvent = new MoveStruct({
@@ -101,7 +101,7 @@ export const ReferralFeeEvent = new MoveStruct({
 		referral_id: bcs.Address,
 		base_fee: bcs.u64(),
 		quote_fee: bcs.u64(),
-		deep_fee: bcs.u64(),
+		myso_fee: bcs.u64(),
 	},
 });
 export interface CreatePermissionlessPoolArguments {
@@ -152,7 +152,7 @@ export interface PlaceLimitOrderArguments {
 	price: RawTransactionArgument<number | bigint>;
 	quantity: RawTransactionArgument<number | bigint>;
 	isBid: RawTransactionArgument<boolean>;
-	payWithDeep: RawTransactionArgument<boolean>;
+	payWithMySo: RawTransactionArgument<boolean>;
 	expireTimestamp: RawTransactionArgument<number | bigint>;
 }
 export interface PlaceLimitOrderOptions {
@@ -169,14 +169,14 @@ export interface PlaceLimitOrderOptions {
 				price: RawTransactionArgument<number | bigint>,
 				quantity: RawTransactionArgument<number | bigint>,
 				isBid: RawTransactionArgument<boolean>,
-				payWithDeep: RawTransactionArgument<boolean>,
+				payWithMySo: RawTransactionArgument<boolean>,
 				expireTimestamp: RawTransactionArgument<number | bigint>,
 		  ];
 	typeArguments: [string, string];
 }
 /**
  * Place a limit order. Quantity is in base asset terms. For current version
- * pay_with_deep must be true, so the fee will be paid with DEEP tokens.
+ * pay_with_myso must be true, so the fee will be paid with MYUSD tokens.
  */
 export function placeLimitOrder(options: PlaceLimitOrderOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
@@ -204,7 +204,7 @@ export function placeLimitOrder(options: PlaceLimitOrderOptions) {
 		'price',
 		'quantity',
 		'isBid',
-		'payWithDeep',
+		'payWithMySo',
 		'expireTimestamp',
 	];
 	return (tx: Transaction) =>
@@ -224,7 +224,7 @@ export interface PlaceMarketOrderArguments {
 	selfMatchingOption: RawTransactionArgument<number>;
 	quantity: RawTransactionArgument<number | bigint>;
 	isBid: RawTransactionArgument<boolean>;
-	payWithDeep: RawTransactionArgument<boolean>;
+	payWithMySo: RawTransactionArgument<boolean>;
 }
 export interface PlaceMarketOrderOptions {
 	package?: string;
@@ -238,7 +238,7 @@ export interface PlaceMarketOrderOptions {
 				selfMatchingOption: RawTransactionArgument<number>,
 				quantity: RawTransactionArgument<number | bigint>,
 				isBid: RawTransactionArgument<boolean>,
-				payWithDeep: RawTransactionArgument<boolean>,
+				payWithMySo: RawTransactionArgument<boolean>,
 		  ];
 	typeArguments: [string, string];
 }
@@ -268,7 +268,7 @@ export function placeMarketOrder(options: PlaceMarketOrderOptions) {
 		'selfMatchingOption',
 		'quantity',
 		'isBid',
-		'payWithDeep',
+		'payWithMySo',
 	];
 	return (tx: Transaction) =>
 		tx.moveCall({
@@ -282,7 +282,7 @@ export function placeMarketOrder(options: PlaceMarketOrderOptions) {
 export interface SwapExactBaseForQuoteArguments {
 	self: RawTransactionArgument<string>;
 	baseIn: RawTransactionArgument<string>;
-	deepIn: RawTransactionArgument<string>;
+	myusdIn: RawTransactionArgument<string>;
 	minQuoteOut: RawTransactionArgument<number | bigint>;
 }
 export interface SwapExactBaseForQuoteOptions {
@@ -292,20 +292,20 @@ export interface SwapExactBaseForQuoteOptions {
 		| [
 				self: RawTransactionArgument<string>,
 				baseIn: RawTransactionArgument<string>,
-				deepIn: RawTransactionArgument<string>,
+				myusdIn: RawTransactionArgument<string>,
 				minQuoteOut: RawTransactionArgument<number | bigint>,
 		  ];
 	typeArguments: [string, string];
 }
 /**
- * Swap exact base quantity without needing a `balance_manager`. DEEP quantity can
- * be overestimated. Returns three `Coin` objects: base, quote, and deep. Some base
+ * Swap exact base quantity without needing a `balance_manager`. MYUSD quantity can
+ * be overestimated. Returns three `Coin` objects: base, quote, and myusd (fee). Some base
  * quantity may be left over, if the input quantity is not divisible by lot size.
  */
 export function swapExactBaseForQuote(options: SwapExactBaseForQuoteOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null, null, null, 'u64', '0x2::clock::Clock'] satisfies (string | null)[];
-	const parameterNames = ['self', 'baseIn', 'deepIn', 'minQuoteOut'];
+	const parameterNames = ['self', 'baseIn', 'myusdIn', 'minQuoteOut'];
 	return (tx: Transaction) =>
 		tx.moveCall({
 			package: packageAddress,
@@ -341,7 +341,7 @@ export interface SwapExactBaseForQuoteWithManagerOptions {
 }
 /**
  * Swap exact base for quote with a `balance_manager`. Assumes fees are paid in
- * DEEP. Assumes balance manager has enough DEEP for fees.
+ * MYUSD. Assumes balance manager has enough MYUSD for fees.
  */
 export function swapExactBaseForQuoteWithManager(options: SwapExactBaseForQuoteWithManagerOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
@@ -376,7 +376,7 @@ export function swapExactBaseForQuoteWithManager(options: SwapExactBaseForQuoteW
 export interface SwapExactQuoteForBaseArguments {
 	self: RawTransactionArgument<string>;
 	quoteIn: RawTransactionArgument<string>;
-	deepIn: RawTransactionArgument<string>;
+	myusdIn: RawTransactionArgument<string>;
 	minBaseOut: RawTransactionArgument<number | bigint>;
 }
 export interface SwapExactQuoteForBaseOptions {
@@ -386,21 +386,21 @@ export interface SwapExactQuoteForBaseOptions {
 		| [
 				self: RawTransactionArgument<string>,
 				quoteIn: RawTransactionArgument<string>,
-				deepIn: RawTransactionArgument<string>,
+				myusdIn: RawTransactionArgument<string>,
 				minBaseOut: RawTransactionArgument<number | bigint>,
 		  ];
 	typeArguments: [string, string];
 }
 /**
- * Swap exact quote quantity without needing a `balance_manager`. DEEP quantity can
- * be overestimated. Returns three `Coin` objects: base, quote, and deep. Some
+ * Swap exact quote quantity without needing a `balance_manager`. MYUSD quantity can
+ * be overestimated. Returns three `Coin` objects: base, quote, and myusd (fee). Some
  * quote quantity may be left over if the input quantity is not divisible by lot
  * size.
  */
 export function swapExactQuoteForBase(options: SwapExactQuoteForBaseOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null, null, null, 'u64', '0x2::clock::Clock'] satisfies (string | null)[];
-	const parameterNames = ['self', 'quoteIn', 'deepIn', 'minBaseOut'];
+	const parameterNames = ['self', 'quoteIn', 'myusdIn', 'minBaseOut'];
 	return (tx: Transaction) =>
 		tx.moveCall({
 			package: packageAddress,
@@ -436,7 +436,7 @@ export interface SwapExactQuoteForBaseWithManagerOptions {
 }
 /**
  * Swap exact quote for base with a `balance_manager`. Assumes fees are paid in
- * DEEP. Assumes balance manager has enough DEEP for fees.
+ * MYUSD. Assumes balance manager has enough MYUSD for fees.
  */
 export function swapExactQuoteForBaseWithManager(options: SwapExactQuoteForBaseWithManagerOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
@@ -472,7 +472,7 @@ export interface SwapExactQuantityArguments {
 	self: RawTransactionArgument<string>;
 	baseIn: RawTransactionArgument<string>;
 	quoteIn: RawTransactionArgument<string>;
-	deepIn: RawTransactionArgument<string>;
+	myusdIn: RawTransactionArgument<string>;
 	minOut: RawTransactionArgument<number | bigint>;
 }
 export interface SwapExactQuantityOptions {
@@ -483,7 +483,7 @@ export interface SwapExactQuantityOptions {
 				self: RawTransactionArgument<string>,
 				baseIn: RawTransactionArgument<string>,
 				quoteIn: RawTransactionArgument<string>,
-				deepIn: RawTransactionArgument<string>,
+				myusdIn: RawTransactionArgument<string>,
 				minOut: RawTransactionArgument<number | bigint>,
 		  ];
 	typeArguments: [string, string];
@@ -495,7 +495,7 @@ export function swapExactQuantity(options: SwapExactQuantityOptions) {
 		| string
 		| null
 	)[];
-	const parameterNames = ['self', 'baseIn', 'quoteIn', 'deepIn', 'minOut'];
+	const parameterNames = ['self', 'baseIn', 'quoteIn', 'myusdIn', 'minOut'];
 	return (tx: Transaction) =>
 		tx.moveCall({
 			package: packageAddress,
@@ -532,8 +532,8 @@ export interface SwapExactQuantityWithManagerOptions {
 	typeArguments: [string, string];
 }
 /**
- * Swap exact quantity with a `balance_manager`. Assumes fees are paid in DEEP.
- * Assumes balance manager has enough DEEP for fees.
+ * Swap exact quantity with a `balance_manager`. Assumes fees are paid in MYUSD.
+ * Assumes balance manager has enough MYUSD for fees.
  */
 export function swapExactQuantityWithManager(options: SwapExactQuantityWithManagerOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
@@ -794,7 +794,7 @@ export interface StakeOptions {
 	typeArguments: [string, string];
 }
 /**
- * Stake DEEP tokens to the pool. The balance_manager must have enough DEEP tokens.
+ * Stake MYSO tokens to the pool. The balance_manager must have enough MYSO tokens.
  * The balance_manager's data is updated with the staked amount.
  */
 export function stake(options: StakeOptions) {
@@ -827,8 +827,8 @@ export interface UnstakeOptions {
 	typeArguments: [string, string];
 }
 /**
- * Unstake DEEP tokens from the pool. The balance_manager must have enough staked
- * DEEP tokens. The balance_manager's data is updated with the unstaked amount.
+ * Unstake MYSO tokens from the pool. The balance_manager must have enough staked
+ * MYSO tokens. The balance_manager's data is updated with the unstaked amount.
  * Balance is transferred to the balance_manager immediately.
  */
 export function unstake(options: UnstakeOptions) {
@@ -868,7 +868,7 @@ export interface SubmitProposalOptions {
 }
 /**
  * Submit a proposal to change the taker fee, maker fee, and stake required. The
- * balance_manager must have enough staked DEEP tokens to participate. Each
+ * balance_manager must have enough staked MYSO tokens to participate. Each
  * balance_manager can only submit one proposal per epoch. If the maximum proposal
  * is reached, the proposal with the lowest vote is removed. If the balance_manager
  * has less voting power than the lowest voted proposal, the proposal is not added.
@@ -912,7 +912,7 @@ export interface VoteOptions {
 	typeArguments: [string, string];
 }
 /**
- * Vote on a proposal. The balance_manager must have enough staked DEEP tokens to
+ * Vote on a proposal. The balance_manager must have enough staked MYSO tokens to
  * participate. Full voting power of the balance_manager is used. Voting for a new
  * proposal will remove the vote from the previous proposal.
  */
@@ -1084,22 +1084,22 @@ export function returnFlashloanQuote(options: ReturnFlashloanQuoteOptions) {
 			typeArguments: options.typeArguments,
 		});
 }
-export interface AddDeepPricePointArguments {
+export interface AddMySoPricePointArguments {
 	targetPool: RawTransactionArgument<string>;
 	referencePool: RawTransactionArgument<string>;
 }
-export interface AddDeepPricePointOptions {
+export interface AddMySoPricePointOptions {
 	package?: string;
 	arguments:
-		| AddDeepPricePointArguments
+		| AddMySoPricePointArguments
 		| [targetPool: RawTransactionArgument<string>, referencePool: RawTransactionArgument<string>];
 	typeArguments: [string, string, string, string];
 }
 /**
- * Adds a price point along with a timestamp to the deep price. Allows for the
- * calculation of deep price per base asset.
+ * Adds a price point along with a timestamp to the fee (MYUSD) price. Allows for the
+ * calculation of fee price per base asset.
  */
-export function addDeepPricePoint(options: AddDeepPricePointOptions) {
+export function addMySoPricePoint(options: AddMySoPricePointOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null, null, '0x2::clock::Clock'] satisfies (string | null)[];
 	const parameterNames = ['targetPool', 'referencePool'];
@@ -1107,24 +1107,24 @@ export function addDeepPricePoint(options: AddDeepPricePointOptions) {
 		tx.moveCall({
 			package: packageAddress,
 			module: 'pool',
-			function: 'add_deep_price_point',
+			function: 'add_myso_price_point',
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 			typeArguments: options.typeArguments,
 		});
 }
-export interface BurnDeepArguments {
+export interface BurnMySoArguments {
 	self: RawTransactionArgument<string>;
 	treasuryCap: RawTransactionArgument<string>;
 }
-export interface BurnDeepOptions {
+export interface BurnMySoOptions {
 	package?: string;
 	arguments:
-		| BurnDeepArguments
+		| BurnMySoArguments
 		| [self: RawTransactionArgument<string>, treasuryCap: RawTransactionArgument<string>];
 	typeArguments: [string, string];
 }
-/** Burns DEEP tokens from the pool. Amount to burn is within history */
-export function burnDeep(options: BurnDeepOptions) {
+/** Burns MYUSD (fee) tokens from the pool. Amount to burn is within history */
+export function burnMySo(options: BurnMySoOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null, null] satisfies (string | null)[];
 	const parameterNames = ['self', 'treasuryCap'];
@@ -1132,7 +1132,7 @@ export function burnDeep(options: BurnDeepOptions) {
 		tx.moveCall({
 			package: packageAddress,
 			module: 'pool',
-			function: 'burn_deep',
+			function: 'burn_myso',
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 			typeArguments: options.typeArguments,
 		});
@@ -1659,7 +1659,7 @@ export interface GetQuoteQuantityOutOptions {
 	typeArguments: [string, string];
 }
 /**
- * Dry run to determine the quote quantity out for a given base quantity. Uses DEEP
+ * Dry run to determine the quote quantity out for a given base quantity. Uses MYUSD
  * token as fee.
  */
 export function getQuoteQuantityOut(options: GetQuoteQuantityOutOptions) {
@@ -1690,7 +1690,7 @@ export interface GetBaseQuantityOutOptions {
 	typeArguments: [string, string];
 }
 /**
- * Dry run to determine the base quantity out for a given quote quantity. Uses DEEP
+ * Dry run to determine the base quantity out for a given quote quantity. Uses MYUSD
  * token as fee.
  */
 export function getBaseQuantityOut(options: GetBaseQuantityOutOptions) {
@@ -1784,7 +1784,7 @@ export interface GetQuantityOutOptions {
 /**
  * Dry run to determine the quantity out for a given base or quote quantity. Only
  * one out of base or quote quantity should be non-zero. Returns the
- * (base_quantity_out, quote_quantity_out, deep_quantity_required) Uses DEEP token
+ * (base_quantity_out, quote_quantity_out, myso_quantity_required) Uses MYUSD token
  * as fee.
  */
 export function getQuantityOut(options: GetQuantityOutOptions) {
@@ -1819,7 +1819,7 @@ export interface GetQuantityOutInputFeeOptions {
 /**
  * Dry run to determine the quantity out for a given base or quote quantity. Only
  * one out of base or quote quantity should be non-zero. Returns the
- * (base_quantity_out, quote_quantity_out, deep_quantity_required) Uses input token
+ * (base_quantity_out, quote_quantity_out, myso_quantity_required) Uses input token
  * as fee.
  */
 export function getQuantityOutInputFee(options: GetQuantityOutInputFeeOptions) {
@@ -1838,7 +1838,7 @@ export function getQuantityOutInputFee(options: GetQuantityOutInputFeeOptions) {
 export interface GetBaseQuantityInArguments {
 	self: RawTransactionArgument<string>;
 	targetQuoteQuantity: RawTransactionArgument<number | bigint>;
-	payWithDeep: RawTransactionArgument<boolean>;
+	payWithMySo: RawTransactionArgument<boolean>;
 }
 export interface GetBaseQuantityInOptions {
 	package?: string;
@@ -1847,20 +1847,20 @@ export interface GetBaseQuantityInOptions {
 		| [
 				self: RawTransactionArgument<string>,
 				targetQuoteQuantity: RawTransactionArgument<number | bigint>,
-				payWithDeep: RawTransactionArgument<boolean>,
+				payWithMySo: RawTransactionArgument<boolean>,
 		  ];
 	typeArguments: [string, string];
 }
 /**
  * Dry run to determine the base quantity needed to sell to receive a target quote
  * quantity. Returns (base_quantity_in, actual_quote_quantity_out,
- * deep_quantity_required) Returns (0, 0, 0) if insufficient liquidity or if result
+ * myso_quantity_required) Returns (0, 0, 0) if insufficient liquidity or if result
  * would be below min_size.
  */
 export function getBaseQuantityIn(options: GetBaseQuantityInOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null, 'u64', 'bool', '0x2::clock::Clock'] satisfies (string | null)[];
-	const parameterNames = ['self', 'targetQuoteQuantity', 'payWithDeep'];
+	const parameterNames = ['self', 'targetQuoteQuantity', 'payWithMySo'];
 	return (tx: Transaction) =>
 		tx.moveCall({
 			package: packageAddress,
@@ -1873,7 +1873,7 @@ export function getBaseQuantityIn(options: GetBaseQuantityInOptions) {
 export interface GetQuoteQuantityInArguments {
 	self: RawTransactionArgument<string>;
 	targetBaseQuantity: RawTransactionArgument<number | bigint>;
-	payWithDeep: RawTransactionArgument<boolean>;
+	payWithMySo: RawTransactionArgument<boolean>;
 }
 export interface GetQuoteQuantityInOptions {
 	package?: string;
@@ -1882,20 +1882,20 @@ export interface GetQuoteQuantityInOptions {
 		| [
 				self: RawTransactionArgument<string>,
 				targetBaseQuantity: RawTransactionArgument<number | bigint>,
-				payWithDeep: RawTransactionArgument<boolean>,
+				payWithMySo: RawTransactionArgument<boolean>,
 		  ];
 	typeArguments: [string, string];
 }
 /**
  * Dry run to determine the quote quantity needed to buy a target base quantity.
- * Returns (actual_base_quantity_out, quote_quantity_in, deep_quantity_required)
+ * Returns (actual_base_quantity_out, quote_quantity_in, myso_quantity_required)
  * Returns (0, 0, 0) if insufficient liquidity or if result would be below
  * min_size.
  */
 export function getQuoteQuantityIn(options: GetQuoteQuantityInOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null, 'u64', 'bool', '0x2::clock::Clock'] satisfies (string | null)[];
-	const parameterNames = ['self', 'targetBaseQuantity', 'payWithDeep'];
+	const parameterNames = ['self', 'targetBaseQuantity', 'payWithMySo'];
 	return (tx: Transaction) =>
 		tx.moveCall({
 			package: packageAddress,
@@ -2141,16 +2141,16 @@ export function getAccountOrderDetails(options: GetAccountOrderDetailsOptions) {
 			typeArguments: options.typeArguments,
 		});
 }
-export interface GetOrderDeepPriceArguments {
+export interface GetOrderMySoPriceArguments {
 	self: RawTransactionArgument<string>;
 }
-export interface GetOrderDeepPriceOptions {
+export interface GetOrderMySoPriceOptions {
 	package?: string;
-	arguments: GetOrderDeepPriceArguments | [self: RawTransactionArgument<string>];
+	arguments: GetOrderMySoPriceArguments | [self: RawTransactionArgument<string>];
 	typeArguments: [string, string];
 }
-/** Return the DEEP price for the pool. */
-export function getOrderDeepPrice(options: GetOrderDeepPriceOptions) {
+/** Return the MYUSD (fee) price for the pool. */
+export function getOrderMySoPrice(options: GetOrderMySoPriceOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null] satisfies (string | null)[];
 	const parameterNames = ['self'];
@@ -2158,20 +2158,20 @@ export function getOrderDeepPrice(options: GetOrderDeepPriceOptions) {
 		tx.moveCall({
 			package: packageAddress,
 			module: 'pool',
-			function: 'get_order_deep_price',
+			function: 'get_order_myso_price',
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 			typeArguments: options.typeArguments,
 		});
 }
-export interface GetOrderDeepRequiredArguments {
+export interface GetOrderMySoRequiredArguments {
 	self: RawTransactionArgument<string>;
 	baseQuantity: RawTransactionArgument<number | bigint>;
 	price: RawTransactionArgument<number | bigint>;
 }
-export interface GetOrderDeepRequiredOptions {
+export interface GetOrderMySoRequiredOptions {
 	package?: string;
 	arguments:
-		| GetOrderDeepRequiredArguments
+		| GetOrderMySoRequiredArguments
 		| [
 				self: RawTransactionArgument<string>,
 				baseQuantity: RawTransactionArgument<number | bigint>,
@@ -2180,11 +2180,11 @@ export interface GetOrderDeepRequiredOptions {
 	typeArguments: [string, string];
 }
 /**
- * Returns the deep required for an order if it's taker or maker given quantity and
- * price Does not account for discounted taker fees Returns (deep_required_taker,
- * deep_required_maker)
+ * Returns the MYSO required for an order if it's taker or maker given quantity and
+ * price Does not account for discounted taker fees Returns (myso_required_taker,
+ * myso_required_maker)
  */
-export function getOrderDeepRequired(options: GetOrderDeepRequiredOptions) {
+export function getOrderMySoRequired(options: GetOrderMySoRequiredOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null, 'u64', 'u64'] satisfies (string | null)[];
 	const parameterNames = ['self', 'baseQuantity', 'price'];
@@ -2192,7 +2192,7 @@ export function getOrderDeepRequired(options: GetOrderDeepRequiredOptions) {
 		tx.moveCall({
 			package: packageAddress,
 			module: 'pool',
-			function: 'get_order_deep_required',
+			function: 'get_order_myso_required',
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 			typeArguments: options.typeArguments,
 		});
@@ -2210,7 +2210,7 @@ export interface LockedBalanceOptions {
 }
 /**
  * Returns the locked balance for the balance_manager in the pool Returns
- * (base_quantity, quote_quantity, deep_quantity)
+ * (base_quantity, quote_quantity, myso_quantity)
  */
 export function lockedBalance(options: LockedBalanceOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
@@ -2231,7 +2231,7 @@ export interface CanPlaceLimitOrderArguments {
 	price: RawTransactionArgument<number | bigint>;
 	quantity: RawTransactionArgument<number | bigint>;
 	isBid: RawTransactionArgument<boolean>;
-	payWithDeep: RawTransactionArgument<boolean>;
+	payWithMySo: RawTransactionArgument<boolean>;
 	expireTimestamp: RawTransactionArgument<number | bigint>;
 }
 export interface CanPlaceLimitOrderOptions {
@@ -2244,7 +2244,7 @@ export interface CanPlaceLimitOrderOptions {
 				price: RawTransactionArgument<number | bigint>,
 				quantity: RawTransactionArgument<number | bigint>,
 				isBid: RawTransactionArgument<boolean>,
-				payWithDeep: RawTransactionArgument<boolean>,
+				payWithMySo: RawTransactionArgument<boolean>,
 				expireTimestamp: RawTransactionArgument<number | bigint>,
 		  ];
 	typeArguments: [string, string];
@@ -2273,7 +2273,7 @@ export function canPlaceLimitOrder(options: CanPlaceLimitOrderOptions) {
 		'price',
 		'quantity',
 		'isBid',
-		'payWithDeep',
+		'payWithMySo',
 		'expireTimestamp',
 	];
 	return (tx: Transaction) =>
@@ -2290,7 +2290,7 @@ export interface CanPlaceMarketOrderArguments {
 	balanceManager: RawTransactionArgument<string>;
 	quantity: RawTransactionArgument<number | bigint>;
 	isBid: RawTransactionArgument<boolean>;
-	payWithDeep: RawTransactionArgument<boolean>;
+	payWithMySo: RawTransactionArgument<boolean>;
 }
 export interface CanPlaceMarketOrderOptions {
 	package?: string;
@@ -2301,7 +2301,7 @@ export interface CanPlaceMarketOrderOptions {
 				balanceManager: RawTransactionArgument<string>,
 				quantity: RawTransactionArgument<number | bigint>,
 				isBid: RawTransactionArgument<boolean>,
-				payWithDeep: RawTransactionArgument<boolean>,
+				payWithMySo: RawTransactionArgument<boolean>,
 		  ];
 	typeArguments: [string, string];
 }
@@ -2316,7 +2316,7 @@ export function canPlaceMarketOrder(options: CanPlaceMarketOrderOptions) {
 		| string
 		| null
 	)[];
-	const parameterNames = ['self', 'balanceManager', 'quantity', 'isBid', 'payWithDeep'];
+	const parameterNames = ['self', 'balanceManager', 'quantity', 'isBid', 'payWithMySo'];
 	return (tx: Transaction) =>
 		tx.moveCall({
 			package: packageAddress,

@@ -62,7 +62,7 @@ export interface PlaceLimitOrderParams {
 	expiration?: number | bigint;
 	orderType?: OrderType;
 	selfMatchingOption?: SelfMatchingOptions;
-	payWithDeep?: boolean;
+	payWithMySo?: boolean;
 }
 
 export interface PlaceMarketOrderParams {
@@ -72,7 +72,7 @@ export interface PlaceMarketOrderParams {
 	quantity: number;
 	isBid: boolean;
 	selfMatchingOption?: SelfMatchingOptions;
-	payWithDeep?: boolean;
+	payWithMySo?: boolean;
 }
 
 export interface CanPlaceLimitOrderParams {
@@ -81,7 +81,7 @@ export interface CanPlaceLimitOrderParams {
 	price: number;
 	quantity: number;
 	isBid: boolean;
-	payWithDeep: boolean;
+	payWithMySo: boolean;
 	expireTimestamp: number;
 }
 
@@ -90,7 +90,7 @@ export interface CanPlaceMarketOrderParams {
 	balanceManagerKey: string;
 	quantity: number;
 	isBid: boolean;
-	payWithDeep: boolean;
+	payWithMySo: boolean;
 }
 
 export interface PlaceMarginLimitOrderParams {
@@ -103,7 +103,7 @@ export interface PlaceMarginLimitOrderParams {
 	expiration?: number | bigint;
 	orderType?: OrderType;
 	selfMatchingOption?: SelfMatchingOptions;
-	payWithDeep?: boolean;
+	payWithMySo?: boolean;
 }
 
 export interface PlaceMarginMarketOrderParams {
@@ -113,7 +113,7 @@ export interface PlaceMarginMarketOrderParams {
 	quantity: number;
 	isBid: boolean;
 	selfMatchingOption?: SelfMatchingOptions;
-	payWithDeep?: boolean;
+	payWithMySo?: boolean;
 }
 
 export interface PendingLimitOrderParams {
@@ -123,7 +123,7 @@ export interface PendingLimitOrderParams {
 	price: number;
 	quantity: number;
 	isBid: boolean;
-	payWithDeep?: boolean;
+	payWithMySo?: boolean;
 	expireTimestamp?: number | bigint;
 }
 
@@ -132,7 +132,7 @@ export interface PendingMarketOrderParams {
 	selfMatchingOption?: SelfMatchingOptions;
 	quantity: number;
 	isBid: boolean;
-	payWithDeep?: boolean;
+	payWithMySo?: boolean;
 }
 
 export interface AddConditionalOrderParams {
@@ -160,9 +160,9 @@ export interface MarginProposalParams {
 export interface SwapParams {
 	poolKey: string;
 	amount: number;
-	deepAmount: number;
+	mysoAmount: number;
 	minOut: number;
-	deepCoin?: TransactionObjectArgument;
+	mysoCoin?: TransactionObjectArgument;
 	baseCoin?: TransactionObjectArgument;
 	quoteCoin?: TransactionObjectArgument;
 }
@@ -212,7 +212,7 @@ export interface CreatePermissionlessPoolParams {
 	tickSize: number;
 	lotSize: number;
 	minSize: number;
-	deepCoin?: TransactionObjectArgument;
+	mysoCoin?: TransactionObjectArgument;
 }
 
 export interface SetEwmaParams {
@@ -250,7 +250,7 @@ export interface InterestConfigParams {
 export interface Config {
 	ORDERBOOK_PACKAGE_ID: string;
 	REGISTRY_ID: string;
-	DEEP_TREASURY_ID: string;
+	MYUSD_TREASURY_ID: string;
 }
 
 /**
@@ -264,7 +264,7 @@ export type DepositParams = {
 /**
  * Parameters for depositing during margin manager initialization.
  * Either (`coinType` + `amount`) or (`coinType` + `coin`) must be provided.
- * `coinType` should be a coin key from config (e.g., 'MYSO', 'DBUSDC', 'DEEP').
+ * `coinType` should be a coin key from config (e.g., 'MYSO', 'DBUSDC', 'MYUSD').
  */
 export type DepositDuringInitParams = {
 	manager: TransactionArgument;

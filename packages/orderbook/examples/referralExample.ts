@@ -41,7 +41,7 @@ const GRPC_URLS = {
 
 	const mysoDbusdcOrderbookReferral =
 		'0x35db71e6431935bde42803fdad7f69d4688bc92abb5e1522bbb8aa3db33c5169';
-	const deepMySoOrderbookReferral =
+	const myusdMySoOrderbookReferral =
 		'0x1f6fbf3ecaa948df7b448c932f9f72a604477be63de199d37cee8a9a863c31eb';
 
 	const client = new MySoGrpcClient({ network, baseUrl: GRPC_URLS[network] }).$extend(
@@ -61,7 +61,7 @@ const GRPC_URLS = {
 
 	// // 1. Mint a new referral for a pool (multiplier determines fee share)
 	client.orderbook.orderbook.mintReferral('MYSO_DBUSDC', 1)(tx);
-	client.orderbook.orderbook.mintReferral('DEEP_MYSO', 0.5)(tx);
+	client.orderbook.orderbook.mintReferral('MYUSD_MYSO', 0.5)(tx);
 
 	// // 2. Update the multiplier for an existing referral
 	client.orderbook.orderbook.updatePoolReferralMultiplier(
@@ -70,10 +70,13 @@ const GRPC_URLS = {
 		0.75,
 	)(tx);
 
-	// // 3. Claim referral rewards (returns base, quote, and deep coins)
-	const { baseRewards, quoteRewards, deepRewards } =
-		client.orderbook.orderbook.claimPoolReferralRewards('MYSO_DBUSDC', mysoDbusdcOrderbookReferral)(tx);
-	tx.transferObjects([baseRewards, quoteRewards, deepRewards], getActiveAddress());
+	// // 3. Claim referral rewards (returns base, quote, and myso coins)
+	const { baseRewards, quoteRewards, mysoRewards } =
+		client.orderbook.orderbook.claimPoolReferralRewards(
+			'MYSO_DBUSDC',
+			mysoDbusdcOrderbookReferral,
+		)(tx);
+	tx.transferObjects([baseRewards, quoteRewards, mysoRewards], getActiveAddress());
 
 	// --- Balance Manager Referral Functions ---
 
@@ -127,11 +130,11 @@ const GRPC_URLS = {
 	);
 	console.log('MYSO_DBUSDC Referral Balances:', mysoDbusdcReferralBalances);
 
-	const deepMySoReferralBalances = await client.orderbook.getPoolReferralBalances(
-		'DEEP_MYSO',
-		deepMySoOrderbookReferral,
+	const myusdMySoReferralBalances = await client.orderbook.getPoolReferralBalances(
+		'MYUSD_MYSO',
+		myusdMySoOrderbookReferral,
 	);
-	console.log('DEEP_MYSO Referral Balances:', deepMySoReferralBalances);
+	console.log('MYUSD_MYSO Referral Balances:', myusdMySoReferralBalances);
 
 	// 2. Get multiplier for referrals
 	console.log('\n--- Orderbook Pool Referral: poolReferralMultiplier ---');
@@ -140,21 +143,23 @@ const GRPC_URLS = {
 		await client.orderbook.poolReferralMultiplier('MYSO_DBUSDC', mysoDbusdcOrderbookReferral),
 	);
 	console.log(
-		'DEEP_MYSO Multiplier:',
-		await client.orderbook.poolReferralMultiplier('DEEP_MYSO', deepMySoOrderbookReferral),
+		'MYUSD_MYSO Multiplier:',
+		await client.orderbook.poolReferralMultiplier('MYUSD_MYSO', myusdMySoOrderbookReferral),
 	);
 
 	// --- Balance Manager Referral Read-only Functions ---
 
 	// 3. Get owner of the referrals
 	console.log('\n--- Balance Manager Referral: balanceManagerReferralOwner ---');
-	const mysoDbusdcReferralOwner =
-		await client.orderbook.balanceManagerReferralOwner(mysoDbusdcOrderbookReferral);
+	const mysoDbusdcReferralOwner = await client.orderbook.balanceManagerReferralOwner(
+		mysoDbusdcOrderbookReferral,
+	);
 	console.log('MYSO_DBUSDC Referral Owner:', mysoDbusdcReferralOwner);
 
-	const deepMySoReferralOwner =
-		await client.orderbook.balanceManagerReferralOwner(deepMySoOrderbookReferral);
-	console.log('DEEP_MYSO Referral Owner:', deepMySoReferralOwner);
+	const myusdMySoReferralOwner = await client.orderbook.balanceManagerReferralOwner(
+		myusdMySoOrderbookReferral,
+	);
+	console.log('MYUSD_MYSO Referral Owner:', myusdMySoReferralOwner);
 
 	// 4. Get pool ID from referral
 	console.log('\n--- Balance Manager Referral: balanceManagerReferralPoolId ---');
@@ -163,8 +168,8 @@ const GRPC_URLS = {
 		await client.orderbook.balanceManagerReferralPoolId(mysoDbusdcOrderbookReferral),
 	);
 	console.log(
-		'DEEP_MYSO Pool ID:',
-		await client.orderbook.balanceManagerReferralPoolId(deepMySoOrderbookReferral),
+		'MYUSD_MYSO Pool ID:',
+		await client.orderbook.balanceManagerReferralPoolId(myusdMySoOrderbookReferral),
 	);
 
 	// 5. Get the referral ID set on the balance manager
@@ -175,9 +180,9 @@ const GRPC_URLS = {
 	);
 	console.log('MYSO_DBUSDC Referral ID on BALANCE_MANAGER_1:', mysoDbusdcReferralId);
 
-	const deepMySoReferralId = await client.orderbook.getBalanceManagerReferralId(
+	const myusdMySoReferralId = await client.orderbook.getBalanceManagerReferralId(
 		'BALANCE_MANAGER_1',
-		'DEEP_MYSO',
+		'MYUSD_MYSO',
 	);
-	console.log('DEEP_MYSO Referral ID on BALANCE_MANAGER_1:', deepMySoReferralId);
+	console.log('MYUSD_MYSO Referral ID on BALANCE_MANAGER_1:', myusdMySoReferralId);
 })();

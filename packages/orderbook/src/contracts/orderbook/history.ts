@@ -43,7 +43,7 @@ export const EpochData = new MoveStruct({
 		total_staked_volume: bcs.u128(),
 		base_fees_collected: bcs.u64(),
 		quote_fees_collected: bcs.u64(),
-		deep_fees_collected: bcs.u64(),
+		myso_fees_collected: bcs.u64(),
 		historic_median: bcs.u128(),
 		taker_fee: bcs.u64(),
 		maker_fee: bcs.u64(),

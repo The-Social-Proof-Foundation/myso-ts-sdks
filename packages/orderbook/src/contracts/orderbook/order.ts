@@ -10,7 +10,7 @@
 import { MoveStruct, normalizeMoveArguments, type RawTransactionArgument } from '../utils/index.js';
 import { bcs } from '@socialproof/myso/bcs';
 import { type Transaction } from '@socialproof/myso/transactions';
-import * as deep_price from './myso_price.js';
+import * as myso_price from './myso_price.js';
 const $moduleName = '@orderbook/core::order';
 export const Order = new MoveStruct({
 	name: `${$moduleName}::Order`,
@@ -20,8 +20,8 @@ export const Order = new MoveStruct({
 		client_order_id: bcs.u64(),
 		quantity: bcs.u64(),
 		filled_quantity: bcs.u64(),
-		fee_is_deep: bcs.bool(),
-		order_deep_price: deep_price.OrderDeepPrice,
+		fee_is_myusd: bcs.bool(),
+		order_myso_price: myso_price.OrderMySoPrice,
 		epoch: bcs.u64(),
 		status: bcs.u8(),
 		expire_timestamp: bcs.u64(),
@@ -153,14 +153,14 @@ export function filledQuantity(options: FilledQuantityOptions) {
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 		});
 }
-export interface FeeIsDeepArguments {
+export interface FeeIsMySoArguments {
 	self: RawTransactionArgument<string>;
 }
-export interface FeeIsDeepOptions {
+export interface FeeIsMySoOptions {
 	package?: string;
-	arguments: FeeIsDeepArguments | [self: RawTransactionArgument<string>];
+	arguments: FeeIsMySoArguments | [self: RawTransactionArgument<string>];
 }
-export function feeIsDeep(options: FeeIsDeepOptions) {
+export function feeIsMySo(options: FeeIsMySoOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null] satisfies (string | null)[];
 	const parameterNames = ['self'];
@@ -168,18 +168,18 @@ export function feeIsDeep(options: FeeIsDeepOptions) {
 		tx.moveCall({
 			package: packageAddress,
 			module: 'order',
-			function: 'fee_is_deep',
+			function: 'fee_is_myso',
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 		});
 }
-export interface OrderDeepPriceArguments {
+export interface OrderMySoPriceArguments {
 	self: RawTransactionArgument<string>;
 }
-export interface OrderDeepPriceOptions {
+export interface OrderMySoPriceOptions {
 	package?: string;
-	arguments: OrderDeepPriceArguments | [self: RawTransactionArgument<string>];
+	arguments: OrderMySoPriceArguments | [self: RawTransactionArgument<string>];
 }
-export function orderDeepPrice(options: OrderDeepPriceOptions) {
+export function orderMySoPrice(options: OrderMySoPriceOptions) {
 	const packageAddress = options.package ?? '@orderbook/core';
 	const argumentsTypes = [null] satisfies (string | null)[];
 	const parameterNames = ['self'];
@@ -187,7 +187,7 @@ export function orderDeepPrice(options: OrderDeepPriceOptions) {
 		tx.moveCall({
 			package: packageAddress,
 			module: 'order',
-			function: 'order_deep_price',
+			function: 'order_myso_price',
 			arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
 		});
 }

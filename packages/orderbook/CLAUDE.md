@@ -8,8 +8,8 @@ while working in this package. This helps future sessions avoid repeating the sa
 
 ## Overview
 
-Orderbook V3 is a decentralized exchange (DEX) SDK for MySo blockchain. It provides client extensions
-for interacting with Orderbook pools, margin managers, and flash loans.
+Orderbook V3 is a decentralized exchange (DEX) SDK for MySo blockchain. It provides client
+extensions for interacting with Orderbook pools, margin managers, and flash loans.
 
 ## Package Structure
 
@@ -95,7 +95,7 @@ Fetches state for multiple margin managers in a single transaction.
 ```typescript
 const states = await client.orderbook.getMarginManagerStates({
 	'0x206037...': 'MYSO_USDC',
-	'0x14218d...': 'DEEP_USDC',
+	'0x14218d...': 'MYSO_USDC',
 });
 ```
 
@@ -120,7 +120,7 @@ const priceUpdateTx = new Transaction();
 const priceInfoObjects = await client.orderbook.getPriceInfoObjects(priceUpdateTx, [
 	'MYSO',
 	'USDC',
-	'DEEP',
+	'MYUSD',
 	'WBTC',
 ]);
 // Only stale feeds are updated in the transaction

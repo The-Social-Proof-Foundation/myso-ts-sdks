@@ -2,8 +2,12 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 import { bcs } from '@socialproof/myso/bcs';
-import { Account, Order, OrderDeepPrice, VecSet } from './types/bcs.js';
-import type { ClientWithCoreApi, MySoClientRegistration, MySoClientTypes } from '@socialproof/myso/client';
+import { Account, Order, OrderMySoPrice, VecSet } from './types/bcs.js';
+import type {
+	ClientWithCoreApi,
+	MySoClientRegistration,
+	MySoClientTypes,
+} from '@socialproof/myso/client';
 import { Transaction } from '@socialproof/myso/transactions';
 import { normalizeMySoAddress } from '@socialproof/myso/utils';
 
@@ -19,7 +23,8 @@ import type {
 	CanPlaceMarketOrderParams,
 } from './types/index.js';
 import {
-	DEEP_SCALAR,
+	MYSO_SCALAR,
+	MYUSD_SCALAR,
 	OrderbookConfig,
 	FLOAT_SCALAR,
 	PRICE_INFO_OBJECT_MAX_AGE_MS,
@@ -59,7 +64,11 @@ export interface OrderbookClientOptions extends OrderbookOptions {
 export function orderbook<Name extends string = 'orderbook'>({
 	name = 'orderbook' as Name,
 	...options
-}: OrderbookOptions<Name>): MySoClientRegistration<OrderbookCompatibleClient, Name, OrderbookClient> {
+}: OrderbookOptions<Name>): MySoClientRegistration<
+	OrderbookCompatibleClient,
+	Name,
+	OrderbookClient
+> {
 	return {
 		name,
 		register: (client) => {
@@ -219,8 +228,8 @@ export class OrderbookClient {
 	 * @description Get the quote quantity out for a given base quantity
 	 * @param {string} poolKey Key of the pool
 	 * @param {number} baseQuantity Base quantity to convert
-	 * @returns {Promise<{ baseQuantity: number, baseOut: number, quoteOut: number, deepRequired: number }>}
-	 * An object with base quantity, base out, quote out, and deep required for the dry run
+	 * @returns {Promise<{ baseQuantity: number, baseOut: number, quoteOut: number, myusdRequired: number }>}
+	 * An object with base quantity, base out, quote out, and MYUSD required for the dry run
 	 */
 	async getQuoteQuantityOut(poolKey: string, baseQuantity: number) {
 		const tx = new Transaction();
@@ -236,13 +245,13 @@ export class OrderbookClient {
 
 		const baseOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
 		const quoteOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
-		const deepRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
+		const feeRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
 
 		return {
 			baseQuantity,
 			baseOut: Number((baseOut / baseScalar).toFixed(9)),
 			quoteOut: Number((quoteOut / quoteScalar).toFixed(9)),
-			deepRequired: Number((deepRequired / DEEP_SCALAR).toFixed(9)),
+			myusdRequired: Number((feeRequired / MYUSD_SCALAR).toFixed(9)),
 		};
 	}
 
@@ -250,8 +259,8 @@ export class OrderbookClient {
 	 * @description Get the base quantity out for a given quote quantity
 	 * @param {string} poolKey Key of the pool
 	 * @param {number} quoteQuantity Quote quantity to convert
-	 * @returns {Promise<{ quoteQuantity: number, baseOut: number, quoteOut: number, deepRequired: number }>}
-	 * An object with quote quantity, base out, quote out, and deep required for the dry run
+	 * @returns {Promise<{ quoteQuantity: number, baseOut: number, quoteOut: number, myusdRequired: number }>}
+	 * An object with quote quantity, base out, quote out, and MYUSD required for the dry run
 	 */
 	async getBaseQuantityOut(poolKey: string, quoteQuantity: number) {
 		const tx = new Transaction();
@@ -267,13 +276,13 @@ export class OrderbookClient {
 
 		const baseOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
 		const quoteOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
-		const deepRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
+		const feeRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
 
 		return {
 			quoteQuantity: quoteQuantity,
 			baseOut: Number((baseOut / baseScalar).toFixed(9)),
 			quoteOut: Number((quoteOut / quoteScalar).toFixed(9)),
-			deepRequired: Number((deepRequired / DEEP_SCALAR).toFixed(9)),
+			myusdRequired: Number((feeRequired / MYUSD_SCALAR).toFixed(9)),
 		};
 	}
 
@@ -282,8 +291,8 @@ export class OrderbookClient {
 	 * @param {string} poolKey Key of the pool
 	 * @param {number} baseQuantity Base quantity to convert
 	 * @param {number} quoteQuantity Quote quantity to convert
-	 * @returns {Promise<{ baseQuantity: number, quoteQuantity: number, baseOut: number, quoteOut: number, deepRequired: number }>}
-	 * An object with base quantity, quote quantity, base out, quote out, and deep required for the dry run
+	 * @returns {Promise<{ baseQuantity: number, quoteQuantity: number, baseOut: number, quoteOut: number, myusdRequired: number }>}
+	 * An object with base quantity, quote quantity, base out, quote out, and MYUSD required for the dry run
 	 */
 	async getQuantityOut(poolKey: string, baseQuantity: number, quoteQuantity: number) {
 		const tx = new Transaction();
@@ -299,14 +308,14 @@ export class OrderbookClient {
 
 		const baseOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
 		const quoteOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
-		const deepRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
+		const feeRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
 
 		return {
 			baseQuantity,
 			quoteQuantity,
 			baseOut: Number((baseOut / baseScalar).toFixed(9)),
 			quoteOut: Number((quoteOut / quoteScalar).toFixed(9)),
-			deepRequired: Number((deepRequired / DEEP_SCALAR).toFixed(9)),
+			myusdRequired: Number((feeRequired / MYUSD_SCALAR).toFixed(9)),
 		};
 	}
 
@@ -383,10 +392,10 @@ export class OrderbookClient {
 				...orderInfo,
 				quantity: String((Number(orderInfo.quantity) / baseCoin.scalar).toFixed(9)),
 				filled_quantity: String((Number(orderInfo.filled_quantity) / baseCoin.scalar).toFixed(9)),
-				order_deep_price: {
-					...orderInfo.order_deep_price,
-					deep_per_asset: String(
-						(Number(orderInfo.order_deep_price.deep_per_asset) / DEEP_SCALAR).toFixed(9),
+				order_myso_price: {
+					...orderInfo.order_myso_price,
+					myso_per_asset: String(
+						(Number(orderInfo.order_myso_price.myso_per_asset) / MYSO_SCALAR).toFixed(9),
 					),
 				},
 				isBid,
@@ -507,8 +516,8 @@ export class OrderbookClient {
 	/**
 	 * @description Get the vault balances for a pool
 	 * @param {string} poolKey Key of the pool
-	 * @returns {Promise<{ base: number, quote: number, deep: number }>}
-	 * An object with base, quote, and deep balances in the vault
+	 * @returns {Promise<{ base: number, quote: number, myusd: number }>}
+	 * An object with base, quote, and MYUSD balances in the vault
 	 */
 	async vaultBalances(poolKey: string) {
 		const tx = new Transaction();
@@ -524,12 +533,12 @@ export class OrderbookClient {
 
 		const baseInVault = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
 		const quoteInVault = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
-		const deepInVault = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
+		const myusdInVault = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
 
 		return {
 			base: Number((baseInVault / baseScalar).toFixed(9)),
 			quote: Number((quoteInVault / quoteScalar).toFixed(9)),
-			deep: Number((deepInVault / DEEP_SCALAR).toFixed(9)),
+			myusd: Number((myusdInVault / MYUSD_SCALAR).toFixed(9)),
 		};
 	}
 
@@ -600,7 +609,7 @@ export class OrderbookClient {
 		return {
 			takerFee: Number(takerFee / FLOAT_SCALAR),
 			makerFee: Number(makerFee / FLOAT_SCALAR),
-			stakeRequired: Number(stakeRequired / DEEP_SCALAR),
+			stakeRequired: Number(stakeRequired / MYSO_SCALAR),
 		};
 	}
 
@@ -658,24 +667,24 @@ export class OrderbookClient {
 			open_orders: accountInfo.open_orders,
 			taker_volume: Number(accountInfo.taker_volume) / baseScalar,
 			maker_volume: Number(accountInfo.maker_volume) / baseScalar,
-			active_stake: Number(accountInfo.active_stake) / DEEP_SCALAR,
-			inactive_stake: Number(accountInfo.inactive_stake) / DEEP_SCALAR,
+			active_stake: Number(accountInfo.active_stake) / MYSO_SCALAR,
+			inactive_stake: Number(accountInfo.inactive_stake) / MYSO_SCALAR,
 			created_proposal: accountInfo.created_proposal,
 			voted_proposal: accountInfo.voted_proposal,
 			unclaimed_rebates: {
 				base: Number(accountInfo.unclaimed_rebates.base) / baseScalar,
 				quote: Number(accountInfo.unclaimed_rebates.quote) / quoteScalar,
-				deep: Number(accountInfo.unclaimed_rebates.deep) / DEEP_SCALAR,
+				myusd: Number(accountInfo.unclaimed_rebates.myusd) / MYUSD_SCALAR,
 			},
 			settled_balances: {
 				base: Number(accountInfo.settled_balances.base) / baseScalar,
 				quote: Number(accountInfo.settled_balances.quote) / quoteScalar,
-				deep: Number(accountInfo.settled_balances.deep) / DEEP_SCALAR,
+				myusd: Number(accountInfo.settled_balances.myusd) / MYUSD_SCALAR,
 			},
 			owed_balances: {
 				base: Number(accountInfo.owed_balances.base) / baseScalar,
 				quote: Number(accountInfo.owed_balances.quote) / quoteScalar,
-				deep: Number(accountInfo.owed_balances.deep) / DEEP_SCALAR,
+				myusd: Number(accountInfo.owed_balances.myusd) / MYUSD_SCALAR,
 			},
 		};
 	}
@@ -684,8 +693,8 @@ export class OrderbookClient {
 	 * @description Get the locked balances for a pool and balance manager
 	 * @param {string} poolKey Key of the pool
 	 * @param {string} managerKey The key of the BalanceManager
-	 * @returns {Promise<{ base: number, quote: number, deep: number }>}
-	 * An object with base, quote, and deep locked for the balance manager in the pool
+	 * @returns {Promise<{ base: number, quote: number, myusd: number }>}
+	 * An object with base, quote, and MYUSD locked for the balance manager in the pool
 	 */
 	async lockedBalance(poolKey: string, balanceManagerKey: string) {
 		const tx = new Transaction();
@@ -701,50 +710,50 @@ export class OrderbookClient {
 
 		const baseLocked = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
 		const quoteLocked = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
-		const deepLocked = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
+		const myusdLocked = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
 
 		return {
 			base: Number((baseLocked / baseScalar).toFixed(9)),
 			quote: Number((quoteLocked / quoteScalar).toFixed(9)),
-			deep: Number((deepLocked / DEEP_SCALAR).toFixed(9)),
+			myusd: Number((myusdLocked / MYUSD_SCALAR).toFixed(9)),
 		};
 	}
 
 	/**
-	 * @description Get the DEEP price conversion for a pool
+	 * @description Get the MYUSD price conversion for a pool
 	 * @param {string} poolKey Key of the pool
-	 * @returns {Promise<{ asset_is_base: bool, deep_per_quote: number }>} Deep price conversion
+	 * @returns {Promise<{ asset_is_base: bool, myso_per_quote: number }>} MySo price conversion
 	 */
-	async getPoolDeepPrice(poolKey: string) {
+	async getPoolMySoPrice(poolKey: string) {
 		const tx = new Transaction();
 		const pool = this.#config.getPool(poolKey);
-		tx.add(this.orderbook.getPoolDeepPrice(poolKey));
+		tx.add(this.orderbook.getPoolMySoPrice(poolKey));
 
 		const baseCoin = this.#config.getCoin(pool.baseCoin);
 		const quoteCoin = this.#config.getCoin(pool.quoteCoin);
-		const deepCoin = this.#config.getCoin('DEEP');
+		const myusdCoin = this.#config.getCoin('MYUSD');
 
 		const res = await this.#client.core.simulateTransaction({
 			transaction: tx,
 			include: { commandResults: true, effects: true },
 		});
 
-		const poolDeepPriceBytes = res.commandResults![0].returnValues[0].bcs;
-		const poolDeepPrice = OrderDeepPrice.parse(new Uint8Array(poolDeepPriceBytes));
+		const poolMySoPriceBytes = res.commandResults![0].returnValues[0].bcs;
+		const poolMySoPrice = OrderMySoPrice.parse(new Uint8Array(poolMySoPriceBytes));
 
-		if (poolDeepPrice.asset_is_base) {
+		if (poolMySoPrice.asset_is_base) {
 			return {
-				asset_is_base: poolDeepPrice.asset_is_base,
-				deep_per_base:
-					((Number(poolDeepPrice.deep_per_asset) / FLOAT_SCALAR) * baseCoin.scalar) /
-					deepCoin.scalar,
+				asset_is_base: poolMySoPrice.asset_is_base,
+				myso_per_base:
+					((Number(poolMySoPrice.myso_per_asset) / FLOAT_SCALAR) * baseCoin.scalar) /
+					myusdCoin.scalar,
 			};
 		} else {
 			return {
-				asset_is_base: poolDeepPrice.asset_is_base,
-				deep_per_quote:
-					((Number(poolDeepPrice.deep_per_asset) / FLOAT_SCALAR) * quoteCoin.scalar) /
-					deepCoin.scalar,
+				asset_is_base: poolMySoPrice.asset_is_base,
+				myso_per_quote:
+					((Number(poolMySoPrice.myso_per_asset) / FLOAT_SCALAR) * quoteCoin.scalar) /
+					myusdCoin.scalar,
 			};
 		}
 	}
@@ -806,12 +815,12 @@ export class OrderbookClient {
 	 * @description Get the referral balances for a pool and referral (OrderbookPoolReferral)
 	 * @param {string} poolKey Key of the pool
 	 * @param {string} referral The referral ID to get balances for
-	 * @returns {Promise<{ base: number, quote: number, deep: number }>} Object with base, quote, and deep balances
+	 * @returns {Promise<{ base: number, quote: number, myusd: number }>} Object with base, quote, and MYUSD balances
 	 */
 	async getPoolReferralBalances(
 		poolKey: string,
 		referral: string,
-	): Promise<{ base: number; quote: number; deep: number }> {
+	): Promise<{ base: number; quote: number; myusd: number }> {
 		const tx = new Transaction();
 		const pool = this.#config.getPool(poolKey);
 		const baseScalar = this.#config.getCoin(pool.baseCoin).scalar;
@@ -824,19 +833,19 @@ export class OrderbookClient {
 			include: { commandResults: true, effects: true },
 		});
 
-		// The function returns three u64 values: (base, quote, deep)
+		// The function returns three u64 values: (base, quote, fee/MYUSD vault)
 		const baseBytes = res.commandResults![0].returnValues[0].bcs;
 		const quoteBytes = res.commandResults![0].returnValues[1].bcs;
-		const deepBytes = res.commandResults![0].returnValues[2].bcs;
+		const myusdBytes = res.commandResults![0].returnValues[2].bcs;
 
 		const baseBalance = Number(bcs.U64.parse(baseBytes));
 		const quoteBalance = Number(bcs.U64.parse(quoteBytes));
-		const deepBalance = Number(bcs.U64.parse(deepBytes));
+		const myusdBalance = Number(bcs.U64.parse(myusdBytes));
 
 		return {
 			base: baseBalance / baseScalar,
 			quote: quoteBalance / quoteScalar,
-			deep: deepBalance / DEEP_SCALAR,
+			myusd: myusdBalance / MYUSD_SCALAR,
 		};
 	}
 
@@ -1957,18 +1966,18 @@ export class OrderbookClient {
 	}
 
 	/**
-	 * @description Get the DEEP token balance of a margin manager
+	 * @description Get the MYUSD token balance of a margin manager
 	 * @param {string} marginManagerKey The key to identify the margin manager
 	 * @param {number} decimals Number of decimal places to show (default: 6)
-	 * @returns {Promise<string>} The DEEP token balance
+	 * @returns {Promise<string>} The MYUSD token balance
 	 */
-	async getMarginManagerDeepBalance(
+	async getMarginManagerMyUsdBalance(
 		marginManagerKey: string,
 		decimals: number = 6,
 	): Promise<string> {
 		const manager = this.#config.getMarginManager(marginManagerKey);
 		const tx = new Transaction();
-		tx.add(this.marginManager.deepBalance(manager.poolKey, manager.address));
+		tx.add(this.marginManager.myusdBalance(manager.poolKey, manager.address));
 
 		const res = await this.#client.core.simulateTransaction({
 			transaction: tx,
@@ -1982,13 +1991,13 @@ export class OrderbookClient {
 		}
 
 		if (!res.commandResults || !res.commandResults[0] || !res.commandResults[0].returnValues) {
-			throw new Error(`Failed to get margin manager DEEP balance: Unknown error`);
+			throw new Error(`Failed to get margin manager MYUSD balance: Unknown error`);
 		}
 
 		const bytes = res.commandResults[0].returnValues[0].bcs;
-		const deepCoin = this.#config.getCoin('DEEP');
+		const myusdCoin = this.#config.getCoin('MYUSD');
 
-		return this.#formatTokenAmount(BigInt(bcs.U64.parse(bytes)), deepCoin.scalar, decimals);
+		return this.#formatTokenAmount(BigInt(bcs.U64.parse(bytes)), myusdCoin.scalar, decimals);
 	}
 
 	/**
@@ -2386,7 +2395,7 @@ export class OrderbookClient {
 	 * @description Get the quote quantity out using input token as fee
 	 * @param {string} poolKey Key of the pool
 	 * @param {number} baseQuantity Base quantity
-	 * @returns {Promise<{baseQuantity: number, baseOut: number, quoteOut: number, deepRequired: number}>}
+	 * @returns {Promise<{baseQuantity: number, baseOut: number, quoteOut: number, myusdRequired: number}>}
 	 */
 	async getQuoteQuantityOutInputFee(poolKey: string, baseQuantity: number) {
 		const tx = new Transaction();
@@ -2402,13 +2411,13 @@ export class OrderbookClient {
 
 		const baseOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
 		const quoteOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
-		const deepRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
+		const feeRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
 
 		return {
 			baseQuantity,
 			baseOut: Number((baseOut / baseScalar).toFixed(9)),
 			quoteOut: Number((quoteOut / quoteScalar).toFixed(9)),
-			deepRequired: Number((deepRequired / DEEP_SCALAR).toFixed(9)),
+			myusdRequired: Number((feeRequired / MYUSD_SCALAR).toFixed(9)),
 		};
 	}
 
@@ -2416,7 +2425,7 @@ export class OrderbookClient {
 	 * @description Get the base quantity out using input token as fee
 	 * @param {string} poolKey Key of the pool
 	 * @param {number} quoteQuantity Quote quantity
-	 * @returns {Promise<{quoteQuantity: number, baseOut: number, quoteOut: number, deepRequired: number}>}
+	 * @returns {Promise<{quoteQuantity: number, baseOut: number, quoteOut: number, myusdRequired: number}>}
 	 */
 	async getBaseQuantityOutInputFee(poolKey: string, quoteQuantity: number) {
 		const tx = new Transaction();
@@ -2432,13 +2441,13 @@ export class OrderbookClient {
 
 		const baseOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
 		const quoteOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
-		const deepRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
+		const feeRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
 
 		return {
 			quoteQuantity,
 			baseOut: Number((baseOut / baseScalar).toFixed(9)),
 			quoteOut: Number((quoteOut / quoteScalar).toFixed(9)),
-			deepRequired: Number((deepRequired / DEEP_SCALAR).toFixed(9)),
+			myusdRequired: Number((feeRequired / MYUSD_SCALAR).toFixed(9)),
 		};
 	}
 
@@ -2447,7 +2456,7 @@ export class OrderbookClient {
 	 * @param {string} poolKey Key of the pool
 	 * @param {number} baseQuantity Base quantity
 	 * @param {number} quoteQuantity Quote quantity
-	 * @returns {Promise<{baseQuantity: number, quoteQuantity: number, baseOut: number, quoteOut: number, deepRequired: number}>}
+	 * @returns {Promise<{baseQuantity: number, quoteQuantity: number, baseOut: number, quoteOut: number, myusdRequired: number}>}
 	 */
 	async getQuantityOutInputFee(poolKey: string, baseQuantity: number, quoteQuantity: number) {
 		const tx = new Transaction();
@@ -2463,14 +2472,14 @@ export class OrderbookClient {
 
 		const baseOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
 		const quoteOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
-		const deepRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
+		const feeRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
 
 		return {
 			baseQuantity,
 			quoteQuantity,
 			baseOut: Number((baseOut / baseScalar).toFixed(9)),
 			quoteOut: Number((quoteOut / quoteScalar).toFixed(9)),
-			deepRequired: Number((deepRequired / DEEP_SCALAR).toFixed(9)),
+			myusdRequired: Number((feeRequired / MYUSD_SCALAR).toFixed(9)),
 		};
 	}
 
@@ -2478,16 +2487,16 @@ export class OrderbookClient {
 	 * @description Get the base quantity needed to receive target quote quantity
 	 * @param {string} poolKey Key of the pool
 	 * @param {number} targetQuoteQuantity Target quote quantity
-	 * @param {boolean} payWithDeep Whether to pay fees with DEEP
-	 * @returns {Promise<{baseIn: number, quoteOut: number, deepRequired: number}>}
+	 * @param {boolean} payWithMySo Whether to pay fees with MYSO
+	 * @returns {Promise<{baseIn: number, quoteOut: number, myusdRequired: number}>}
 	 */
-	async getBaseQuantityIn(poolKey: string, targetQuoteQuantity: number, payWithDeep: boolean) {
+	async getBaseQuantityIn(poolKey: string, targetQuoteQuantity: number, payWithMySo: boolean) {
 		const tx = new Transaction();
 		const pool = this.#config.getPool(poolKey);
 		const baseScalar = this.#config.getCoin(pool.baseCoin).scalar;
 		const quoteScalar = this.#config.getCoin(pool.quoteCoin).scalar;
 
-		tx.add(this.orderbook.getBaseQuantityIn(poolKey, targetQuoteQuantity, payWithDeep));
+		tx.add(this.orderbook.getBaseQuantityIn(poolKey, targetQuoteQuantity, payWithMySo));
 		const res = await this.#client.core.simulateTransaction({
 			transaction: tx,
 			include: { commandResults: true, effects: true },
@@ -2495,12 +2504,12 @@ export class OrderbookClient {
 
 		const baseIn = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
 		const quoteOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
-		const deepRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
+		const feeRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
 
 		return {
 			baseIn: Number((baseIn / baseScalar).toFixed(9)),
 			quoteOut: Number((quoteOut / quoteScalar).toFixed(9)),
-			deepRequired: Number((deepRequired / DEEP_SCALAR).toFixed(9)),
+			myusdRequired: Number((feeRequired / MYUSD_SCALAR).toFixed(9)),
 		};
 	}
 
@@ -2508,16 +2517,16 @@ export class OrderbookClient {
 	 * @description Get the quote quantity needed to receive target base quantity
 	 * @param {string} poolKey Key of the pool
 	 * @param {number} targetBaseQuantity Target base quantity
-	 * @param {boolean} payWithDeep Whether to pay fees with DEEP
-	 * @returns {Promise<{baseOut: number, quoteIn: number, deepRequired: number}>}
+	 * @param {boolean} payWithMySo Whether to pay fees with MYSO
+	 * @returns {Promise<{baseOut: number, quoteIn: number, myusdRequired: number}>}
 	 */
-	async getQuoteQuantityIn(poolKey: string, targetBaseQuantity: number, payWithDeep: boolean) {
+	async getQuoteQuantityIn(poolKey: string, targetBaseQuantity: number, payWithMySo: boolean) {
 		const tx = new Transaction();
 		const pool = this.#config.getPool(poolKey);
 		const baseScalar = this.#config.getCoin(pool.baseCoin).scalar;
 		const quoteScalar = this.#config.getCoin(pool.quoteCoin).scalar;
 
-		tx.add(this.orderbook.getQuoteQuantityIn(poolKey, targetBaseQuantity, payWithDeep));
+		tx.add(this.orderbook.getQuoteQuantityIn(poolKey, targetBaseQuantity, payWithMySo));
 		const res = await this.#client.core.simulateTransaction({
 			transaction: tx,
 			include: { commandResults: true, effects: true },
@@ -2525,12 +2534,12 @@ export class OrderbookClient {
 
 		const baseOut = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
 		const quoteIn = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
-		const deepRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
+		const feeRequired = Number(bcs.U64.parse(res.commandResults![0].returnValues[2].bcs));
 
 		return {
 			baseOut: Number((baseOut / baseScalar).toFixed(9)),
 			quoteIn: Number((quoteIn / quoteScalar).toFixed(9)),
-			deepRequired: Number((deepRequired / DEEP_SCALAR).toFixed(9)),
+			myusdRequired: Number((feeRequired / MYUSD_SCALAR).toFixed(9)),
 		};
 	}
 
@@ -2558,27 +2567,27 @@ export class OrderbookClient {
 	}
 
 	/**
-	 * @description Get the DEEP required for an order
+	 * @description Get the MYSO required for an order
 	 * @param {string} poolKey Key of the pool
 	 * @param {number} baseQuantity Base quantity
 	 * @param {number} price Price
-	 * @returns {Promise<{deepRequiredTaker: number, deepRequiredMaker: number}>}
+	 * @returns {Promise<{mysoRequiredTaker: number, mysoRequiredMaker: number}>}
 	 */
-	async getOrderDeepRequired(poolKey: string, baseQuantity: number, price: number) {
+	async getOrderMySoRequired(poolKey: string, baseQuantity: number, price: number) {
 		const tx = new Transaction();
-		tx.add(this.orderbook.getOrderDeepRequired(poolKey, baseQuantity, price));
+		tx.add(this.orderbook.getOrderMySoRequired(poolKey, baseQuantity, price));
 
 		const res = await this.#client.core.simulateTransaction({
 			transaction: tx,
 			include: { commandResults: true, effects: true },
 		});
 
-		const deepRequiredTaker = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
-		const deepRequiredMaker = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
+		const mysoRequiredTaker = Number(bcs.U64.parse(res.commandResults![0].returnValues[0].bcs));
+		const mysoRequiredMaker = Number(bcs.U64.parse(res.commandResults![0].returnValues[1].bcs));
 
 		return {
-			deepRequiredTaker: Number((deepRequiredTaker / DEEP_SCALAR).toFixed(9)),
-			deepRequiredMaker: Number((deepRequiredMaker / DEEP_SCALAR).toFixed(9)),
+			mysoRequiredTaker: Number((mysoRequiredTaker / MYSO_SCALAR).toFixed(9)),
+			mysoRequiredMaker: Number((mysoRequiredMaker / MYSO_SCALAR).toFixed(9)),
 		};
 	}
 
@@ -2622,14 +2631,14 @@ export class OrderbookClient {
 		return {
 			takerFee: takerFee / FLOAT_SCALAR,
 			makerFee: makerFee / FLOAT_SCALAR,
-			stakeRequired: stakeRequired / DEEP_SCALAR,
+			stakeRequired: stakeRequired / MYSO_SCALAR,
 		};
 	}
 
 	/**
 	 * @description Get the quorum for a pool
 	 * @param {string} poolKey Key of the pool
-	 * @returns {Promise<number>} The quorum amount in DEEP
+	 * @returns {Promise<number>} The quorum amount in MYSO
 	 */
 	async quorum(poolKey: string): Promise<number> {
 		const tx = new Transaction();
@@ -2642,7 +2651,7 @@ export class OrderbookClient {
 
 		const bytes = res.commandResults![0].returnValues[0].bcs;
 		const quorum = Number(bcs.U64.parse(bytes));
-		return quorum / DEEP_SCALAR;
+		return quorum / MYSO_SCALAR;
 	}
 
 	/**

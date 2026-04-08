@@ -3,7 +3,7 @@
  **************************************************************/
 
 /**
- * `Balances` represents the three assets make up a pool: base, quote, and deep.
+ * `Balances` represents the three assets that make up a pool: base, quote, and MYUSD.
  * Whenever funds are moved, they are moved in the form of `Balances`.
  */
 
@@ -15,6 +15,6 @@ export const Balances = new MoveStruct({
 	fields: {
 		base: bcs.u64(),
 		quote: bcs.u64(),
-		deep: bcs.u64(),
+		myusd: bcs.u64(),
 	},
 });

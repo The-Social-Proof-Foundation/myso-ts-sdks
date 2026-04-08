@@ -17,7 +17,7 @@ export const Vault = new MoveStruct({
 	fields: {
 		base_balance: balance.Balance,
 		quote_balance: balance.Balance,
-		deep_balance: balance.Balance,
+		myso_balance: balance.Balance,
 	},
 });
 export const FlashLoan = new MoveStruct({

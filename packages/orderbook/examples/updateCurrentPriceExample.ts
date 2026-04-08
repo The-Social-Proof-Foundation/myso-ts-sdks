@@ -4,8 +4,8 @@
 
 /**
  * This example demonstrates how to:
- * 1. Batch update Pyth price feeds for all 4 mainnet assets (MYSO, USDC, DEEP, WAL)
- * 2. Update the current price for MYSO_USDC, DEEP_USDC, and WAL_USDC pools
+ * 1. Batch update Pyth price feeds for all 4 mainnet assets (MYSO, USDC, MYUSD, WAL)
+ * 2. Update the current price for MYSO_USDC, MYSO_USDC, and WAL_USDC pools
  *
  * Usage:
  *   npx tsx examples/updateCurrentPriceExample.ts
@@ -82,10 +82,10 @@ const getSigner = () => {
 	);
 
 	// All 4 mainnet assets with Pyth price feeds
-	const coinKeys = ['MYSO', 'USDC', 'DEEP', 'WAL'];
+	const coinKeys = ['MYSO', 'USDC', 'MYUSD', 'WAL'];
 
 	// Pools to update current price for
-	const poolKeys = ['MYSO_USDC', 'DEEP_USDC', 'WAL_USDC'];
+	const poolKeys = ['MYSO_USDC', 'MYSO_USDC', 'WAL_USDC'];
 
 	console.log(`Step 1: Batch updating Pyth price feeds for: ${coinKeys.join(', ')}\n`);
 

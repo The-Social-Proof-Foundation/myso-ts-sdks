@@ -5,7 +5,7 @@ import type { Transaction } from '@socialproof/myso/transactions';
 
 import type { ProposalParams } from '../types/index.js';
 import type { OrderbookConfig } from '../utils/config.js';
-import { DEEP_SCALAR, FLOAT_SCALAR } from '../utils/config.js';
+import { MYSO_SCALAR, FLOAT_SCALAR } from '../utils/config.js';
 
 /**
  * GovernanceContract class for managing governance operations in Orderbook.
@@ -34,7 +34,7 @@ export class GovernanceContract {
 			const tradeProof = tx.add(this.#config.balanceManager.generateProof(balanceManagerKey));
 			const baseCoin = this.#config.getCoin(pool.baseCoin);
 			const quoteCoin = this.#config.getCoin(pool.quoteCoin);
-			const stakeInput = Math.round(stakeAmount * DEEP_SCALAR);
+			const stakeInput = Math.round(stakeAmount * MYSO_SCALAR);
 
 			tx.moveCall({
 				target: `${this.#config.ORDERBOOK_PACKAGE_ID}::pool::stake`,
@@ -90,7 +90,7 @@ export class GovernanceContract {
 				tradeProof,
 				tx.pure.u64(Math.round(takerFee * FLOAT_SCALAR)),
 				tx.pure.u64(Math.round(makerFee * FLOAT_SCALAR)),
-				tx.pure.u64(Math.round(stakeRequired * DEEP_SCALAR)),
+				tx.pure.u64(Math.round(stakeRequired * MYSO_SCALAR)),
 			],
 			typeArguments: [baseCoin.type, quoteCoin.type],
 		});

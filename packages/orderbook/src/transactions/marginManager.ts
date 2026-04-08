@@ -95,7 +95,7 @@ export class MarginManagerContract {
 		const baseCoin = this.#config.getCoin(pool.baseCoin);
 		const quoteCoin = this.#config.getCoin(pool.quoteCoin);
 
-		// Get the deposit coin from config using the coinType key (e.g., 'MYSO', 'DBUSDC', 'DEEP')
+		// Get the deposit coin from config using the coinType key (e.g., 'MYSO', 'DBUSDC', 'MYUSD')
 		const depositCoin = this.#config.getCoin(coinType);
 
 		// If amount is provided, create a coin with balance; otherwise use the provided coin
@@ -186,22 +186,22 @@ export class MarginManagerContract {
 	};
 
 	/**
-	 * @description Deposit deep into a margin manager
+	 * @description Deposit MYUSD into a margin manager
 	 * @param {DepositParams} params The deposit parameters
 	 * @returns A function that takes a Transaction object
 	 */
-	depositDeep = (params: DepositParams) => (tx: Transaction) => {
+	depositMyUsd = (params: DepositParams) => (tx: Transaction) => {
 		const { managerKey } = params;
 		const manager = this.#config.getMarginManager(managerKey);
 		const pool = this.#config.getPool(manager.poolKey);
 		const baseCoin = this.#config.getCoin(pool.baseCoin);
 		const quoteCoin = this.#config.getCoin(pool.quoteCoin);
-		const deepCoin = this.#config.getCoin('DEEP');
+		const myusdCoin = this.#config.getCoin('MYUSD');
 		const coin =
 			'amount' in params && params.amount !== undefined
 				? coinWithBalance({
-						type: deepCoin.type,
-						balance: Math.round(params.amount * deepCoin.scalar),
+						type: myusdCoin.type,
+						balance: Math.round(params.amount * myusdCoin.scalar),
 					})
 				: params.coin;
 		tx.moveCall({
@@ -214,7 +214,7 @@ export class MarginManagerContract {
 				coin,
 				tx.object.clock(),
 			],
-			typeArguments: [baseCoin.type, quoteCoin.type, deepCoin.type],
+			typeArguments: [baseCoin.type, quoteCoin.type, myusdCoin.type],
 		});
 	};
 
@@ -279,17 +279,17 @@ export class MarginManagerContract {
 	};
 
 	/**
-	 * @description Withdraw deep from a margin manager
+	 * @description Withdraw MYUSD from a margin manager
 	 * @param {string} managerKey The key to identify the manager
 	 * @param {number} amount The amount to withdraw
 	 * @returns A function that takes a Transaction object
 	 */
-	withdrawDeep = (managerKey: string, amount: number) => (tx: Transaction) => {
+	withdrawMyUsd = (managerKey: string, amount: number) => (tx: Transaction) => {
 		const manager = this.#config.getMarginManager(managerKey);
 		const pool = this.#config.getPool(manager.poolKey);
 		const baseCoin = this.#config.getCoin(pool.baseCoin);
 		const quoteCoin = this.#config.getCoin(pool.quoteCoin);
-		const deepCoin = this.#config.getCoin('DEEP');
+		const myusdCoin = this.#config.getCoin('MYUSD');
 		const baseMarginPool = this.#config.getMarginPool(pool.baseCoin);
 		const quoteMarginPool = this.#config.getMarginPool(pool.quoteCoin);
 		return tx.moveCall({
@@ -302,10 +302,10 @@ export class MarginManagerContract {
 				tx.object(baseCoin.priceInfoObjectId!),
 				tx.object(quoteCoin.priceInfoObjectId!),
 				tx.object(pool.address),
-				tx.pure.u64(Math.round(amount * deepCoin.scalar)),
+				tx.pure.u64(Math.round(amount * myusdCoin.scalar)),
 				tx.object.clock(),
 			],
-			typeArguments: [baseCoin.type, quoteCoin.type, deepCoin.type],
+			typeArguments: [baseCoin.type, quoteCoin.type, myusdCoin.type],
 		});
 	};
 
@@ -739,17 +739,17 @@ export class MarginManagerContract {
 	};
 
 	/**
-	 * @description Get the DEEP token balance of a margin manager
+	 * @description Get the MYUSD token balance of a margin manager
 	 * @param {string} poolKey The key to identify the pool
 	 * @param {string} marginManagerId The ID of the margin manager
 	 * @returns A function that takes a Transaction object
 	 */
-	deepBalance = (poolKey: string, marginManagerId: string) => (tx: Transaction) => {
+	myusdBalance = (poolKey: string, marginManagerId: string) => (tx: Transaction) => {
 		const pool = this.#config.getPool(poolKey);
 		const baseCoin = this.#config.getCoin(pool.baseCoin);
 		const quoteCoin = this.#config.getCoin(pool.quoteCoin);
 		return tx.moveCall({
-			target: `${this.#config.MARGIN_PACKAGE_ID}::margin_manager::deep_balance`,
+			target: `${this.#config.MARGIN_PACKAGE_ID}::margin_manager::myso_balance`,
 			arguments: [tx.object(marginManagerId)],
 			typeArguments: [baseCoin.type, quoteCoin.type],
 		});

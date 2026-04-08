@@ -21,21 +21,21 @@ import {
 } from './publickey.js';
 import type { AuthenticationCredential, RegistrationCredential } from './types.js';
 
-type DeepPartialConfigKeys = 'rp' | 'user' | 'authenticatorSelection';
+type MySoPartialConfigKeys = 'rp' | 'user' | 'authenticatorSelection';
 
-type DeepPartial<T> = T extends object
+type MySoPartial<T> = T extends object
 	? {
-			[P in keyof T]?: DeepPartial<T[P]>;
+			[P in keyof T]?: MySoPartial<T[P]>;
 		}
 	: T;
 
 export type BrowserPasswordProviderOptions = Pick<
-	DeepPartial<PublicKeyCredentialCreationOptions>,
-	DeepPartialConfigKeys
+	MySoPartial<PublicKeyCredentialCreationOptions>,
+	MySoPartialConfigKeys
 > &
 	Omit<
 		Partial<PublicKeyCredentialCreationOptions>,
-		DeepPartialConfigKeys | 'pubKeyCredParams' | 'challenge'
+		MySoPartialConfigKeys | 'pubKeyCredParams' | 'challenge'
 	>;
 
 export interface PasskeyProvider {

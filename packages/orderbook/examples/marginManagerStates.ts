@@ -32,7 +32,7 @@ const GRPC_URLS = {
 		// Pass a map of marginManagerId -> poolKey
 		const states = await client.orderbook.getMarginManagerStates({
 			'0x206037fde5be6467ce077efee944e8cefdd6e2b6247982a0fae36bdec2a96076': 'MYSO_USDC',
-			'0x14218d017d7e428236bd6876e081e018ec5b1cf9e7e430c2199df3c3c3596c9f': 'DEEP_USDC',
+			'0x14218d017d7e428236bd6876e081e018ec5b1cf9e7e430c2199df3c3c3596c9f': 'MYSO_USDC',
 			'0xaf3142fc3791540b51f3cb6604b0daa2afd17b7fc3a368a80e8b0c3358e2584a': 'MYSO_USDC',
 		});
 

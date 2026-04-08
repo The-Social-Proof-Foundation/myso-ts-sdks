@@ -29,7 +29,7 @@ const GRPC_URLS = {
 		}),
 	);
 
-	const pools = ['MYSO_USDC', 'DEEP_MYSO', 'DEEP_USDC', 'WUSDT_USDC', 'WUSDC_USDC', 'BETH_USDC']; // Update pools as needed
+	const pools = ['MYSO_USDC', 'MYUSD_MYSO', 'MYSO_USDC', 'WUSDT_USDC', 'WUSDC_USDC', 'BETH_USDC']; // Update pools as needed
 	const manager = 'MANAGER_1'; // Update the manager accordingly
 	console.log('Manager:', manager);
 	for (const pool of pools) {

@@ -63,7 +63,7 @@ export class MarginTPSLContract {
 				price,
 				quantity,
 				isBid,
-				payWithDeep = true,
+				payWithMySo = true,
 				expireTimestamp = MAX_TIMESTAMP,
 			} = params;
 			const pool = this.#config.getPool(poolKey);
@@ -80,7 +80,7 @@ export class MarginTPSLContract {
 					tx.pure.u64(inputPrice),
 					tx.pure.u64(inputQuantity),
 					tx.pure.bool(isBid),
-					tx.pure.bool(payWithDeep),
+					tx.pure.bool(payWithMySo),
 					tx.pure.u64(expireTimestamp),
 				],
 			});
@@ -99,7 +99,7 @@ export class MarginTPSLContract {
 				selfMatchingOption = SelfMatchingOptions.SELF_MATCHING_ALLOWED,
 				quantity,
 				isBid,
-				payWithDeep = true,
+				payWithMySo = true,
 			} = params;
 			const pool = this.#config.getPool(poolKey);
 			const baseCoin = this.#config.getCoin(pool.baseCoin);
@@ -111,7 +111,7 @@ export class MarginTPSLContract {
 					tx.pure.u8(selfMatchingOption),
 					tx.pure.u64(inputQuantity),
 					tx.pure.bool(isBid),
-					tx.pure.bool(payWithDeep),
+					tx.pure.bool(payWithMySo),
 				],
 			});
 		};

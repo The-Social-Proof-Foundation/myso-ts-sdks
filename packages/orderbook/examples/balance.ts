@@ -28,7 +28,7 @@ const GRPC_URLS = {
 		}),
 	);
 
-	const assets = ['MYSO', 'USDC', 'WUSDT', 'WUSDC', 'BETH', 'DEEP']; // Update assets as needed
+	const assets = ['MYSO', 'MYUSD', 'BTC', 'ETH']; // Update assets as needed
 	const manager = 'MANAGER_1'; // Update the manager accordingly
 	console.log('Manager:', manager);
 	for (const asset of assets) {

@@ -25,7 +25,7 @@ export const BigVector = new MoveStruct({
 	name: `${$moduleName}::BigVector<phantom E>`,
 	fields: {
 		id: bcs.Address,
-		/** How deep the tree structure is. */
+		/** How myso the tree structure is. */
 		depth: bcs.u8(),
 		/**
 		 * Total number of elements that this vector contains, not including gaps in the

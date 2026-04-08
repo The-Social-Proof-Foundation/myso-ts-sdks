@@ -4,7 +4,11 @@
 
 // Main client and configuration
 export { OrderbookClient, orderbook } from './client.js';
-export type { OrderbookCompatibleClient, OrderbookOptions, OrderbookClientOptions } from './client.js';
+export type {
+	OrderbookCompatibleClient,
+	OrderbookOptions,
+	OrderbookClientOptions,
+} from './client.js';
 export { OrderbookConfig } from './utils/config.js';
 
 // Core contract classes
@@ -26,7 +30,7 @@ export { MarginTPSLContract } from './transactions/marginTPSL.js';
 export { MySoPythClient, MySoPriceServiceConnection } from './pyth/pyth.js';
 
 // BCS types for parsing on-chain data
-export { Account, Balances, Order, OrderDeepPrice, VecSet } from './types/bcs.js';
+export { Account, Balances, Order, OrderMySoPrice, VecSet } from './types/bcs.js';
 
 // TypeScript interfaces and types
 export type {
@@ -82,11 +86,12 @@ export {
 	testnetPythConfigs,
 } from './utils/constants.js';
 export {
-	DEEP_SCALAR,
+	MYSO_SCALAR,
+	MYUSD_SCALAR,
 	FLOAT_SCALAR,
 	GAS_BUDGET,
 	MAX_TIMESTAMP,
-	POOL_CREATION_FEE_DEEP,
+	POOL_CREATION_FEE_MYUSD,
 	PRICE_INFO_OBJECT_MAX_AGE_MS,
 } from './utils/config.js';
 
