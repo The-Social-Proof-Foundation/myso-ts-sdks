@@ -8,12 +8,22 @@ import type {
 	Session,
 	AuthStateChangeCallback,
 } from './types.js';
-import { createStorage, redirectStorage, SESSION_KEY, REDIRECT_STATE_PREFIX } from './storage.js';
+import {
+	createStorage,
+	redirectStorage,
+	SESSION_KEY,
+	REDIRECT_STATE_PREFIX,
+} from './storage.js';
 import { openAuthPopup } from './popup.js';
 import { refreshTokens, logout, fetchRequestId } from './exchange.js';
 import { generateState, generateNonce } from './pkce.js';
 import { SessionRevokedError } from './errors.js';
 import { WALLET_ONLY_ACCESS_TOKEN } from './types.js';
+import {
+	parseJwtPayload,
+	resolveIdTokenFromCallback,
+	resolveOAuthSubForSession,
+} from './session-build.js';
 
 type AuthEvents = { change: Session | null };
 
@@ -38,28 +48,6 @@ function getReturnOrigin(redirectUri: string): string {
 	} catch {
 		return '';
 	}
-}
-
-/** Decode JWT payload (no signature verification). */
-function parseJwtPayload(jwt: string): { sub?: string; exp?: number } | undefined {
-	try {
-		const parts = jwt.split('.');
-		if (parts.length !== 3) return undefined;
-		const payload = parts[1];
-		if (!payload) return undefined;
-		const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-		const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
-		const decoded = atob(padded);
-		const parsed = JSON.parse(decoded) as { sub?: string; exp?: number };
-		return parsed;
-	} catch {
-		return undefined;
-	}
-}
-
-/** Extract sub claim from JWT payload. No signature verification (auth server already validated). */
-function extractSubFromJwt(jwt: string): string | undefined {
-	return parseJwtPayload(jwt)?.sub;
 }
 
 /** Expiry time (ms) for API Bearer JWT from session_access_token `exp` claim, if decodable. */
@@ -153,11 +141,15 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			if (session.sub === undefined) {
 				session.sub = session.user?.sub ?? session.user?.id ?? '';
 			}
-			if (!session.sub && session.id_token) {
-				const subFromJwt = extractSubFromJwt(session.id_token);
-				if (subFromJwt) {
-					session.sub = subFromJwt;
-					if (session.user) session.user.sub = subFromJwt;
+			if (!session.sub) {
+				const resolvedSub = resolveOAuthSubForSession(session.user, {
+					idToken: session.id_token,
+					accessToken: session.access_token,
+					sessionSub: session.sub,
+				});
+				if (resolvedSub) {
+					session.sub = resolvedSub;
+					if (session.user) session.user.sub = resolvedSub;
 					await saveSession(session);
 				}
 			}
@@ -355,7 +347,7 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 			const accessToken = hashParams.get('access_token') ?? parsed.searchParams.get('access_token');
 			const sessionAccessToken =
 				hashParams.get('session_access_token') ?? parsed.searchParams.get('session_access_token');
-			const idToken = hashParams.get('id_token') ?? parsed.searchParams.get('id_token');
+			const idTokenFromUrl = hashParams.get('id_token') ?? parsed.searchParams.get('id_token');
 			const refreshToken =
 				hashParams.get('refresh_token') ?? parsed.searchParams.get('refresh_token');
 			const expiresAtParam = hashParams.get('expires_at') ?? parsed.searchParams.get('expires_at');
@@ -406,13 +398,19 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 				if (addressParam) user.address = addressParam;
 			}
 
-			let sub = user?.sub ?? user?.id ?? '';
-			if (!sub && idToken) {
-				const subFromJwt = extractSubFromJwt(idToken);
-				if (subFromJwt) {
-					sub = subFromJwt;
-					user.sub = subFromJwt;
-				}
+			const resolvedIdToken = resolveIdTokenFromCallback({
+				idTokenFromUrl,
+				code,
+				accessToken,
+			});
+
+			const sub = resolveOAuthSubForSession(user, {
+				idToken: resolvedIdToken,
+				accessToken: accessToken ?? undefined,
+				sessionSub: user?.sub ?? user?.id,
+			});
+			if (sub) {
+				user.sub = sub;
 			}
 
 			const effectiveToken = sessionAccessToken ?? accessToken ?? code;
@@ -428,7 +426,7 @@ export function createAuth(config: MySocialAuthConfig): MySocialAuth {
 				access_token: effectiveToken,
 				...(sessionAccessToken && { session_access_token: sessionAccessToken }),
 				refresh_token: refreshToken ?? undefined,
-				...(idToken && { id_token: idToken }),
+				...(resolvedIdToken && { id_token: resolvedIdToken }),
 				sub,
 				user,
 				expires_at: expiresAt,

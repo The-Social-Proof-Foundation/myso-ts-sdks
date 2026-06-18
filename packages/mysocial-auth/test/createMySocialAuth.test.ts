@@ -76,6 +76,34 @@ describe('createMySocialAuth', () => {
 		unsub();
 	});
 
+	it('handleRedirectCallback promotes JWT-shaped code to id_token when hash is missing', async () => {
+		const state = 'state-jwt-code';
+		const nonce = 'nonce-jwt-code';
+		redirectStorage.set(`${REDIRECT_STATE_PREFIX}${state}`, JSON.stringify({ state, nonce }));
+
+		const payload = btoa(JSON.stringify({ sub: '111631294628286022835' }))
+			.replace(/\+/g, '-')
+			.replace(/\//g, '_')
+			.replace(/=+$/, '');
+		const googleIdToken = `header.${payload}.signature`;
+
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'c1',
+			redirectUri: 'https://app.test/cb',
+		});
+
+		const url = `https://app.test/cb?code=${encodeURIComponent(googleIdToken)}&state=${state}&nonce=${nonce}&salt=14286852330947081862955449959256637702976107966405724670306989168212871471264&address=0xabc&sub=111631294628286022835`;
+		const session = await auth.handleRedirectCallback(url);
+
+		expect(session.id_token).toBe(googleIdToken);
+		expect(session.sub).toBe('111631294628286022835');
+		expect(session.salt).toBe(
+			'14286852330947081862955449959256637702976107966405724670306989168212871471264',
+		);
+	});
+
 	it('handleRedirectCallback builds session from URL params without calling exchange', async () => {
 		const state = 'state-123';
 		const nonce = 'nonce-456';

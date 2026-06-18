@@ -15,10 +15,10 @@ import { deriveObjectID } from '@socialproof/myso/utils';
 
 const CurrencyKey = bcs.struct('CurrencyKey', {
 	dummy_value: bcs.bool(),
-});
+});	
 
 const coinType =
-	'0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402::myso_usde::MYSO_USDE';
+	'0x0410c7b5d90b8f702d0e2cc589d2230317536dc567dc05d4c119ae554be3d46a::myusd::MYUSD';
 const key = CurrencyKey.serialize({ dummy_value: false }).toBytes();
 
 const currencyId = deriveObjectID('0xc', `0x2::coin_registry::CurrencyKey<${coinType}>`, key);

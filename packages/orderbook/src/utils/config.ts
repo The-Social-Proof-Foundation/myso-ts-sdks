@@ -6,20 +6,66 @@ import { normalizeMySoAddress } from '@socialproof/myso/utils';
 
 import { BalanceManagerContract } from '../transactions/balanceManager.js';
 import type { BalanceManager, MarginManager, Coin, Pool, MarginPool } from '../types/index.js';
-import type { CoinMap, PoolMap, MarginPoolMap } from './constants.js';
+import type {
+	CoinMap,
+	PoolMap,
+	MarginPoolMap,
+	OrderbookDeployment,
+	OrderbookPackageIds,
+	OrderbookPythConfig,
+} from './constants.js';
 import { ResourceNotFoundError, ErrorMessages } from './errors.js';
 import {
+	localnetCoins,
+	localnetMarginPools,
+	localnetPackageIds,
+	localnetPools,
+	localnetPythConfigs,
 	mainnetCoins,
+	mainnetMarginPools,
 	mainnetPackageIds,
 	mainnetPools,
+	mainnetPythConfigs,
 	testnetCoins,
+	testnetMarginPools,
 	testnetPackageIds,
 	testnetPools,
-	mainnetMarginPools,
-	testnetMarginPools,
-	mainnetPythConfigs,
 	testnetPythConfigs,
 } from './constants.js';
+
+type OrderbookProfile = 'mainnet' | 'testnet' | 'localnet';
+
+function orderbookNetworkProfile(network: MySoClientTypes.Network): OrderbookProfile {
+	if (network === 'mainnet') {
+		return 'mainnet';
+	}
+
+	if (network === 'testnet') {
+		return 'testnet';
+	}
+
+	if (network === 'localnet' || network === 'devnet') {
+		return 'localnet';
+	}
+
+	throw new Error(
+		`Orderbook supports 'mainnet', 'testnet', 'localnet', and 'devnet' networks, got '${network}'`,
+	);
+}
+
+function mergePackageIds(
+	base: OrderbookPackageIds,
+	partial?: Partial<OrderbookPackageIds>,
+): OrderbookPackageIds {
+	return partial ? { ...base, ...partial } : base;
+}
+
+function mergePythConfig(
+	base: OrderbookPythConfig,
+	partial?: Partial<OrderbookPythConfig>,
+): OrderbookPythConfig {
+	return partial ? { ...base, ...partial } : base;
+}
 
 // Constants for numerical precision and scaling
 export const FLOAT_SCALAR = 1_000_000_000; // 10^9 - Used for floating point representation
@@ -34,6 +80,27 @@ export const PRICE_INFO_OBJECT_MAX_AGE_MS = 30_000; // 30 seconds in millisecond
 export const GAS_BUDGET = 250_000_000; // 0.25 MYSO (0.5 * 500M MIST)
 export const POOL_CREATION_FEE_MYUSD = 500_000_000; // 500 MYUSD (500 * 10^6)
 
+export const PYTH_HERMES_MAINNET = 'https://hermes.pyth.network';
+export const PYTH_HERMES_NON_MAINNET = 'https://hermes-beta.pyth.network';
+
+/**
+ * Hermes URL for Pyth price updates. Precedence: explicitUrl, PYTH_HERMES_URL env, then network (mainnet → prod Hermes, else beta).
+ */
+export function resolvePythHermesBaseUrl(
+	network: MySoClientTypes.Network,
+	options?: { explicitUrl?: string },
+): string {
+	if (options?.explicitUrl) {
+		return options.explicitUrl;
+	}
+
+	if (typeof process !== 'undefined' && process.env.PYTH_HERMES_URL) {
+		return process.env.PYTH_HERMES_URL;
+	}
+
+	return network === 'mainnet' ? PYTH_HERMES_MAINNET : PYTH_HERMES_NON_MAINNET;
+}
+
 export class OrderbookConfig {
 	#coins: CoinMap;
 	#pools: PoolMap;
@@ -42,10 +109,7 @@ export class OrderbookConfig {
 	balanceManagers: { [key: string]: BalanceManager };
 	marginManagers: { [key: string]: MarginManager };
 	address: string;
-	pyth: {
-		pythStateId: string;
-		wormholeStateId: string;
-	};
+	pyth: OrderbookPythConfig;
 
 	ORDERBOOK_PACKAGE_ID: string;
 	REGISTRY_ID: string;
@@ -70,6 +134,7 @@ export class OrderbookConfig {
 		coins,
 		pools,
 		marginPools,
+		deployment,
 	}: {
 		network: MySoClientTypes.Network;
 		address: string;
@@ -81,11 +146,8 @@ export class OrderbookConfig {
 		coins?: CoinMap;
 		pools?: PoolMap;
 		marginPools?: MarginPoolMap;
+		deployment?: OrderbookDeployment;
 	}) {
-		if (network !== 'mainnet' && network !== 'testnet') {
-			throw new Error(`Orderbook only supports 'mainnet' and 'testnet' networks, got '${network}'`);
-		}
-
 		this.network = network;
 		this.address = normalizeMySoAddress(address);
 		this.adminCap = adminCap;
@@ -94,29 +156,45 @@ export class OrderbookConfig {
 		this.balanceManagers = balanceManagers || {};
 		this.marginManagers = marginManagers || {};
 
-		if (network === 'mainnet') {
-			this.#coins = coins || mainnetCoins;
-			this.#pools = pools || mainnetPools;
-			this.#marginPools = marginPools || mainnetMarginPools;
-			this.ORDERBOOK_PACKAGE_ID = mainnetPackageIds.ORDERBOOK_PACKAGE_ID;
-			this.REGISTRY_ID = mainnetPackageIds.REGISTRY_ID;
-			this.MYUSD_TREASURY_ID = mainnetPackageIds.MYUSD_TREASURY_ID;
-			this.MARGIN_PACKAGE_ID = mainnetPackageIds.MARGIN_PACKAGE_ID;
-			this.MARGIN_REGISTRY_ID = mainnetPackageIds.MARGIN_REGISTRY_ID;
-			this.LIQUIDATION_PACKAGE_ID = mainnetPackageIds.LIQUIDATION_PACKAGE_ID;
-			this.pyth = mainnetPythConfigs;
+		const profile = orderbookNetworkProfile(network);
+
+		let defaultCoins: CoinMap;
+		let defaultPools: PoolMap;
+		let defaultMarginPools: MarginPoolMap;
+		let basePackageIds: OrderbookPackageIds;
+		let basePyth: OrderbookPythConfig;
+
+		if (profile === 'mainnet') {
+			defaultCoins = mainnetCoins;
+			defaultPools = mainnetPools;
+			defaultMarginPools = mainnetMarginPools;
+			basePackageIds = mainnetPackageIds;
+			basePyth = mainnetPythConfigs;
+		} else if (profile === 'testnet') {
+			defaultCoins = testnetCoins;
+			defaultPools = testnetPools;
+			defaultMarginPools = testnetMarginPools;
+			basePackageIds = testnetPackageIds;
+			basePyth = testnetPythConfigs;
 		} else {
-			this.#coins = coins || testnetCoins;
-			this.#pools = pools || testnetPools;
-			this.#marginPools = marginPools || testnetMarginPools;
-			this.ORDERBOOK_PACKAGE_ID = testnetPackageIds.ORDERBOOK_PACKAGE_ID;
-			this.REGISTRY_ID = testnetPackageIds.REGISTRY_ID;
-			this.MYUSD_TREASURY_ID = testnetPackageIds.MYUSD_TREASURY_ID;
-			this.MARGIN_PACKAGE_ID = testnetPackageIds.MARGIN_PACKAGE_ID;
-			this.MARGIN_REGISTRY_ID = testnetPackageIds.MARGIN_REGISTRY_ID;
-			this.LIQUIDATION_PACKAGE_ID = testnetPackageIds.LIQUIDATION_PACKAGE_ID;
-			this.pyth = testnetPythConfigs;
+			defaultCoins = localnetCoins;
+			defaultPools = localnetPools;
+			defaultMarginPools = localnetMarginPools;
+			basePackageIds = localnetPackageIds;
+			basePyth = localnetPythConfigs;
 		}
+
+		const packageIds = mergePackageIds(basePackageIds, deployment?.packageIds);
+		this.ORDERBOOK_PACKAGE_ID = packageIds.ORDERBOOK_PACKAGE_ID;
+		this.REGISTRY_ID = packageIds.REGISTRY_ID;
+		this.MYUSD_TREASURY_ID = packageIds.MYUSD_TREASURY_ID;
+		this.MARGIN_PACKAGE_ID = packageIds.MARGIN_PACKAGE_ID;
+		this.MARGIN_REGISTRY_ID = packageIds.MARGIN_REGISTRY_ID;
+		this.LIQUIDATION_PACKAGE_ID = packageIds.LIQUIDATION_PACKAGE_ID;
+		this.pyth = mergePythConfig(basePyth, deployment?.pyth);
+		this.#coins = coins || defaultCoins;
+		this.#pools = pools || defaultPools;
+		this.#marginPools = marginPools || defaultMarginPools;
 
 		this.balanceManager = new BalanceManagerContract(this);
 	}

@@ -35,7 +35,7 @@ export const generateCommand = buildCommand({
 			},
 			network: {
 				kind: 'enum',
-				values: ['mainnet', 'testnet'],
+				values: ['mainnet', 'testnet', 'localnet', 'devnet'],
 				optional: true,
 				brief: 'Network to generate for (default: testnet)',
 			},

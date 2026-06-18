@@ -28,8 +28,9 @@ import {
 	OrderbookConfig,
 	FLOAT_SCALAR,
 	PRICE_INFO_OBJECT_MAX_AGE_MS,
+	resolvePythHermesBaseUrl,
 } from './utils/config.js';
-import type { CoinMap, PoolMap } from './utils/constants.js';
+import type { CoinMap, PoolMap, OrderbookDeployment } from './utils/constants.js';
 import { MarginAdminContract } from './transactions/marginAdmin.js';
 import { MarginMaintainerContract } from './transactions/marginMaintainer.js';
 import { MarginPoolContract } from './transactions/marginPool.js';
@@ -54,6 +55,10 @@ export interface OrderbookOptions<Name = 'orderbook'> {
 	marginAdminCap?: string;
 	marginMaintainerCap?: string;
 	name?: Name;
+	/** Merged on top of default package and Pyth ids for this network. */
+	deployment?: OrderbookDeployment;
+	/** Overrides Hermes base URL and PYTH_HERMES_URL for price feed fetch. */
+	pythHermesUrl?: string;
 }
 
 export interface OrderbookClientOptions extends OrderbookOptions {
@@ -88,6 +93,7 @@ export class OrderbookClient {
 	#client: OrderbookCompatibleClient;
 	#config: OrderbookConfig;
 	#address: string;
+	#pythHermesBaseUrl: string;
 	balanceManager: BalanceManagerContract;
 	orderbook: OrderbookContract;
 	orderbookAdmin: OrderbookAdminContract;
@@ -116,9 +122,12 @@ export class OrderbookClient {
 		adminCap,
 		marginAdminCap,
 		marginMaintainerCap,
+		deployment,
+		pythHermesUrl,
 	}: OrderbookClientOptions) {
 		this.#client = client;
 		this.#address = normalizeMySoAddress(address);
+		this.#pythHermesBaseUrl = resolvePythHermesBaseUrl(network, { explicitUrl: pythHermesUrl });
 		this.#config = new OrderbookConfig({
 			address: this.#address,
 			network,
@@ -129,6 +138,7 @@ export class OrderbookClient {
 			adminCap,
 			marginAdminCap,
 			marginMaintainerCap,
+			deployment,
 		});
 		this.balanceManager = new BalanceManagerContract(this.#config);
 		this.orderbook = new OrderbookContract(this.#config);
@@ -930,11 +940,7 @@ export class OrderbookClient {
 		}
 
 		// Initialize connection to the MySo Price Service
-		const endpoint =
-			this.#config.network === 'testnet'
-				? 'https://hermes-beta.pyth.network'
-				: 'https://hermes.pyth.network';
-		const connection = new MySoPriceServiceConnection(endpoint);
+		const connection = new MySoPriceServiceConnection(this.#pythHermesBaseUrl);
 
 		// List of price feed IDs
 		const priceIDs = [
@@ -1025,11 +1031,7 @@ export class OrderbookClient {
 		}
 
 		// Initialize connection to the MySo Price Service
-		const endpoint =
-			this.#config.network === 'testnet'
-				? 'https://hermes-beta.pyth.network'
-				: 'https://hermes.pyth.network';
-		const connection = new MySoPriceServiceConnection(endpoint);
+		const connection = new MySoPriceServiceConnection(this.#pythHermesBaseUrl);
 
 		// Fetch all stale price updates from Pyth in a single API call
 		const priceUpdateData = await connection.getPriceFeedsUpdateData(staleFeedIds);

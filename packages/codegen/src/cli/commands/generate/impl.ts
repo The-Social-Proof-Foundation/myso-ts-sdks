@@ -15,7 +15,7 @@ export interface SubdirCommandFlags {
 	outputDir?: string;
 	noPrune?: boolean;
 	noSummaries?: boolean;
-	network?: 'mainnet' | 'testnet';
+	network?: 'mainnet' | 'testnet' | 'localnet' | 'devnet';
 	importExtension?: '.js' | '.ts' | 'none';
 	modules?: string[];
 	noTypes?: boolean;

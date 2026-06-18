@@ -1,6 +1,6 @@
 {
 	"name": "@socialproof/mysocial-auth",
-	"version": "0.12.4",
+	"version": "0.12.2",
 	"private": false,
 	"description": "MySocial Auth SDK for Login with MySocial via popup or redirect",
 	"license": "Apache-2.0",

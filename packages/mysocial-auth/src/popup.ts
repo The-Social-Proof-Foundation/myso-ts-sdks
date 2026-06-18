@@ -19,6 +19,7 @@ import { generateNonce, generateState } from './pkce.js';
 import { getPopupFeatures } from './popup-utils.js';
 import { fetchRequestId } from './exchange.js';
 import type { Session } from './types.js';
+import { resolveOAuthSubForSession } from './session-build.js';
 
 /** Get return_origin from redirectUri (e.g. https://dripdrop.social/auth/callback -> https://dripdrop.social) */
 function getReturnOrigin(redirectUri: string): string {
@@ -155,12 +156,20 @@ export async function openAuthPopup(options: OpenPopupOptions): Promise<Session>
 				const expiresAt =
 					expiresAtFromMsg ??
 					(msg.expires_in != null ? Date.now() + msg.expires_in * 1000 : Date.now() + 3600_000);
+				const sub = resolveOAuthSubForSession(user, {
+					idToken: msg.id_token,
+					accessToken: effectiveToken,
+					sessionSub: user.sub ?? user.id,
+				});
+				if (sub) {
+					user.sub = sub;
+				}
 				const session: Session = {
 					access_token: effectiveToken,
 					...(msg.session_access_token && { session_access_token: msg.session_access_token }),
 					refresh_token: msg.refresh_token,
 					...(msg.id_token && { id_token: msg.id_token }),
-					sub: user.sub ?? user.id ?? '',
+					sub,
 					user,
 					expires_at: expiresAt,
 					...(msg.salt && { salt: msg.salt }),

@@ -70,7 +70,14 @@ export type {
 export { OrderType, SelfMatchingOptions } from './types/index.js';
 
 // Constants and configuration maps
-export type { CoinMap, PoolMap, MarginPoolMap, OrderbookPackageIds } from './utils/constants.js';
+export type {
+	CoinMap,
+	PoolMap,
+	MarginPoolMap,
+	OrderbookPackageIds,
+	OrderbookPythConfig,
+	OrderbookDeployment,
+} from './utils/constants.js';
 
 // Default configurations for mainnet and testnet
 export {
@@ -84,6 +91,11 @@ export {
 	testnetPackageIds,
 	mainnetPythConfigs,
 	testnetPythConfigs,
+	localnetPackageIds,
+	localnetCoins,
+	localnetPools,
+	localnetMarginPools,
+	localnetPythConfigs,
 } from './utils/constants.js';
 export {
 	MYSO_SCALAR,
@@ -93,6 +105,9 @@ export {
 	MAX_TIMESTAMP,
 	POOL_CREATION_FEE_MYUSD,
 	PRICE_INFO_OBJECT_MAX_AGE_MS,
+	PYTH_HERMES_MAINNET,
+	PYTH_HERMES_NON_MAINNET,
+	resolvePythHermesBaseUrl,
 } from './utils/config.js';
 
 // Error handling utilities

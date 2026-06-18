@@ -4,6 +4,12 @@
 
 import type { MySoCodegenConfig } from '@socialproof/codegen';
 
+// Local / custom chain (optional): add path-based packages and run `myso move summary` in each path.
+// On-chain id entries can use `network: 'localnet'` when `@socialproof/codegen` ≥ version that supports
+// it; configure the MySo CLI to talk to your local fullnode for `myso move summary --package-id …`.
+// Example:
+//   { package: '@local-pkg/pyth', path: '../../../orderbook-sandbox-main/sandbox/packages/pyth' },
+
 const config: MySoCodegenConfig = {
 	output: './src/contracts',
 	packages: [

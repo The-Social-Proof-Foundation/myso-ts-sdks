@@ -51,6 +51,14 @@ const client = new MySoGrpcClient({ network: 'mainnet', baseUrl: '...' }).$exten
 await client.orderbook.getLevel2Range('MYSO_USDC', ...);
 ```
 
+### Localnet and custom deployments
+
+1. **RPC**: Create `MySoGrpcClient` with `network: 'localnet'` (or `'devnet'`) and `baseUrl` pointing at your local fullnode.
+2. **On-chain ids**: Edit [`src/utils/constants.ts`](src/utils/constants.ts) `localnetPackageIds`, `localnetPythConfigs`, and add entries to `localnetCoins`, `localnetPools`, and `localnetMarginPools` after you publish contracts and create pools. Defaults use placeholder `0x00…00` addresses until you replace them.
+3. **Overrides without editing the SDK**: Pass `deployment: { packageIds: { … }, pyth: { … } }` into `orderbook({ … })` (or construct `OrderbookConfig` with the same field). Values merge on top of the defaults for that network profile.
+4. **Pyth Hermes**: Non-`mainnet` networks default to `https://hermes-beta.pyth.network`. Override with `pythHermesUrl` on the orderbook options or set env `PYTH_HERMES_URL` (e.g. a local Hermes or custom endpoint).
+5. **Codegen**: Prefer `path` entries in `myso-codegen.config.ts` for Move packages on disk (run `myso move summary` in each package). For `package` + on-chain id entries, set `network: 'localnet'` and point the MySo CLI at your local node so `myso move summary --package-id …` resolves. See the commented example in `myso-codegen.config.ts`.
+
 ### Move Abilities and PTB Limitations
 
 When working with Move types in Programmable Transaction Blocks (PTBs):
@@ -223,3 +231,4 @@ Track significant updates to this file:
   gRPC client migration notes
 - **2026-02**: Added `getPriceInfoObjects` batch method for efficient Pyth price updates
 - **2026-02**: Updated `PRICE_INFO_OBJECT_MAX_AGE_MS` from 15s to 30s
+- **2026-05**: Documented `localnet` / `devnet` profiles, `deployment` overrides, and Pyth Hermes resolution for custom chains

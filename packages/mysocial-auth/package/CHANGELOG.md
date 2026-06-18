@@ -1,19 +1,5 @@
 # @socialproof/mysocial-auth
 
-## 0.12.4
-
-### Patch Changes
-
-- Redirect callback promotes JWT-shaped `code` query param to `id_token` when hash fragment is missing (iOS Safari).
-- Shared `resolveOAuthSubForSession` prefers provider `id_token.sub` over session JWT composite `sub`.
-- Popup flow uses the same sub resolution when building sessions.
-
-## 0.12.3
-
-### Patch Changes
-
-- Fix npm publish: `@socialproof/utils` is `^0.0.2` (replaces broken `workspace:^` in 0.12.2).
-
 ## 0.12.2
 
 ### Patch Changes
