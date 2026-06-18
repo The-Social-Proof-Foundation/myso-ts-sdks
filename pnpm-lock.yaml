@@ -16,7 +16,7 @@ importers:
         version: 0.18.2
       '@changesets/cli':
         specifier: ^2.29.8
-        version: 2.29.8(patch_hash=f3478295f4625d66d68dd1de650bc621bdc78d3d15842285e37ac7e079e7bc3a)(@types/node@25.2.3)
+        version: 2.29.8(@types/node@25.2.3)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.7.1
         version: 4.7.1(@vue/compiler-sfc@3.5.26)(prettier@3.8.1)
@@ -118,6 +118,39 @@ importers:
       vitest:
         specifier: ^4.0.17
         version: 4.0.17(@types/node@25.0.8)(happy-dom@20.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(jiti@2.6.1)(jsdom@27.4.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(lightningcss@1.30.2)(msw@2.12.7(@types/node@25.0.8)(typescript@5.9.3))(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/contra:
+    dependencies:
+      '@noble/curves':
+        specifier: ^2.0.1
+        version: 2.0.1
+      '@noble/hashes':
+        specifier: ^2.0.1
+        version: 2.0.1
+      '@socialproof/bcs':
+        specifier: workspace:^
+        version: link:../bcs
+      '@socialproof/contra-bulletproofs-wasm':
+        specifier: workspace:^
+        version: link:../contra-bulletproofs-wasm
+      '@socialproof/myso':
+        specifier: workspace:^
+        version: link:../myso
+    devDependencies:
+      '@socialproof/codegen':
+        specifier: workspace:^
+        version: link:../codegen
+      '@types/node':
+        specifier: ^25.0.8
+        version: 25.2.3
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.17
+        version: 4.0.17(@types/node@25.2.3)(happy-dom@20.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(jiti@2.6.1)(jsdom@27.4.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(lightningcss@1.30.2)(msw@2.12.7(@types/node@25.2.3)(typescript@5.9.3))(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/contra-bulletproofs-wasm: {}
 
   packages/create-dapp:
     dependencies:
@@ -1148,8 +1181,27 @@ importers:
   packages/mysocial-auth:
     dependencies:
       '@socialproof/utils':
-        specifier: workspace:^
-        version: link:../utils
+        specifier: ^0.0.2
+        version: 0.0.2
+    devDependencies:
+      '@types/node':
+        specifier: ^25.0.8
+        version: 25.2.3
+      happy-dom:
+        specifier: ^20.1.0
+        version: 20.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.17
+        version: 4.0.17(@types/node@25.2.3)(happy-dom@20.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(jiti@2.6.1)(jsdom@27.4.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(lightningcss@1.30.2)(msw@2.12.7(@types/node@25.2.3)(typescript@5.9.3))(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/mysocial-auth/package:
+    dependencies:
+      '@socialproof/utils':
+        specifier: ^0.0.2
+        version: 0.0.2
     devDependencies:
       '@types/node':
         specifier: ^25.0.8
@@ -5079,6 +5131,9 @@ packages:
     resolution: {integrity: sha512-HHHVQjZmj+8vg7qsHs1dd3Hmn8ygUsE5O2CfxnbCbHOGyUw7VodZGERh/+5ogVrF2DYza/DIo2PnCJZZETdTRA==}
     peerDependencies:
       size-limit: 12.0.0
+
+  '@socialproof/utils@0.0.2':
+    resolution: {integrity: sha512-J4mDPEQxUIbzNu9WDvLW21VRlh9F7W5GQtbjA+rit2+fdm+r5TszJ4DmvjkjfRBfFWyAl3nIaVzQGcasRIjOiw==}
 
   '@solana-program/system@0.10.0':
     resolution: {integrity: sha512-Go+LOEZmqmNlfr+Gjy5ZWAdY5HbYzk2RBewD9QinEU/bBSzpFfzqDRT55JjFRBGJUvMgf3C2vfXEGT4i8DSI4g==}
@@ -10941,7 +10996,7 @@ snapshots:
     dependencies:
       '@changesets/types': 6.1.0
 
-  '@changesets/cli@2.29.8(patch_hash=f3478295f4625d66d68dd1de650bc621bdc78d3d15842285e37ac7e079e7bc3a)(@types/node@25.2.3)':
+  '@changesets/cli@2.29.8(@types/node@25.2.3)':
     dependencies:
       '@changesets/apply-release-plan': 7.0.14
       '@changesets/assemble-release-plan': 6.0.9
@@ -14575,6 +14630,10 @@ snapshots:
       '@size-limit/file': 12.0.0(size-limit@12.0.0(jiti@2.6.1))
       size-limit: 12.0.0(jiti@2.6.1)
 
+  '@socialproof/utils@0.0.2':
+    dependencies:
+      '@scure/base': 2.0.0
+
   '@solana-program/system@0.10.0(@solana/kit@5.4.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10))':
     dependencies:
       '@solana/kit': 5.4.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
@@ -15622,7 +15681,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 25.0.8
+      '@types/node': 25.2.3
 
   '@ungap/structured-clone@1.3.0': {}
 
