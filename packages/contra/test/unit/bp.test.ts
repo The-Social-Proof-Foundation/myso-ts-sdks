@@ -57,9 +57,9 @@ describe('batchRangeProver', () => {
 	});
 
 	it('rejects mismatched values/blindings', () => {
-		expect(() =>
-			bp.batchRangeProver([1n, 2n], [randomScalar()], 32, SINGLE_AMOUNT_DST),
-		).toThrow(ContraInternalError);
+		expect(() => bp.batchRangeProver([1n, 2n], [randomScalar()], 32, SINGLE_AMOUNT_DST)).toThrow(
+			ContraInternalError,
+		);
 	});
 
 	it('rejects dst longer than 64 bytes', () => {

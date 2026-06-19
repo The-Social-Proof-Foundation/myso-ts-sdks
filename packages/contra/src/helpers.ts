@@ -2,18 +2,18 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
+import { ristretto255 } from '@noble/curves/ed25519.js';
+import { bytesToNumberLE, numberToBytesLE } from '@noble/curves/utils.js';
+import { blake2b } from '@noble/hashes/blake2.js';
+import { hexToBytes } from '@noble/hashes/utils.js';
 import { bcs } from '@socialproof/myso/bcs';
 import type { Transaction } from '@socialproof/myso/transactions';
 import {
 	deriveDynamicFieldID,
 	deriveObjectID,
-	normalizeStructTag,
 	MYSO_FRAMEWORK_ADDRESS,
+	normalizeStructTag,
 } from '@socialproof/myso/utils';
-import { ristretto255 } from '@noble/curves/ed25519.js';
-import { bytesToNumberLE, numberToBytesLE } from '@noble/curves/utils.js';
-import { blake2b } from '@noble/hashes/blake2.js';
-import { hexToBytes } from '@noble/hashes/utils.js';
 
 import type { BatchRangeProver } from './bp.js';
 import * as auditorsContracts from './contracts/contra/auditors.js';
@@ -338,9 +338,7 @@ export function buildEncryptedAmountAndProof(
 				limbs.map((l) => l.ciphertext),
 			),
 		),
-		wellFormedProof: tx.add(
-			buildWellFormedProof(batchRangeProver, packageId, [limbs], elgamalDst),
-		),
+		wellFormedProof: tx.add(buildWellFormedProof(batchRangeProver, packageId, [limbs], elgamalDst)),
 	};
 }
 

@@ -2,7 +2,7 @@
 	"name": "@socialproof/contra",
 	"author": "The Social Proof Foundation <brandon@socialproof.foundation>",
 	"description": "MySo confidential transfers (Contra) client SDK",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"license": "Apache-2.0",
 	"type": "module",
 	"main": "./dist/index.mjs",
@@ -12,6 +12,11 @@
 			"types": "./dist/index.d.mts",
 			"import": "./dist/index.mjs",
 			"default": "./dist/index.mjs"
+		},
+		"./workers/compute-table-entries": {
+			"types": "./dist/workers/compute_table_entries.worker.d.mts",
+			"import": "./dist/workers/compute_table_entries.worker.mjs",
+			"default": "./dist/workers/compute_table_entries.worker.mjs"
 		}
 	},
 	"files": [

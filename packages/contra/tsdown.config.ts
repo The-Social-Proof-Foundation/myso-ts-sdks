@@ -5,7 +5,7 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-	entry: ['src/index.ts'],
+	entry: ['src/index.ts', 'src/workers/compute_table_entries.worker.ts'],
 	format: 'esm',
 	dts: true,
 	outDir: 'dist',

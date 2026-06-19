@@ -1,16 +1,15 @@
-
 import {
 	bcs,
+	BcsEnum,
+	BcsStruct,
+	BcsTuple,
 	BcsType,
 	TypeTag,
 	TypeTagSerializer,
-	BcsStruct,
-	BcsEnum,
-	BcsTuple,
 } from '@socialproof/myso/bcs';
-import { normalizeMySoAddress } from '@socialproof/myso/utils';
-import { TransactionArgument, isArgument } from '@socialproof/myso/transactions';
 import { ClientWithCoreApi, MySoClientTypes } from '@socialproof/myso/client';
+import { isArgument, TransactionArgument } from '@socialproof/myso/transactions';
+import { normalizeMySoAddress } from '@socialproof/myso/utils';
 
 const MOVE_STDLIB_ADDRESS = normalizeMySoAddress('0x1');
 const MYSO_FRAMEWORK_ADDRESS = normalizeMySoAddress('0x2');
@@ -170,7 +169,9 @@ export class MoveStruct<
 		objectId,
 		...options
 	}: GetOptions<Include>): Promise<
-		MySoClientTypes.Object<Include & { content: true, json: true }> & { json: BcsStruct<T>['$inferType'] }
+		MySoClientTypes.Object<Include & { content: true; json: true }> & {
+			json: BcsStruct<T>['$inferType'];
+		}
 	> {
 		const [res] = await this.getMany<Include>({
 			...options,
@@ -184,7 +185,11 @@ export class MoveStruct<
 		client,
 		...options
 	}: GetManyOptions<Include>): Promise<
-		Array<MySoClientTypes.Object<Include & { content: true, json: true }> & { json: BcsStruct<T>['$inferType'] }>
+		Array<
+			MySoClientTypes.Object<Include & { content: true; json: true }> & {
+				json: BcsStruct<T>['$inferType'];
+			}
+		>
 	> {
 		const response = (await client.core.getObjects({
 			...options,

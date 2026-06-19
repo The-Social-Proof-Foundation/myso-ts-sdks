@@ -15,6 +15,7 @@ export {
 	MultiRecipientEncryption,
 	computeTableEntries,
 } from './twisted_elgamal.js';
+export type { CreateDiscreteLogTableOptions } from './twisted_elgamal.js';
 export { TokenAccount } from './token_account.js';
 export { G, randomScalar, scalarToBytes, pointFromBcs } from './ristretto255.js';
 export type { RistrettoPoint } from './ristretto255.js';

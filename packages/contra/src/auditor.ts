@@ -2,6 +2,8 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
+import { ristretto255 } from '@noble/curves/ed25519.js';
+
 import * as contraContracts from './contracts/contra/contra.js';
 import { Field as DynamicField } from './contracts/myso/dynamic_field.js';
 import { InvalidArgumentError } from './error.js';
@@ -80,13 +82,14 @@ export class ContraAuditor {
 				`Auditor has no record for version ${version}. Known versions: [${known}].`,
 			);
 		}
+		const skInv = ristretto255.Point.Fn.inv(entry.privateKey);
 		const limbs = ciphertext.map((mrc, i) => {
 			if (entry.index >= mrc.decryptionHandles.length) {
 				throw new InvalidArgumentError(
 					`Auditor index ${entry.index} out of range for limb ${i} (have ${mrc.decryptionHandles.length} recipients) at version ${version}.`,
 				);
 			}
-			return mrc.decrypt(entry.index, entry.privateKey, this.#table);
+			return mrc.decryptWithInverse(entry.index, skInv, this.#table);
 		});
 		return limbsToScalar(limbs);
 	}

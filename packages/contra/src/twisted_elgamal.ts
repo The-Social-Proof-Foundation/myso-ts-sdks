@@ -63,6 +63,11 @@ function cosetX(point: RistrettoPoint): bigint[] {
 export type PublicKey = RistrettoPoint;
 export type PrivateKey = bigint;
 
+/** Key used for indexing the discrete-log table computed from the x-coordinate of the point. */
+function key(x: bigint): number {
+	return Number(x & 0xffffffffn);
+}
+
 export function generateKeyPair(): [PublicKey, PrivateKey] {
 	const privateKey = randomScalar();
 	const pk = mul(G, privateKey);
@@ -70,35 +75,48 @@ export function generateKeyPair(): [PublicKey, PrivateKey] {
 }
 
 /**
- * Compute the raw table entries (truncated x-coordinate → index pairs)
- * for a given numBits. This is a pure function that can run in a web
- * worker. Returns a flat Uint32Array of [key, value, key, value, ...]
- * pairs that can be transferred to the main thread.
+ * Compute the raw table entries (truncated x-coordinates) for a given
+ * numBits. This is a pure function that can run in a web worker. Returns
+ * a Uint32Array where `entries[i]` is the truncated x-coordinate of `i*H`.
+ * The result can be transferred to the main thread.
  */
 export function computeTableEntries(numBits: number): Uint32Array {
 	const start = performance.now();
 	const tableSize = 2 ** numBits;
 
-	// Phase 1: compute all points via cheap projective addition.
-	const points = new Array<RistrettoPoint>(tableSize);
-	points[0] = ZERO;
-	for (let i = 1; i < tableSize; i++) {
-		points[i] = points[i - 1].add(H);
-	}
+	const entries = new Uint32Array(tableSize);
 
-	// Phase 2: extract affine x-coordinates with a single batch inversion.
-	const invertedZs = Fp.invertBatch(points.map((p) => (p as any).ep.Z as bigint));
-	const xCoords = points.map((p, i) => Fp.mul((p as any).ep.X as bigint, invertedZs[i]));
-
-	// Phase 3: pack into a flat Uint32Array [key, value, key, value, ...]
-	const entries = new Uint32Array(tableSize * 2);
-	for (let i = 0; i < tableSize; i++) {
-		entries[i * 2] = Number(xCoords[i] & 0xffffffffn);
-		entries[i * 2 + 1] = i;
+	// Walk `i*H` in fixed-size chunks, extracting affine x-coordinates with one
+	// batch inversion per chunk.
+	const CHUNK = 1 << 12;
+	const xs = new Array<bigint>(CHUNK);
+	const zs = new Array<bigint>(CHUNK);
+	let point = ZERO;
+	for (let base = 0; base < tableSize; base += CHUNK) {
+		const len = Math.min(CHUNK, tableSize - base);
+		for (let k = 0; k < len; k++) {
+			const ep = (point as any).ep;
+			xs[k] = ep.X as bigint;
+			zs[k] = ep.Z as bigint;
+			point = point.add(H);
+		}
+		const invertedZs =
+			len === CHUNK
+				? Fp.invertBatch(zs)
+				: (() => {
+						const savedLen = zs.length;
+						zs.length = len;
+						const result = Fp.invertBatch(zs);
+						zs.length = savedLen;
+						return result;
+					})();
+		for (let k = 0; k < len; k++) {
+			entries[base + k] = key(Fp.mul(xs[k], invertedZs[k]));
+		}
 	}
 
 	if (debugLogging) {
-		const sizeBytes = tableSize * (4 + 4);
+		const sizeBytes = tableSize * 4;
 		const elapsed = performance.now() - start;
 		console.log(
 			`[computeTableEntries] computed in ${elapsed.toFixed(1)}ms | numBits=${numBits} | size=${(sizeBytes / 1024).toFixed(0)}KB`,
@@ -112,6 +130,10 @@ export function computeTableEntries(numBits: number): Uint32Array {
  * multiples of H keyed by truncated 4-byte Edwards x-coordinates,
  * with verification by scalar multiplication to guard against collisions.
  *
+ * The table is held as two parallel, key-sorted `Uint32Array`s — `#keys`
+ * (the truncated x-coordinates, ascending) and `#values` (the matching
+ * baby-step index `i` such that `i*H` has that key).
+ *
  * Decrypt searches by subtracting `2^numBits * H` (the giant step)
  * each iteration and checking the table. Small values (the common
  * case for u16 limbs) are found on the first lookup with no loop.
@@ -121,20 +143,27 @@ export function computeTableEntries(numBits: number): Uint32Array {
  * holds `2^numBits` entries of 8 bytes each, so e.g. `numBits = 16`
  * is 512 KiB and `numBits = 24` is 128 MiB.
  */
+export type CreateDiscreteLogTableOptions = {
+	/** Override worker script URL when bundlers cannot resolve the default subpath. */
+	workerUrl?: string | URL;
+};
+
 export class DiscreteLogTable {
 	readonly numBits: number;
 	readonly tableSize: number;
 	readonly giantStep: RistrettoPoint;
-	#table: Map<number, number[]>;
+	#keys: Uint32Array;
+	#values: Uint32Array;
 	// Small internal cache to speed up lookups for repeated calls.
 	static readonly MAX_CACHE_SIZE = 1024;
 	#cache: Map<number, bigint>;
 
-	private constructor(numBits: number, table: Map<number, number[]>) {
+	private constructor(numBits: number, keys: Uint32Array, values: Uint32Array) {
 		this.numBits = numBits;
 		this.tableSize = 2 ** numBits;
 		this.giantStep = mul(H, BigInt(this.tableSize));
-		this.#table = table;
+		this.#keys = keys;
+		this.#values = values;
 		this.#cache = new Map();
 	}
 
@@ -147,29 +176,77 @@ export class DiscreteLogTable {
 		return DiscreteLogTable.fromEntries(numBits, entries);
 	}
 
-	/** Construct from pre-computed entries (e.g. from a web worker). */
-	static fromEntries(numBits: number, entries: Uint32Array): DiscreteLogTable {
-		const table = new Map<number, number[]>();
-		let collisions = 0;
-		for (let i = 0; i < entries.length; i += 2) {
-			const key = entries[i];
-			const value = entries[i + 1];
-			const existing = table.get(key);
-			if (existing) {
-				existing.push(value);
-				collisions++;
-			} else {
-				table.set(key, [value]);
-			}
+	/**
+	 * Build a table asynchronously, off the main thread when `Worker` is
+	 * available. Falls back to {@link create} in environments without workers.
+	 */
+	static async createAsync(
+		numBits: number = 16,
+		options?: CreateDiscreteLogTableOptions,
+	): Promise<DiscreteLogTable> {
+		if (numBits > 32) {
+			throw new InvalidArgumentError(`numBits must be <= 32 (got ${numBits})`);
 		}
 
+		if (typeof Worker === 'undefined') {
+			return DiscreteLogTable.create(numBits);
+		}
+
+		const workerUrl =
+			options?.workerUrl ?? new URL('../workers/compute_table_entries.worker.js', import.meta.url);
+
+		const entries = await new Promise<Uint32Array>((resolve, reject) => {
+			const worker = new Worker(workerUrl, { type: 'module' });
+			worker.onmessage = (event: MessageEvent<{ entries: Uint32Array }>) => {
+				worker.terminate();
+				resolve(event.data.entries);
+			};
+			worker.onerror = (err) => {
+				worker.terminate();
+				reject(err);
+			};
+			worker.postMessage({ numBits });
+		});
+
+		return DiscreteLogTable.fromEntries(numBits, entries);
+	}
+
+	/**
+	 * Construct from pre-computed entries (e.g. from a web worker), where
+	 * `entries[i]` is the truncated x-coordinate of `i*H`. Sorts the baby-step
+	 * indices by their key into the parallel `#keys` / `#values` arrays.
+	 */
+	static fromEntries(numBits: number, entries: Uint32Array): DiscreteLogTable {
+		const n = entries.length;
+
+		const values = new Uint32Array(n);
+		for (let i = 0; i < n; i++) values[i] = i;
+		values.sort((a, b) => entries[a] - entries[b]);
+
+		const keys = new Uint32Array(n);
+		for (let j = 0; j < n; j++) keys[j] = entries[values[j]];
+
 		if (debugLogging) {
-			const sizeBytes = 2 ** numBits * (4 + 4);
+			let collisions = 0;
+			for (let j = 1; j < n; j++) if (keys[j] === keys[j - 1]) collisions++;
+			const sizeBytes = n * (4 + 4);
 			console.log(
 				`[DiscreteLogTable] created | numBits=${numBits} | size=${(sizeBytes / 1024).toFixed(0)}KB | collisions=${collisions}`,
 			);
 		}
-		return new DiscreteLogTable(numBits, table);
+		return new DiscreteLogTable(numBits, keys, values);
+	}
+
+	/** Index of the first entry in `#keys` whose key is `>= target`. */
+	#lowerBound(target: number): number {
+		let lo = 0;
+		let hi = this.#keys.length;
+		while (lo < hi) {
+			const mid = (lo + hi) >>> 1;
+			if (this.#keys[mid] < target) lo = mid + 1;
+			else hi = mid;
+		}
+		return lo;
 	}
 
 	/**
@@ -179,25 +256,29 @@ export class DiscreteLogTable {
 	 */
 	lookup(point: RistrettoPoint): { value: bigint; cached: boolean } | undefined {
 		// Cache key truncates to 32 bits; verify hits against the point.
-		const cacheKey = Number(point.x & 0xffffffffn);
+		const cacheKey = key(point.x);
 		const cached = this.#cache.get(cacheKey);
 		if (cached !== undefined && mulUnsafe(H, cached).equals(point)) {
 			return { value: cached, cached: true };
 		}
 
 		for (const x of cosetX(point)) {
-			const candidates = this.#table.get(Number(x & 0xffffffffn));
-			if (candidates === undefined) continue;
-			for (const babyStepIndex of candidates) {
-				const result = BigInt(babyStepIndex);
-				if (mulUnsafe(H, result).equals(point)) {
+			const target = key(x);
+			// Scan the run of entries sharing this key.
+			for (
+				let j = this.#lowerBound(target);
+				j < this.#keys.length && this.#keys[j] === target;
+				j++
+			) {
+				const value = BigInt(this.#values[j]);
+				if (mulUnsafe(H, value).equals(point)) {
 					if (this.#cache.size >= DiscreteLogTable.MAX_CACHE_SIZE) {
 						// FIFO eviction: Map iteration is insertion-ordered.
 						const oldest = this.#cache.keys().next().value;
 						if (oldest !== undefined) this.#cache.delete(oldest);
 					}
-					this.#cache.set(cacheKey, result);
-					return { value: result, cached: false };
+					this.#cache.set(cacheKey, value);
+					return { value, cached: false };
 				}
 			}
 		}
@@ -334,13 +415,13 @@ export class Ciphertext {
 	 */
 	decryptWithInverse(privateKeyInverse: bigint, table: DiscreteLogTable): bigint {
 		const start = performance.now();
-		const c = this.ciphertext.subtract(mul(this.decryptionHandle, privateKeyInverse));
 
 		// Giant-step loop: subtract tableSize*H each iteration, look up
 		// the remainder in the baby-step table. Small values (common case
 		// for u16 limbs) are found on the first lookup with no subtraction.
 		const tableSize = BigInt(table.tableSize);
-		let point = c;
+		// Client-side balance decryption is not constant-time; mulUnsafe matches lookup verification.
+		let point = this.ciphertext.subtract(mulUnsafe(this.decryptionHandle, privateKeyInverse));
 		for (let g = 0n; g < tableSize; g++) {
 			const hit = table.lookup(point);
 			if (hit !== undefined) {
@@ -424,11 +505,19 @@ export class EncryptedAmount {
 	 * into place: `l0 + 2^16 * l1 + 2^32 * l2 + 2^48 * l3`.
 	 */
 	decrypt(privateKey: PrivateKey, table: DiscreteLogTable): bigint {
-		const inv = ristretto255.Point.Fn.inv(privateKey);
-		const d0 = this.l0.decryptWithInverse(inv, table);
-		const d1 = this.l1.decryptWithInverse(inv, table);
-		const d2 = this.l2.decryptWithInverse(inv, table);
-		const d3 = this.l3.decryptWithInverse(inv, table);
+		return this.decryptWithInverse(ristretto255.Point.Fn.inv(privateKey), table);
+	}
+
+	/**
+	 * Like {@link decrypt}, but takes a precomputed scalar-field inverse
+	 * of the private key so that callers decrypting many limbs under the
+	 * same key invert once and reuse the result.
+	 */
+	decryptWithInverse(privateKeyInverse: bigint, table: DiscreteLogTable): bigint {
+		const d0 = this.l0.decryptWithInverse(privateKeyInverse, table);
+		const d1 = this.l1.decryptWithInverse(privateKeyInverse, table);
+		const d2 = this.l2.decryptWithInverse(privateKeyInverse, table);
+		const d3 = this.l3.decryptWithInverse(privateKeyInverse, table);
 		return d0 + (d1 << 16n) + (d2 << 32n) + (d3 << 48n);
 	}
 }
@@ -497,5 +586,13 @@ export class MultiRecipientEncryption {
 	 */
 	decrypt(index: number, privateKey: PrivateKey, table: DiscreteLogTable): bigint {
 		return this.#ciphertextFor(index).decrypt(privateKey, table);
+	}
+
+	/**
+	 * Like {@link decrypt}, but takes a precomputed scalar-field inverse
+	 * of the recipient private key.
+	 */
+	decryptWithInverse(index: number, privateKeyInverse: bigint, table: DiscreteLogTable): bigint {
+		return this.#ciphertextFor(index).decryptWithInverse(privateKeyInverse, table);
 	}
 }

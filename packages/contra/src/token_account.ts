@@ -2,6 +2,8 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
+import { ristretto255 } from '@noble/curves/ed25519.js';
+
 import { dst, newSessionId, PROTOCOL_VERIFIED_DEC } from './helpers.js';
 import type { DdhTupleNizk } from './nizk.js';
 import { assertNonZeroScalar, G, mul, randomScalar } from './ristretto255.js';
@@ -20,8 +22,8 @@ import type { ContraPackageConfig } from './types.js';
  * package config, and the twisted ElGamal private key used for
  * on-chain encryption/decryption.
  *
- * The public key is derived on the fly as `G * privateKey` when
- * needed, so only the scalar private key is stored.
+ * The public key and scalar-field inverse are derived lazily and cached;
+ * the private key is immutable after construction.
  *
  * If no `privateKey` is supplied at construction time, a fresh one is
  * generated automatically.
@@ -32,6 +34,10 @@ export class TokenAccount {
 	readonly privateKey: PrivateKey;
 	// Will be static per network in the future.
 	readonly #packageConfig: ContraPackageConfig;
+	#publicKey?: PublicKey;
+	#cachedPrivateKeyInverse?: bigint;
+	#sessionId?: Uint8Array;
+	#dstCache = new Map<number, Uint8Array>();
 
 	constructor(
 		address: string,
@@ -46,9 +52,15 @@ export class TokenAccount {
 		this.privateKey = privateKey ?? randomScalar();
 	}
 
-	/** Derive the public key as `G * privateKey`. */
+	/** Derive the public key as `G * privateKey`, cached after the first access. */
 	get publicKey(): PublicKey {
-		return mul(G, this.privateKey);
+		this.#publicKey ??= mul(G, this.privateKey);
+		return this.#publicKey;
+	}
+
+	#getPrivateKeyInverse(): bigint {
+		this.#cachedPrivateKeyInverse ??= ristretto255.Point.Fn.inv(this.privateKey);
+		return this.#cachedPrivateKeyInverse;
 	}
 
 	/**
@@ -56,7 +68,12 @@ export class TokenAccount {
 	 * (address, tokenType) account: `TokenAccount<tokenType>.id.bytes[..20] ‖ protocolId`.
 	 */
 	dst(protocolId: number): Uint8Array {
-		return dst(newSessionId(this.#packageConfig, this.address, this.tokenType), protocolId);
+		let cached = this.#dstCache.get(protocolId);
+		if (cached !== undefined) return cached;
+		this.#sessionId ??= newSessionId(this.#packageConfig, this.address, this.tokenType);
+		cached = dst(this.#sessionId, protocolId);
+		this.#dstCache.set(protocolId, cached);
+		return cached;
 	}
 
 	/**
@@ -66,7 +83,7 @@ export class TokenAccount {
 	 * Convenience wrapper over `EncryptedAmount.decrypt(privateKey, table)`.
 	 */
 	decryptAmount(encryptedAmount: EncryptedAmount, table: DiscreteLogTable): bigint {
-		return encryptedAmount.decrypt(this.privateKey, table);
+		return encryptedAmount.decryptWithInverse(this.#getPrivateKeyInverse(), table);
 	}
 
 	/**
@@ -83,7 +100,7 @@ export class TokenAccount {
 		ciphertext: Ciphertext,
 		table: DiscreteLogTable,
 	): { value: bigint; proof: DdhTupleNizk } {
-		const value = ciphertext.decrypt(this.privateKey, table);
+		const value = ciphertext.decryptWithInverse(this.#getPrivateKeyInverse(), table);
 		const verifiedDecDst = this.dst(PROTOCOL_VERIFIED_DEC);
 		const proof = ciphertext.proveDecryption(
 			verifiedDecDst,

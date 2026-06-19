@@ -213,6 +213,30 @@ describe('twisted elgamal', () => {
 			const { ciphertext } = Ciphertext.encrypt(pk, 200n);
 			expect(ciphertext.decrypt(sk, smallTable)).toEqual(200n);
 		});
+
+		it('createAsync produces equivalent table', async () => {
+			const [pk, sk] = generateKeyPair();
+			const workerUrl = new URL(
+				'../../src/workers/compute_table_entries.worker.ts',
+				import.meta.url,
+			);
+			const tableAsync = await DiscreteLogTable.createAsync(8, { workerUrl });
+			const tableSync = DiscreteLogTable.create(8);
+			const { ciphertext } = Ciphertext.encrypt(pk, 12345n);
+			expect(ciphertext.decrypt(sk, tableAsync)).toEqual(ciphertext.decrypt(sk, tableSync));
+		});
+	});
+
+	it('EncryptedAmount.decryptWithInverse matches decrypt', () => {
+		const [pk, sk] = generateKeyPair();
+		const amount = new EncryptedAmount(
+			Ciphertext.encrypt(pk, 100n).ciphertext,
+			Ciphertext.encrypt(pk, 200n).ciphertext,
+			Ciphertext.encrypt(pk, 3n).ciphertext,
+			Ciphertext.encrypt(pk, 1n).ciphertext,
+		);
+		const inv = ristretto255.Point.Fn.inv(sk);
+		expect(amount.decryptWithInverse(inv, table)).toEqual(amount.decrypt(sk, table));
 	});
 
 	describe('MultiRecipientEncryption', () => {
@@ -222,6 +246,15 @@ describe('twisted elgamal', () => {
 			const blinding = randomScalar();
 			const ct = MultiRecipientEncryption.encrypt([pk], value, blinding);
 			expect(ct.decrypt(0, sk, table)).toEqual(value);
+		});
+
+		it('decryptWithInverse matches decrypt', () => {
+			const [pk, sk] = generateKeyPair();
+			const value = 1337n;
+			const blinding = randomScalar();
+			const ct = MultiRecipientEncryption.encrypt([pk], value, blinding);
+			const inv = ristretto255.Point.Fn.inv(sk);
+			expect(ct.decryptWithInverse(0, inv, table)).toEqual(ct.decrypt(0, sk, table));
 		});
 
 		it('multiple recipients: each recovers same plaintext', () => {

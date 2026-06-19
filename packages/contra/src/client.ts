@@ -2,6 +2,7 @@
 // Copyright (c) The Social Proof Foundation, LLC.
 // SPDX-License-Identifier: Apache-2.0
 
+import { ristretto255 } from '@noble/curves/ed25519.js';
 import { bcs } from '@socialproof/myso/bcs';
 import type {
 	Transaction,
@@ -9,7 +10,6 @@ import type {
 	TransactionResult,
 } from '@socialproof/myso/transactions';
 import { deriveObjectID, normalizeMySoAddress } from '@socialproof/myso/utils';
-import { ristretto255 } from '@noble/curves/ed25519.js';
 
 import { getBulletproofs, type BatchRangeProver, type Bulletproofs } from './bp.js';
 import * as contraContracts from './contracts/contra/contra.js';
@@ -116,6 +116,15 @@ export class ContraClient {
 	#getBulletproofs(): Promise<Bulletproofs> {
 		this.#bulletproofs ??= getBulletproofs(this.#wasmUrl);
 		return this.#bulletproofs;
+	}
+
+	/**
+	 * Prefetch and cache the bulletproofs WASM module so the first
+	 * transfer/register/unwrap does not pay cold-start latency.
+	 * Safe to call multiple times; subsequent calls are no-ops.
+	 */
+	async warmUpProofs(): Promise<void> {
+		await this.#getBulletproofs();
 	}
 
 	/** Return the shared confidential token object ID for the given token type. */
@@ -247,16 +256,17 @@ export class ContraClient {
 		const parsed = TokenAccountField.parse(object.content).value;
 		const balanceCiphertext = EncryptedAmount.fromBcs(parsed.active.amount);
 		const pendingCiphertext = EncryptedAmount.fromBcs(parsed.pending.amount);
+		const skInv = ristretto255.Point.Fn.inv(sk);
 
 		return {
 			balance: {
 				ciphertext: balanceCiphertext,
-				amount: balanceCiphertext.decrypt(sk, this.#table),
+				amount: balanceCiphertext.decryptWithInverse(skInv, this.#table),
 				upperBound: parsed.active.upper_bound,
 			},
 			pending: {
 				ciphertext: pendingCiphertext,
-				amount: pendingCiphertext.decrypt(sk, this.#table),
+				amount: pendingCiphertext.decryptWithInverse(skInv, this.#table),
 				upperBound: parsed.pending.upper_bound,
 			},
 			// `public_balance` is a `PublicCoin` — its `value` is the pending public deposit total.
@@ -903,21 +913,9 @@ export class ContraClient {
 			}
 
 			const { encryptedAmount: restatedBalance, wellFormedProof: restatedBalanceProof } =
-				buildEncryptedAmountAndProof(
-					batchRangeProver,
-					tx,
-					pid,
-					newBalanceUnderOldPk,
-					elgamalDst,
-				);
+				buildEncryptedAmountAndProof(batchRangeProver, tx, pid, newBalanceUnderOldPk, elgamalDst);
 			const { encryptedAmount: newBalance, wellFormedProof: newBalanceProof } =
-				buildEncryptedAmountAndProof(
-					batchRangeProver,
-					tx,
-					pid,
-					newBalanceUnderNewPk,
-					elgamalDst,
-				);
+				buildEncryptedAmountAndProof(batchRangeProver, tx, pid, newBalanceUnderNewPk, elgamalDst);
 			return tx.add(
 				contraContracts.trySetPublicKeyAndUnpause({
 					package: pid,
@@ -1464,13 +1462,7 @@ export class ContraClient {
 			// If the transfer no-op'd on a race, the restate fails and this no-ops too — leaving the
 			// account paused + merged so the caller just retries the transfer + rotation.
 			const { encryptedAmount: restatedEa, wellFormedProof: restatedEaProof } =
-				buildEncryptedAmountAndProof(
-					batchRangeProver,
-					tx,
-					pid,
-					restateUnderOldPk,
-					elgamalDst,
-				);
+				buildEncryptedAmountAndProof(batchRangeProver, tx, pid, restateUnderOldPk, elgamalDst);
 			const { encryptedAmount: newEa, wellFormedProof: newEaProof } = buildEncryptedAmountAndProof(
 				batchRangeProver,
 				tx,

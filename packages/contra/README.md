@@ -27,8 +27,8 @@ Contra uses the MySo client extension pattern. Create a client, extend it with `
 access methods via `client.contra`.
 
 ```ts
-import { MySoGrpcClient } from '@socialproof/myso/grpc';
 import { contra, DiscreteLogTable, TokenAccount } from '@socialproof/contra';
+import { MySoGrpcClient } from '@socialproof/myso/grpc';
 
 const packageConfig = {
 	packageId: '0x...',
@@ -36,7 +36,8 @@ const packageConfig = {
 	tokenRegistryId: '0x...',
 };
 
-// Used to decrypt limb-sized ciphertexts off-chain.
+// Used to decrypt limb-sized ciphertexts off-chain. Blocks the event loop
+// while building (~100ms+ at numBits=16); fine for Node scripts and servers.
 const table = DiscreteLogTable.create(16);
 
 const client = new MySoGrpcClient({
@@ -44,6 +45,23 @@ const client = new MySoGrpcClient({
 	baseUrl: 'https://fullnode.devnet.mysocial.network:443',
 }).$extend(contra({ packageConfig, table }));
 ```
+
+**Browser apps** should build the table off the main thread and optionally prefetch WASM
+before the first transfer:
+
+```ts
+const table = await DiscreteLogTable.createAsync(16);
+
+const client = new MySoGrpcClient({
+	/* ... */
+}).$extend(contra({ packageConfig, table }));
+
+await client.contra.warmUpProofs();
+```
+
+`createAsync` auto-resolves the worker script when `Worker` is available. In environments
+without workers (some SSR/edge runtimes), it falls back to synchronous `create` with the same
+result. Node.js can use either API; `create(16)` remains the simpler default for CLI/server code.
 
 Each user also needs a `TokenAccount` — a client-side object that holds the twisted ElGamal key
 pair for a `(address, tokenType)` pair:
@@ -54,8 +72,37 @@ const tokenAccount = new TokenAccount(userAddress, '0x2::sui::SUI', packageConfi
 
 ### Browser bundlers
 
+Browser startup checklist — discrete-log table worker, bulletproofs WASM, and optional prefetch:
+
+```ts
+const table = await DiscreteLogTable.createAsync(16, {
+	// Only if your bundler cannot resolve the default worker subpath:
+	workerUrl: new URL('@socialproof/contra/workers/compute-table-entries', import.meta.url),
+});
+
+const client = new MySoGrpcClient({
+	/* ... */
+}).$extend(
+	contra({
+		packageConfig,
+		table,
+		wasmUrl: new URL(
+			'@socialproof/contra-bulletproofs-wasm/web/contra_bulletproofs_wasm_bg.wasm',
+			import.meta.url,
+		),
+	}),
+);
+
+await client.contra.warmUpProofs();
+```
+
+- **`workerUrl`** — override when the bundler cannot locate `@socialproof/contra/workers/compute-table-entries` (same pattern as `wasmUrl` below).
+- **`wasmUrl`** — explicit URL for the bulletproofs `.wasm` asset when the bundler cannot locate it automatically. In Node this is ignored.
+- **`warmUpProofs()`** — prefetch bulletproofs WASM after client creation so the first `register` / `transfer` / `unwrap` is not delayed by cold start. Safe to call multiple times; optional in Node.
+- **`DiscreteLogTable.create(16)`** — still valid everywhere, including browser apps that already block on startup.
+
 Proof generation uses WASM from `@socialproof/contra-bulletproofs-wasm`. In Node the asset is
-resolved automatically. In the browser, pass an explicit URL if your bundler cannot locate it:
+resolved automatically. Minimal WASM-only override:
 
 ```ts
 contra({
@@ -118,12 +165,12 @@ regTx.setSender(tokenAccount.address);
 
 ### Core flows
 
-| Flow | Method | Description |
-| --- | --- | --- |
-| Wrap | `wrap` | Move public coins into a receiver's pending balance |
-| Merge | `updateBalance` | Merge pending deposits into the active encrypted balance |
-| Transfer | `transfer` / `transferBatch` | Confidential transfer to one or more recipients (max 7) |
-| Unwrap | `unwrap` | Convert confidential balance back into a public `Coin<T>` |
+| Flow     | Method                       | Description                                               |
+| -------- | ---------------------------- | --------------------------------------------------------- |
+| Wrap     | `wrap`                       | Move public coins into a receiver's pending balance       |
+| Merge    | `updateBalance`              | Merge pending deposits into the active encrypted balance  |
+| Transfer | `transfer` / `transferBatch` | Confidential transfer to one or more recipients (max 7)   |
+| Unwrap   | `unwrap`                     | Convert confidential balance back into a public `Coin<T>` |
 
 **Wrap** public coins into confidential balance:
 
@@ -168,8 +215,7 @@ tx.transferObjects([coin], recipientAddress);
 ### Reading state
 
 ```ts
-const { balance, pending, pendingPublicBalance } =
-	await client.contra.getBalance(tokenAccount);
+const { balance, pending, pendingPublicBalance } = await client.contra.getBalance(tokenAccount);
 
 const pk = await client.contra.getPublicKey(userAddress, tokenType);
 
@@ -207,9 +253,7 @@ const auditor = new ContraAuditor({
 	packageConfig,
 	tokenType: '0x2::sui::SUI',
 	table,
-	auditorKeyForVersion: new Map([
-		[1, { index: 0, privateKey: auditorSk }],
-	]),
+	auditorKeyForVersion: new Map([[1, { index: 0, privateKey: auditorSk }]]),
 });
 
 const recovered = await auditor.getTokenAccount(userAddress);
@@ -221,6 +265,7 @@ const balance = await client.contra.getBalance(recovered);
 The package also exports cryptographic primitives for advanced use cases:
 
 - `EncryptedAmount`, `Ciphertext`, `MultiRecipientEncryption` — twisted ElGamal types
+- `EncryptedAmount.decryptWithInverse`, `MultiRecipientEncryption.decryptWithInverse`, `Ciphertext.decryptWithInverse` — decrypt many ciphertexts under the same key with one `ristretto255.Point.Fn.inv(sk)` call
 - `KeyEncryption`, `ElGamalNizk`, `DdhTupleNizk`, `KeyConsistencyProof` — proof types
 - `contraContracts`, `eventsContracts` — generated Move bindings
 - `G`, `randomScalar`, `pointFromBcs` — Ristretto255 helpers

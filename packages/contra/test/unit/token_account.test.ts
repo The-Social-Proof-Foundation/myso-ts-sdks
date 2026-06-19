@@ -38,6 +38,19 @@ describe('TokenAccount.decryptWithProof', () => {
 		).toBe(true);
 	});
 
+	it('publicKey is cached across accesses', () => {
+		const account = new TokenAccount(address, tokenType, DUMMY_CONFIG);
+		expect(account.publicKey).toBe(account.publicKey);
+	});
+
+	it('dst is cached per protocolId', () => {
+		const account = new TokenAccount(address, tokenType, DUMMY_CONFIG);
+		const first = account.dst(PROTOCOL_VERIFIED_DEC);
+		const second = account.dst(PROTOCOL_VERIFIED_DEC);
+		expect(first).toBe(second);
+		expect(account.dst(PROTOCOL_VERIFIED_DEC - 1)).not.toBe(first);
+	});
+
 	it('Ciphertext: proof rejects a tampered claimed value', () => {
 		const account = new TokenAccount(address, tokenType, DUMMY_CONFIG);
 		const { ciphertext } = Ciphertext.encrypt(account.publicKey, 42n);

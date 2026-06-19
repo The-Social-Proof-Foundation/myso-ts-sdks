@@ -14,11 +14,11 @@
  * no-op), while bundlers pick the `web` build that needs an explicit `init`.
  */
 
+import { ristretto255 } from '@noble/curves/ed25519.js';
 import init, {
 	batchRangeProof as wasmBatchRangeProof,
 	verifyBatchRangeProof as wasmVerifyBatchRangeProof,
 } from '@socialproof/contra-bulletproofs-wasm';
-import { ristretto255 } from '@noble/curves/ed25519.js';
 
 import { ContraInternalError } from './error.js';
 import { scalarToBytes, type RistrettoPoint } from './ristretto255.js';
