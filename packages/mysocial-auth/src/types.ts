@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /** OAuth provider options for Login with MySocial. Use 'none' for home screen (user picks provider). */
-export type AuthProvider = 'google' | 'apple' | 'facebook' | 'twitch' | 'none';
+export type AuthProvider = 'google' | 'apple' | 'none';
 
 /** Auth flow mode: popup (opens window) or redirect (navigates away) */
 export type AuthMode = 'popup' | 'redirect';
@@ -158,12 +158,10 @@ export interface ExchangeResponse {
 	user?: AuthUser;
 }
 
-/** Refresh response - user optional; preserve from existing session when omitted */
+/** Rotated MySocial session response. */
 export interface RefreshResponse {
-	access_token: string;
-	/** API Bearer JWT when distinct from access_token; otherwise clients use access_token. */
-	session_access_token?: string;
-	refresh_token?: string;
+	session_access_token: string;
+	refresh_token: string;
 	id_token?: string;
 	expires_in: number;
 	user?: AuthUser;

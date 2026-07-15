@@ -71,7 +71,7 @@ await auth.signOut();
 
 ### auth.signIn(options?)
 
-- `provider?`: 'google' | 'apple' | 'facebook' | 'twitch' | 'none' (default 'none' = home screen)
+- `provider?`: 'google' | 'apple' | 'none' (default 'none' = hosted provider picker)
 - `mode?`: 'popup' | 'redirect' (default: 'popup')
 - `onWalletCredentials?`: Opt-in callback for Create/Import Wallet flow. Receives
   `{ address, mnemonic?, privateKey? }` ephemerally. **SECURITY: Never persist.** Handle immediately
@@ -181,7 +181,7 @@ before calling protected endpoints; redirect to full auth or show appropriate UI
 ## Hosted UI Contract (auth.mysocial.network)
 
 The SDK passes `return_origin`, `code_challenge_method: S256`, and `provider` in the login URL
-params. `provider` is never empty: `'google'`, `'apple'`, `'facebook'`, `'twitch'`, or `'none'`
+params. `provider` is never empty: `'google'`, `'apple'`, or `'none'`
 (home screen). The auth frontend generates PKCE server-side; the package does not send
 code_challenge. `return_origin` must match the dApp's origin (`window.location.origin`) so the auth
 server can post the auth result to the correct target. The auth server uses `return_origin` as the
@@ -192,6 +192,30 @@ The popup page must call:
 ```javascript
 window.opener.postMessage(payload, validatedTargetOrigin); // targetOrigin, NOT "*"
 ```
+
+### Native iOS direct-provider flow
+
+Native apps should open the hosted login URL with `ASWebAuthenticationSession`. Use
+`provider=google` or `provider=apple` to bypass the hosted picker while keeping provider-specific
+buttons in the app. Provider credentials and provider-token exchange remain inside MySocial.
+
+```text
+https://auth.testnet.mysocial.network/login
+?client_id=dripdrop-platform-id
+&redirect_uri=https%3A%2F%2Fdripdrop.social%2Fauth%2Fcallback
+&state=<cryptographically-random-state>
+&nonce=<cryptographically-random-nonce>
+&return_origin=https%3A%2F%2Fdripdrop.social
+&mode=redirect
+&provider=google
+&code_challenge_method=S256
+```
+
+The HTTPS callback returns `code`, `salt`, `address`, `sub`, `state`, `nonce`, and `clientId` in
+the query. It returns `session_access_token`, `refresh_token`, and `expires_in` in the fragment.
+Native clients must validate the callback host/path, state, nonce, and client ID; require all
+session and identity fields; derive `SHA256(sub + "_" + salt)` as the Ed25519 seed; and verify the
+derived address before storing credentials. Native clients must not decode Google or Apple tokens.
 
 **Success payload (MYSOCIAL_AUTH_RESULT is the final result; no exchange needed):**
 
@@ -267,7 +291,7 @@ does not call `/auth/exchange`. `MYSOCIAL_AUTH_RESULT` is the final result: `cod
 - `POST ${apiBaseUrl}/auth/request` (optional): `{ client_id, redirect_uri, return_origin }` →
   `{ request_id }`
 - `POST ${apiBaseUrl}/auth/refresh`: `{ refresh_token }` →
-  `{ access_token, refresh_token?, expires_in, user? }`. 401 = revoked; 429 = rate limited
+  `{ session_access_token, refresh_token, expires_in, user: { address } }`. 401 = revoked; 429 = rate limited
   (~10/min).
 - `POST ${apiBaseUrl}/auth/logout`: `{ refresh_token }` (send when available to revoke server-side)
 

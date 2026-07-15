@@ -57,7 +57,7 @@ describe('exchange', () => {
 
 	it('refreshTokens sends refresh_token and returns session', async () => {
 		const mockSession = {
-			access_token: 'at2',
+			session_access_token: 'at2',
 			refresh_token: 'rt2',
 			expires_in: 3600,
 			user: { id: 'u1' },
@@ -81,11 +81,10 @@ describe('exchange', () => {
 		expect(session.sub).toBe('u1');
 	});
 
-	it('refreshTokens uses session_access_token when distinct from access_token', async () => {
+	it('refreshTokens uses the rotated MySocial token as the API bearer', async () => {
 		vi.mocked(fetch).mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
-				access_token: 'oauth-at',
 				session_access_token: 'jwt-at',
 				refresh_token: 'rt2',
 				expires_in: 3600,
@@ -95,13 +94,13 @@ describe('exchange', () => {
 
 		const session = await refreshTokens('https://api.test', 'rt1');
 
-		expect(session.access_token).toBe('oauth-at');
+		expect(session.access_token).toBe('jwt-at');
 		expect(session.session_access_token).toBe('jwt-at');
 	});
 
 	it('refreshTokens returns id_token when backend includes it', async () => {
 		const mockSession = {
-			access_token: 'at2',
+			session_access_token: 'at2',
 			refresh_token: 'rt2',
 			id_token: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1MSJ9.sig',
 			expires_in: 3600,
@@ -206,7 +205,7 @@ describe('exchange', () => {
 		vi.mocked(fetch).mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
-				access_token: 'at2',
+				session_access_token: 'at2',
 				refresh_token: 'rt2',
 				expires_in: 1800,
 			}),

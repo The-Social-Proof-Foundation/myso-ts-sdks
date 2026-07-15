@@ -62,6 +62,28 @@ describe('createMySocialAuth', () => {
 		expect(session).toBeNull();
 	});
 
+	it.each([
+		['google', 'google'],
+		['apple', 'apple'],
+	] as const)('redirect sign-in sends mode=redirect and provider=%s', (provider, expected) => {
+		const auth = createMySocialAuth({
+			apiBaseUrl: 'https://api.test',
+			authOrigin: 'https://auth.test',
+			clientId: 'dripdrop-platform-id',
+			redirectUri: 'https://dripdrop.social/auth/callback',
+		});
+
+		void auth.signIn({ mode: 'redirect', provider });
+		const url = new URL(window.location.href);
+		expect(url.pathname).toBe('/login');
+		expect(url.searchParams.get('mode')).toBe('redirect');
+		expect(url.searchParams.get('provider')).toBe(expected);
+		expect(url.searchParams.get('client_id')).toBe('dripdrop-platform-id');
+		expect(url.searchParams.get('redirect_uri')).toBe(
+			'https://dripdrop.social/auth/callback',
+		);
+	});
+
 	it('onAuthStateChange returns unsubscribe', () => {
 		const auth = createMySocialAuth({
 			apiBaseUrl: 'https://api.test',
@@ -356,7 +378,7 @@ describe('createMySocialAuth', () => {
 		vi.mocked(fetch).mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
-				access_token: 'at-new',
+				session_access_token: 'at-new',
 				refresh_token: 'rt2',
 				expires_in: 1800,
 				user: { id: 'u1' },
@@ -505,7 +527,7 @@ describe('createMySocialAuth', () => {
 		vi.mocked(fetch).mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
-				access_token: 'at-new',
+				session_access_token: 'at-new',
 				refresh_token: 'rt2',
 				expires_in: 1800,
 			}),
@@ -546,7 +568,7 @@ describe('createMySocialAuth', () => {
 		vi.mocked(fetch).mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
-				access_token: 'at-new',
+				session_access_token: 'at-new',
 				refresh_token: 'rt2',
 				expires_in: 3600,
 				user: { id: 'u1' },
