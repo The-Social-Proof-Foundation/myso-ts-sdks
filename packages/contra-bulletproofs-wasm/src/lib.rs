@@ -6,12 +6,29 @@
 //! `myso::rangeproofs::verify_bulletproofs_with_dst_ristretto255`.
 
 use bulletproofs::{BulletproofGens, PedersenGens, RangeProof as ExternalRangeProof};
+use curve25519_dalek::constants::RISTRETTO_BASEPOINT_POINT;
 use curve25519_dalek::ristretto::CompressedRistretto;
 use curve25519_dalek::scalar::Scalar;
 use merlin::Transcript;
 use wasm_bindgen::prelude::*;
 
 const MAX_DST_LEN: usize = 64;
+
+/// Value on Contra's H, blinding on G. Must match the version-1 native.
+fn contra_pedersen_gens() -> PedersenGens {
+    const H: [u8; 32] = [
+        0x34, 0xce, 0x14, 0x77, 0xc1, 0x45, 0x58, 0x17, 0x80, 0x89, 0x50, 0x0a, 0x39, 0xc8, 0x64,
+        0xe0, 0xf6, 0x07, 0xb3, 0xc1, 0xf4, 0x1a, 0xb3, 0x98, 0x40, 0x0e, 0x4a, 0x9d, 0xe6, 0xd2,
+        0xc4, 0x46,
+    ];
+    let h = CompressedRistretto(H)
+        .decompress()
+        .expect("Contra H is a valid ristretto point");
+    PedersenGens {
+        B: h,
+        B_blinding: RISTRETTO_BASEPOINT_POINT,
+    }
+}
 
 fn transcript_label(dst: &[u8]) -> &'static [u8] {
     Box::leak(dst.to_vec().into_boxed_slice())
@@ -65,7 +82,7 @@ pub fn range_proof(
     validate_dst(dst)?;
     let bits = bits_for_range(range_from_bits(bit_size)?);
     let blinding = blinding_from_bytes(blinding)?;
-    let pc_gens = PedersenGens::default();
+    let pc_gens = contra_pedersen_gens();
     let bp_gens = BulletproofGens::new(bits, 1);
     let mut prover_transcript = Transcript::new(transcript_label(dst));
     let (proof, _) = ExternalRangeProof::prove_single_with_rng(
@@ -109,7 +126,7 @@ pub fn batch_range_proof(
         .map(blinding_from_bytes)
         .collect::<Result<_, _>>()?;
 
-    let pc_gens = PedersenGens::default();
+    let pc_gens = contra_pedersen_gens();
     let bp_gens = BulletproofGens::new(bits, n);
     let mut prover_transcript = Transcript::new(transcript_label(dst));
     let (proof, _) = ExternalRangeProof::prove_multiple_with_rng(
@@ -152,7 +169,7 @@ pub fn verify_range_proof(
     let proof = ExternalRangeProof::from_bytes(proof)
         .map_err(|e| JsError::new(&format!("invalid proof bytes: {e:?}")))?;
     let commitment = commitment_from_bytes(commitment)?;
-    let pc_gens = PedersenGens::default();
+    let pc_gens = contra_pedersen_gens();
     let bp_gens = BulletproofGens::new(bits, 1);
     let mut verifier_transcript = Transcript::new(transcript_label(dst));
     Ok(proof
@@ -189,7 +206,7 @@ pub fn verify_batch_range_proof(
     let compressed = compressed?;
     let proof = ExternalRangeProof::from_bytes(proof)
         .map_err(|e| JsError::new(&format!("invalid proof bytes: {e:?}")))?;
-    let pc_gens = PedersenGens::default();
+    let pc_gens = contra_pedersen_gens();
     let bp_gens = BulletproofGens::new(bits, n);
     let mut verifier_transcript = Transcript::new(transcript_label(dst));
     Ok(proof
