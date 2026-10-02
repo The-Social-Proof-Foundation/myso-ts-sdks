@@ -2,7 +2,7 @@
 	"name": "@socialproof/contra",
 	"author": "The Social Proof Foundation <brandon@socialproof.foundation>",
 	"description": "MySo confidential transfers (Contra) client SDK",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"license": "Apache-2.0",
 	"type": "module",
 	"main": "./dist/index.mjs",
